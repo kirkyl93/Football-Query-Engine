@@ -10,7 +10,7 @@ const PlayerFilterScreen: React.FC = () => {
     const location = useLocation();
 
     const { selectedSeasons, selectedCompetitions, selectedPositions, selectedMinuteFrom, selectedMinuteTo, selectedMinAge, selectedMaxAge, 
-        selectedSubsOnly, selectedEarlistSubOnTime, selectedLatestSubOnTime, selectedSortBy } = useMemo(() => {
+        selectedSubsOnly, selectedEarlistSubOnTime, selectedLatestSubOnTime, selectedPenaltyOption, selectedSortBy } = useMemo(() => {
         const params = new URLSearchParams(location.search);
         return {
             selectedSeasons: params.get('seasons')?.split(',').map(Number) || [],
@@ -23,6 +23,7 @@ const PlayerFilterScreen: React.FC = () => {
             selectedSubsOnly: params.has('subonly'),
             selectedEarlistSubOnTime: params.get('earliestsub') ? parseInt(params.get('earliestsub')!, 10) : undefined,
             selectedLatestSubOnTime: params.get('latestsub') ? parseInt(params.get('latestsub')!, 10) : undefined,
+            selectedPenaltyOption: params.get("penalty") || "ip",
             selectedSortBy: params.get("sort") || "g",
         };
     }, [location.search]);
@@ -30,7 +31,7 @@ const PlayerFilterScreen: React.FC = () => {
 
     const handleFilterChange = (seasons: number[], competitions: string[], positions: string[], minuteFrom: number | undefined, minuteTo: number | undefined, 
         minAge: number | undefined, maxAge: number | undefined, subsOnly: boolean, earliestSubOnTime: number | undefined, 
-        latestSubOnTime: number | undefined, sortBy: string) => {
+        latestSubOnTime: number | undefined, penalties: string, sortBy: string) => {
         const params = new URLSearchParams();
         if (seasons.length > 0) {
             params.append('seasons', seasons.join(','));
@@ -71,6 +72,10 @@ const PlayerFilterScreen: React.FC = () => {
             params.append('latestsub', latestSubOnTime.toString());
         }
 
+        if (penalties) {
+            params.append('penalty', penalties);
+        }
+
         if (sortBy) {
             params.append('sort', sortBy);
         }
@@ -103,6 +108,7 @@ const PlayerFilterScreen: React.FC = () => {
                 subsOnly={selectedSubsOnly}
                 earliestSubOnTime={selectedEarlistSubOnTime}
                 latestSubOnTime={selectedLatestSubOnTime}
+                penalties={selectedPenaltyOption}
                 sortBy={selectedSortBy}
                 onFilterChange={handleFilterChange}
                 onClose={toggleDrawer}

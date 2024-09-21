@@ -13,10 +13,11 @@ interface FilterSortDrawerProps {
     subsOnly: boolean;
     earliestSubOnTime: number | undefined,
     latestSubOnTime: number | undefined,
+    penalties: string,
     sortBy: string;
     onFilterChange: (seasons: number[], competitions: string[], positions: string[],  minuteFrom: number | undefined, minuteTo: number | undefined,
         minAge: number | undefined, maxAge: number | undefined, subsOnly: boolean, earliestSubOnTime: number | undefined, 
-        latestSubOnTime: number | undefined, sortBy: string) => void;
+        latestSubOnTime: number | undefined, penalties: string, sortBy: string) => void;
     onClose: () => void;
 }
 
@@ -32,6 +33,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     subsOnly,
     earliestSubOnTime,
     latestSubOnTime,
+    penalties,
     sortBy,
     onFilterChange,
     onClose,
@@ -66,6 +68,12 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
 
     const minutes = Array.from({ length: 120 }, (_, i) => i + 1);
 
+    const penaltyOptions = [
+        { name: "Include penalties", id: "ip" },
+        { name: "Exclude penalties", id: "ep" },
+        { name: "Include only penalties", id: "op" }
+    ];
+
     const sortTypes = [
         { name: "Goals", id: "g"},
         { name: "Assists", id: "a"},
@@ -86,6 +94,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const [localSubsOnly, setLocalSubsOnly] = useState<boolean>(subsOnly);
     const [localEarliestSubOnTime, setLocalEarliestSubOnTime] = useState<number | undefined>(earliestSubOnTime);
     const [localLatestSubOnTime, setLocalLatestSubOnTime] = useState<number | undefined>(latestSubOnTime);
+    const [localPenalties, setLocalPenalties] = useState<string>(penalties);
     const [localSortBy, setLocalSortBy] = useState<string>(sortBy);
 
     const [isSeasonsOpen, setIsSeasonsOpen] = useState(false);
@@ -96,6 +105,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const [isMinutesOpen, setIsMinutesOpen] = useState(false);
     const [isAgeOpen, setIsAgeOpen] = useState(false);
     const [isSubstitutesOpen, setIsSubstitutesOpen] = useState(false);
+    const [isPenaltiesOpen, setIsPenaltiesOpen] = useState(false);
     const [isSortByOpen, setIsSortByOpen] = useState(false);
 
     const handleSeasonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,6 +163,10 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         setLocalLatestSubOnTime(e.target.value ? parseInt(e.target.value) : undefined);
     }
 
+    const handlePenaltyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLocalPenalties(e.target.value);
+    }
+
     const handleSortByChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLocalSortBy(e.target.value);
     }
@@ -160,7 +174,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const applyFilters = () => {
         if (filtersValidated()) {
             onFilterChange(localSelectedSeasons, localSelectedCompetitions, localSelectedPositions, localEarliestSubOnTime, localLatestSubOnTime,
-                localMinAge, localMaxAge, localSubsOnly, localEarliestSubOnTime, localLatestSubOnTime, localSortBy);
+                localMinAge, localMaxAge, localSubsOnly, localEarliestSubOnTime, localLatestSubOnTime, localPenalties, localSortBy);
             onClose();
         }
     };
@@ -375,6 +389,27 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                     )}
                     
                 </div>
+            
+            <div className='dropdown-section'>
+                <div className="dropdown-title" onClick={() => setIsPenaltiesOpen(!isPenaltiesOpen)}>
+                    Penalties {isPenaltiesOpen ? '▲' : '▼'}
+                </div>
+                {isPenaltiesOpen && (
+                    <div className='radio-group'>
+                        {penaltyOptions.map(option => (
+                            <label key={option.id}>
+                                <input
+                                    type="radio"
+                                    value={option.id}
+                                    checked={localPenalties === option.id}
+                                    onChange={handlePenaltyChange}
+                                />
+                                {option.name}
+                            </label>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             <div className="dropdown-section">
                 <div className="dropdown-title" onClick={() => setIsSortByOpen(!isSortByOpen)}>

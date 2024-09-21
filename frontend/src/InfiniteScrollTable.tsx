@@ -72,6 +72,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     const subsOnlyParam = params.has('subonly');
     const earliestSubOnTimeParam = params.get('earliestsub');
     const latestSubOnTimeParam = params.get('latestsub');
+    const penalties = params.get('penalty');
     const sortByParam = params.get('sort');
 
     if (seasonsParam) {
@@ -112,6 +113,10 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
     if (subsOnlyParam && latestSubOnTimeParam) {
       url += `&latestsub=${latestSubOnTimeParam}`;
+    }
+
+    if (penalties) {
+      url += `&penalty=${penalties}`;
     }
 
     if (sortByParam) {
