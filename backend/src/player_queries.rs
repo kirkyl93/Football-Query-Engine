@@ -1,21 +1,21 @@
 use actix_web::{
-    get, web::{self, Data, Path}, HttpResponse
+    get, web::{self, Path}, HttpResponse
 };
 use serde::{Deserialize, Serialize};
-use sqlx::{Postgres, QueryBuilder};
+use sqlx::{PgPool, Postgres, QueryBuilder};
 
-use crate::{player::{map_position_code_to_position, Player, PlayerSearchResult, PlayerSeasonByCompAndTeam}, AppState};
+use crate::player::{map_position_code_to_position, Player, PlayerSearchResult, PlayerSeasonByCompAndTeam};
 
 
 #[get("/players/{id}")]
-pub async fn fetch_player(state: Data<AppState>, path: Path<i32>) -> HttpResponse {
+pub async fn fetch_player(pool: web::Data<PgPool>, path: Path<i32>) -> HttpResponse {
     let id: i32 = path.into_inner();
     
     match sqlx::query_as::<_, Player>(
         "SELECT * from players WHERE player_id = $1"
     )
         .bind(id)
-        .fetch_all(&state.db)
+        .fetch_all(pool.get_ref())
         .await
         {
             Ok(player) => {
@@ -30,14 +30,14 @@ pub async fn fetch_player(state: Data<AppState>, path: Path<i32>) -> HttpRespons
 }
 
 #[get("players/{id}/season-stats")]
-pub async fn fetch_player_stats_by_season(state: Data<AppState>, path: Path<i32>) -> HttpResponse {
+pub async fn fetch_player_stats_by_season(pool: web::Data<PgPool>, path: Path<i32>) -> HttpResponse {
     let id: i32 = path.into_inner();
 
     match sqlx::query_as::<_, PlayerSeasonByCompAndTeam>(
         "SELECT * from player_season_by_comp_view WHERE player_id = $1 ORDER BY season"
     )
         .bind(id)
-        .fetch_all(&state.db)
+        .fetch_all(pool.get_ref())
         .await
         {
             Ok(seasons) => {
@@ -70,13 +70,11 @@ struct SearchParams {
 }
 
 #[get("/search")]
-pub async fn search(state: Data<AppState>, params: web::Query<SearchParams>) -> HttpResponse {
+pub async fn search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -> HttpResponse {
     let mut query = construct_search_query_from_params(&params);
 
-    println!("{}", query.sql());
-
     match query.build_query_as::<PlayerSearchResult>()
-    .fetch_all(&state.db)
+    .fetch_all(pool.get_ref())
     .await
     {
         Ok(players) => HttpResponse::Ok().json(players),

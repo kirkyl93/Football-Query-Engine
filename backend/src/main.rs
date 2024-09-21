@@ -4,14 +4,10 @@ mod countries;
 mod competitions;
 
 use actix_cors::Cors;
-use actix_web::{web::Data, App, HttpServer};
+use actix_web::{web::{self}, App, HttpServer};
 use dotenv::dotenv;
 use player_queries::{fetch_player, fetch_player_stats_by_season, search};
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-
-pub struct AppState {
-    db: Pool<Postgres>
-}
+use sqlx::postgres::PgPoolOptions;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -23,20 +19,14 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("Error building a connection pool");
 
-
-    let state = Data::new(AppState {
-        db: pool,
-    });
-
     HttpServer::new(move || {
         App::new()
         .wrap(
             Cors::default()
-                .allowed_origin("http://localhost:3000/")
-                .allow_any_origin()
+                .allowed_origin("http://localhost:3000")
                 .max_age(3600)
         )
-            .app_data(state.clone())
+            .app_data(web::Data::new(pool.clone()))
             .service(fetch_player)
             .service(fetch_player_stats_by_season)
             .service(search)

@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import './App.css';
-import InfiniteScrollTable, {  } from './InfiniteScrollTable';
 import PlayerScreen from './PlayerScreen';
 import Header from './Header';
 import PlayerFilterScreen from './PlayerFilterScreen';
