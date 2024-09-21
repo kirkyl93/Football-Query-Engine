@@ -1,0 +1,128 @@
+/* Import a stylish font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* Base font settings for the entire document */
+body {
+  font-family: 'Roboto', sans-serif; /* Apply the stylish font */
+}
+
+/* Container for the table to enable scrolling with fixed height */
+.table-container {
+  min-height: 400px;
+  overflow-y: auto; /* Enables vertical scrolling if content exceeds container height */
+  padding: 0 10px;
+  border: 1px solid #ddd; /* Optional: border around the container */
+  border-radius: 4px; /* Optional: rounded corners */
+  background-color: #f9f9f9; /* Light gray background color */ /* Table container takes up 50% of available width */
+  margin: 0 auto; /* Center the container horizontally */
+  width: fit-content;
+}
+
+/* Ensures the table takes full width of the container */
+.players-table {
+  width: 200%; /* Use full width of the container */
+}
+
+/* Table cells padding and border styling */
+.generic-table tbody tr td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Sticky table header styling */
+.generic-table thead th {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  top: 0; /* Sticks to the top of the table container */
+  z-index: 900; /* Less than the search bar */
+  background-color: #ffffff; /* Dark green background for the header */
+  color: rgb(8, 1, 1); /* White text color */
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+  text-align: left; /* Align text to the left */
+  font-weight: 900; /* Bold font for header */
+}
+
+/* Alternate row color for better readability */
+.generic-table tr:nth-child(even) {
+  background-color: #f2f2f2; /* Light gray background for even rows */
+}
+
+/* Styling for images within the table */
+.generic-table img {
+  width: 40px;
+  height: 50px;
+  border-radius: 0%; /* Circular images */
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+/* Link styling within the table */
+.generic-table a {
+  text-decoration: none;
+  color: #333; /* Dark gray color for links */
+  display: flex;
+  align-items: center;
+}
+
+/* Bold player names */
+.generic-table a span {
+  font-weight: 700; /* Bold font for player names */
+  color: #333; /* Dark gray color for player names */
+}
+
+/* Styling for loading message */
+.generic-table .loading {
+  text-align: center;
+  padding: 20px;
+  font-weight: bold;
+  color: #4CAF50; /* Match the header color */
+}
+
+
+.filter-button {
+  position: relative;
+  z-index: 10; /* Ensure buttons are above the checkboxes */
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.checkboxes-container {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  z-index: 5; /* Ensure checkboxes are behind the button */
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.seasons {
+  top: 50px; /* Adjust as needed */
+}
+
+.competitions {
+  top: 100px; /* Adjust as needed */
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+
+
+
