@@ -251,7 +251,7 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
         // Assists
         "a" => "SUM(a.assists) DESC, ".to_owned() + goals_calculation + "DESC, a.player_name",
         // Goals and Assists combined
-        "ga" => "SUM(a.assists) ".to_owned() + goals_calculation + "DESC, SUM(a.goals) DESC, a.player_name",
+        "ga" => "SUM(a.assists) + ".to_owned() + goals_calculation + "DESC, SUM(a.goals) DESC, a.player_name",
         // Appearances
         "ap" => "COUNT(*) DESC, SUM(a.minutes_played) DESC, a.player_name".to_string(),
         // Total minutes played
