@@ -310,7 +310,7 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
             WHEN a.yellow_cards >= 2 THEN 1
             ELSE 0
             END) DESC, SUM(a.yellow_cards) DESC, a.player_name".to_string(),
-        _ => "SUM(a.goals) DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name".to_string()
+        _ => goals_calculation.to_string() + "SUM(a.goals) DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name"
     };
 
     query.push(sort_clause);
