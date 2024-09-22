@@ -6,7 +6,7 @@ mod competitions;
 use actix_cors::Cors;
 use actix_web::{web::{self}, App, HttpServer};
 use dotenv::dotenv;
-use player_queries::{fetch_player, fetch_player_stats_by_season, search};
+use player_queries::{get_players, fetch_player, fetch_player_stats_by_season, search};
 use sqlx::postgres::PgPoolOptions;
 
 #[actix_web::main]
@@ -27,6 +27,7 @@ async fn main() -> std::io::Result<()> {
                 .max_age(3600)
         )
             .app_data(web::Data::new(pool.clone()))
+            .service(get_players)
             .service(fetch_player)
             .service(fetch_player_stats_by_season)
             .service(search)

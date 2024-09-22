@@ -7,6 +7,53 @@ use sqlx::{PgPool, Postgres, QueryBuilder};
 use crate::player::{map_position_code_to_position, Player, PlayerSearchResult, PlayerSeasonByCompAndTeam};
 
 
+
+#[derive(Deserialize)]
+struct ToolbarSearchParams {
+    page: Option<i32>,
+    limit: Option<i32>,
+    search_name: Option<String>
+}
+
+#[get("/players")]
+pub async fn get_players(pool: web::Data<PgPool>, params: web::Query<ToolbarSearchParams>) -> HttpResponse {
+    let search_name = params.search_name.as_deref().unwrap_or("");
+    let limit = params.limit.unwrap_or(10);
+    let page = params.page.unwrap_or(0);
+
+    let mut query = QueryBuilder::new("SELECT * FROM players ");
+
+    if !search_name.is_empty() {
+        let names: Vec<&str> = search_name.split_whitespace().collect();
+        let count = names.len();
+        
+        query.push("WHERE ");
+        for (i, name) in names.iter().enumerate() {
+            query.push("player_code iLIKE ");
+            let like_pattern = format!("%{}%", name);
+            query.push_bind(like_pattern);
+            if i < count - 1 {
+                query.push(" AND ");
+            }
+        }
+    }
+
+    query.push( " ORDER BY highest_market_value_in_eur DESC NULLS LAST, name");
+
+    add_limit_and_offset_to_query(&mut query, limit, page);
+
+    match query.build_query_as::<Player>()
+    .fetch_all(pool.get_ref())
+    .await
+    {
+        Ok(players) => HttpResponse::Ok().json(players),
+        Err(err) => {
+            println!("{:?}", err.as_database_error());
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }   
+}
+
 #[get("/players/{id}")]
 pub async fn fetch_player(pool: web::Data<PgPool>, path: Path<i32>) -> HttpResponse {
     let id: i32 = path.into_inner();
