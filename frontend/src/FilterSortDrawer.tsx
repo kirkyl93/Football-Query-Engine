@@ -173,7 +173,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
 
     const applyFilters = () => {
         if (filtersValidated()) {
-            onFilterChange(localSelectedSeasons, localSelectedCompetitions, localSelectedPositions, localEarliestSubOnTime, localLatestSubOnTime,
+            onFilterChange(localSelectedSeasons, localSelectedCompetitions, localSelectedPositions, localMinuteFrom, localMinuteTo,
                 localMinAge, localMaxAge, localSubsOnly, localEarliestSubOnTime, localLatestSubOnTime, localPenalties, localSortBy);
             onClose();
         }
@@ -182,6 +182,11 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const filtersValidated = () => {
         if (localMinAge !== undefined && localMaxAge !== undefined && localMinAge > localMaxAge) {
             alert("Max age should be greater than or equal to Min age");
+            return false;
+        }
+
+        if (localMinuteFrom !== undefined && localMinuteTo !== undefined && localMinuteFrom > localMinuteTo) {
+            alert("Minute to should be later than or equal to minute from");
             return false;
         }
 
