@@ -18,8 +18,8 @@ struct ToolbarSearchParams {
 #[get("/players")]
 pub async fn get_players(pool: web::Data<PgPool>, params: web::Query<ToolbarSearchParams>) -> HttpResponse {
     let search_name = params.search_name.as_deref().unwrap_or("");
-    let limit = params.limit.unwrap_or(10);
-    let page = params.page.unwrap_or(0);
+    let limit = params.limit.unwrap_or(10).min(100);
+    let page = params.page.unwrap_or(0).max(0);
 
     let mut query = QueryBuilder::new("SELECT * FROM players ");
 
@@ -134,10 +134,10 @@ pub async fn search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -
 }
 
 fn construct_search_query_from_params(params: &web::Query<SearchParams>) -> QueryBuilder<Postgres> {
-    let minute_from = params.minfrom.unwrap_or(0);
-    let minute_to = params.minto.unwrap_or(120);
-    let page = params.page.unwrap_or(0);
-    let limit = params.limit.unwrap_or(50);
+    let minute_from = params.minfrom.unwrap_or(0).min(120);
+    let minute_to = params.minto.unwrap_or(120).max(0);
+    let page = params.page.unwrap_or(0).max(0);
+    let limit = params.limit.unwrap_or(50).min(100);
     let min_age = params.minage.unwrap_or(0);
     let max_age = params.maxage.unwrap_or(0);
     let subs_only: i32 = params.subonly.unwrap_or(0);
@@ -161,6 +161,7 @@ fn construct_search_query_from_params(params: &web::Query<SearchParams>) -> Quer
         .map(|p| p.split(',').map(|s| map_position_code_to_position(s)).collect())
         .unwrap_or_else(Vec::new);
 
+    // These are the defaults when no values are passed in the URL
     if minute_from == 0 && minute_to == 120 {
         return build_query_from_appearances(page, limit, min_age, max_age, subs_only, earliest_sub_on_time, latest_sub_on_time, penalties, sort_by, seasons, competitions, positions);
     }
@@ -211,7 +212,7 @@ fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32
 	        CAST(SUM(minutes_played) AS BIGINT) AS total_minutes_played, STRING_AGG(DISTINCT a.club_id::TEXT, ', ') AS clubs_played_for
             FROM games_minute_appearance_filter a WHERE appearances > 0 ");
         
-        add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation);
+        add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation, true);
         add_limit_and_offset_to_query(&mut query, limit, page);
 
         return query;
@@ -249,7 +250,7 @@ fn build_query_from_appearances<'a>(page: i32, limit: i32, min_age: i32, max_age
     add_positions_to_query(&mut query, positions);
     add_ages_to_query(&mut query, min_age, max_age);
     add_sub_info_to_query(&mut query, subs_only, earliest_sub_on_time, latest_sub_on_time);
-    add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation);
+    add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation, false);
     add_limit_and_offset_to_query(&mut query, limit, page);
 
     return query;
@@ -283,7 +284,7 @@ fn add_penalties_minute_filter_to_query(query: &mut QueryBuilder<Postgres>, minu
 
 fn add_assists_minute_filter_to_query(query: &mut QueryBuilder<Postgres>, minute_from: i32, minute_to: i32) {
     query.push("SUM(CASE WHEN e.type = 'Goals' AND e.player_assist_id = a.player_id AND e.minute BETWEEN ").push_bind(minute_from)
-    .push(" AND ").push_bind(minute_to).push(" THEN 1 ELSE 0 END) AS assists, "); 
+    .push(" AND ").push_bind(minute_to).push( " AND e.player_id != e.player_assist_id THEN 1 ELSE 0 END) AS assists, "); 
 }
 
 fn add_yellows_minute_filter_to_query(query: &mut QueryBuilder<Postgres>, minute_from: i32, minute_to: i32) {
@@ -367,7 +368,7 @@ fn add_sub_info_to_query(query: &mut QueryBuilder<Postgres>, subs_only: i32, ear
     }
 }
 
-fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_calculation: &str) {
+fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_calculation: &str, from_events_table: bool) {
     query.push("GROUP BY 
         a.player_id, a.player_name, image_url, country_of_citizenship, sub_position 
         ORDER BY ");
@@ -376,7 +377,10 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
     // Sort parameter shortened in URL for efficiency
     let sort_clause = match sort_by {
         // Goals
-        "g" => goals_calculation.to_string() + "DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name",
+        "g" => format!(
+            "{} DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name",
+            goals_calculation
+        ),
         // Assists
         "a" => "SUM(a.assists) DESC, ".to_owned() + goals_calculation + "DESC, a.player_name",
         // Goals and Assists combined
@@ -388,11 +392,18 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
         // Yellow cards
         "y" => "SUM(a.yellow_cards) DESC, SUM(a.red_cards) DESC, a.player_name".to_string(),
         // Red cards
-        "r" => "SUM(a.red_cards) + SUM(CASE
-            WHEN a.yellow_cards >= 2 THEN 1
-            ELSE 0
-            END) DESC, SUM(a.yellow_cards) DESC, a.player_name".to_string(),
-        _ => goals_calculation.to_string() + "SUM(a.goals) DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name"
+        "r" => format!(
+        "{}, SUM(a.yellow_cards) DESC, a.player_name",
+        if from_events_table {
+            "SUM(a.red_cards) DESC"
+        } else {
+            "SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) DESC"
+        }
+    ),
+        _ => format!(
+            "{}SUM(a.goals) DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name",
+            goals_calculation
+        )
     };
 
     query.push(sort_clause);
