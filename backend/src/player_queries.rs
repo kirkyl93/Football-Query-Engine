@@ -205,8 +205,7 @@ fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32
         add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation, true);
         add_limit_and_offset_to_query(&mut query, limit, page);
 
-        return query;
-
+    return query;
 }
 
 
@@ -246,7 +245,6 @@ fn build_query_from_appearances<'a>(page: i32, limit: i32, min_age: i32, max_age
     add_limit_and_offset_to_query(&mut query, limit, page);
 
     return query;
-
 }
 
 
@@ -392,9 +390,15 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
             goals_calculation
         ),
         // Assists
-        "a" => "SUM(a.assists) DESC, ".to_owned() + goals_calculation + "DESC, a.player_name",
+        "a" => format!(
+            "SUM(a.assists) DESC, {} DESC, a.player_name",
+            goals_calculation
+        ),
         // Goals and Assists combined
-        "ga" => "SUM(a.assists) + ".to_owned() + goals_calculation + "DESC, SUM(a.goals) DESC, a.player_name",
+        "ga" => format!(
+            "SUM(a.assists) {} DESC, SUM(a.goals) DESC, a.player_name",
+            goals_calculation
+        ),
         // Appearances
         "ap" => "COUNT(*) DESC, SUM(a.minutes_played) DESC, a.player_name".to_string(),
         // Total minutes played

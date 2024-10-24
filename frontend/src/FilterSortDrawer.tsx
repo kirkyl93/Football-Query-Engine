@@ -470,8 +470,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
 };
 
 function formatSeason(year: number) {
-    const nextYear = (year + 1) % 100; // Get the last two digits of the next year
-    return `${year}/${nextYear.toString().padStart(2, '0')}`; // Ensure two digits
+    const nextYear = (year + 1) % 100;
+    return `${year}/${nextYear.toString().padStart(2, '0')}`;
 }
 
 export default FilterSortDrawer;
