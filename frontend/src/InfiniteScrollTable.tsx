@@ -39,7 +39,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
         return;
       }
       setLoading(true);
-      fetchMoreData();
+      await fetchMoreData();
     };
 
     loadPlayers();
@@ -69,6 +69,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     const minuteToParam = params.get('minto');
     const minAgeParam = params.get('minage');
     const maxAgeParam = params.get('maxage');
+    const playerNameParam = params.get('name');
     const subsOnlyParam = params.has('subonly');
     const earliestSubOnTimeParam = params.get('earliestsub');
     const latestSubOnTimeParam = params.get('latestsub');
@@ -101,6 +102,10 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
     if (maxAgeParam) {
       url += `&maxage=${maxAgeParam}`;
+    }
+
+    if (playerNameParam) {
+      url += `&name=${playerNameParam}`;
     }
 
     if (subsOnlyParam) {
