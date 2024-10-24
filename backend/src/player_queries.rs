@@ -415,7 +415,7 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
         }
     ),
         _ => format!(
-            "{}SUM(a.goals) DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name",
+            "{} DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name",
             goals_calculation
         )
     };
