@@ -394,7 +394,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                     checked={localSubsOnly}
                                     onChange={handleSubsOnlyChange}
                                 />
-                                Subtitutes only?
+                                Substitutes only?
                             </label>
                         </div>
                     )}

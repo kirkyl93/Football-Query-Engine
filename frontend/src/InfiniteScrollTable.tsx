@@ -1,19 +1,19 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { PlayerSearchResult } from './types'; // Import the Player type
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import './InfiniteScrollTable.css';
-import { isReadable } from 'stream';
 
 
 interface InfiniteScrollTableProps {
   selectedSeasons: number[];
   selectedCompetitions: string[];
+  sortBy: string;
   subsOnly: boolean;
 }
 
 const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   selectedSeasons,
-  selectedCompetitions,
+  selectedCompetitions, sortBy,
   subsOnly
 }) => {
   const [data, setData] = useState<PlayerSearchResult[]>([]);
@@ -24,6 +24,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   const [filtersKey, setFiltersKey] = useState(0);
 
   const observer = useRef<IntersectionObserver | null>(null);
+  const currentRankRef = useRef(1);
   const location = useLocation();
 
   useEffect(() => {
@@ -32,7 +33,41 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     setHasMore(true);
     setFiltersKey((prevKey) => prevKey + 1);
   }, [selectedSeasons, selectedCompetitions])
-  
+
+  const calculateRank = (index: number, player: PlayerSearchResult): number => {
+    if (index === 0) {
+      currentRankRef.current = 1;
+      return currentRankRef.current;
+    }
+
+      if (getSortValue(player) < getSortValue(data[index - 1])) {
+        currentRankRef.current = index + 1;
+      }
+
+      return currentRankRef.current;
+  }
+
+  const getSortValue = (player: PlayerSearchResult): number => {
+    switch (sortBy) {
+      case 'g':
+        return player.total_goals;
+      case 'a':
+        return player.total_assists;
+      case 'ga':
+        return player.total_goals + player.total_assists;
+      case 'ap':
+        return player.total_appearances;
+      case 'm':
+        return player.total_minutes_played;
+      case 'y':
+        return player.total_yellow_cards
+      case 'r':
+        return player.total_red_cards
+      default:
+        return player.total_goals
+    }
+  }
+
   useEffect(() => {
     const loadPlayers = async () => {
       if (loading) {
@@ -53,7 +88,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
       setLoading(true);
       fetchMoreData();
     }
-    
+
     loadMorePlayers();
   }, [currentPage])
 
@@ -127,7 +162,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     if (sortByParam) {
       url += `&sort=${sortByParam}`;
     }
-    
+
     return url;
   }
 
@@ -177,19 +212,23 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
   return (
     <div className="table-container">
+      <h2>
+        Premier League Top Scorers 23/24
+      </h2>
+
       <table className="generic-table">
         <thead>
           <tr>
             <th>Rank</th>
-            <th>Player</th>
+            <th className="player-name">Player</th>
             <th>Clubs</th>
             <th>Position</th>
-            <th>Appearances</th>
-            <th>Minutes Played</th>
+            <th>Apps</th>
+            <th>Mins</th>
             <th>Goals</th>
             <th>Assists</th>
-            <th>Yellow Cards</th>
-            <th>Red Cards</th>
+            <th>Yellows</th>
+            <th>Reds</th>
           </tr>
         </thead>
         <tbody>
@@ -197,12 +236,13 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
             <tr key={player.player_id}
                 ref={data.length === index + 1 ? lastPlayerElementRef : null}
             >
-            <td>{index + 1}</td>
-            <td style={{ display: 'flex', alignItems: 'center' }}>
+            <td>
+              {calculateRank(index, player)}.</td>
+            <td>
             <img
-              src={`https://flagicons.lipis.dev/flags/4x3/${player.country_code}.svg`}
-              alt={`${player.country_code}`}
-              style={{ width: '20px', height: '14px', marginRight: '10px' }}
+                src={`https://flagicons.lipis.dev/flags/4x3/${player.country_code}.svg`}
+                alt={`${player.country_code}`}
+                style={{ width: '20px', height: '14px', marginRight: '10px' }}
           />
               <img
                 src={player.image_url}
@@ -221,18 +261,18 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
                 {player.clubs_played_for.split(',').map(clubId => {
                   const trimmedClubId = clubId.trim();
                   return (
-                    <img
-                    key={trimmedClubId}
-                    src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(trimmedClubId)}.png`}
-                    alt={`Club ${trimmedClubId}`}
-                    width="30"
-                    style={{ marginRight: '5px' }}
-                    />
+                      <img
+                          key={trimmedClubId}
+                          src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(trimmedClubId)}.png`}
+                          alt={`Club ${trimmedClubId}`}
+                          width="30"
+                          style={{marginRight: '5px'}}
+                      />
                   );
-              })}
+                })}
               </td>
               <td>{player.sub_position}</td>
-              <td><strong>{player.total_appearances}</strong> 
+              <td><strong>{player.total_appearances}</strong>
               {!subsOnly && (<> ({player.substitute_appearances})</>)}</td>
               <td>{player.total_minutes_played}</td>
               <td>{player.total_goals}</td>

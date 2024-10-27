@@ -396,7 +396,7 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
         ),
         // Goals and Assists combined
         "ga" => format!(
-            "SUM(a.assists) {} DESC, SUM(a.goals) DESC, a.player_name",
+            "SUM(a.assists) + {} DESC, a.player_name",
             goals_calculation
         ),
         // Appearances
@@ -412,8 +412,7 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
             "SUM(a.red_cards) DESC"
         } else {
             "SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) DESC"
-        }
-    ),
+        }),
         _ => format!(
             "{} DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name",
             goals_calculation
