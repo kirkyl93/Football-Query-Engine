@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
 import { PlayerSearchResult } from './types'; // Import the Player type
 import { Link, useLocation } from "react-router-dom";
 import './InfiniteScrollTable.css';
+import {competitions} from "./competitions";
+import {formatSeason} from "./utils";
 
 
 interface InfiniteScrollTableProps {
@@ -46,6 +48,78 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
       return currentRankRef.current;
   }
+
+  const sortByTitle = (): string => {
+    switch (sortBy) {
+      case 'g':
+        return "TOP SCORERS ";
+      case 'a':
+        return "MOST ASSISTS ";
+      case 'ga':
+        return "MOST ASSISTS + GOALS ";
+        case 'ap':
+        return "MOST APPS ";
+      case 'm':
+        return "MOST MINS ";
+      case 'y':
+        return "MOST YELLOWS ";
+      case 'r':
+        return "MOST REDS ";
+      default:
+        return "TOP SCORERS ";
+    }
+  }
+
+  const competitionsTitle = (): string => {
+    if (selectedCompetitions.length === 0) {
+      return "all competitions";
+    }
+
+    if (selectedCompetitions.length >= 10) {
+      return selectedCompetitions.length + " competitions";
+    }
+
+    const competitionNames = selectedCompetitions.map(compId => {
+      const leagueComp = competitions.leagues.find(comp => comp.competitionId === compId);
+        if (leagueComp) {
+          return leagueComp.name.toUpperCase();
+        }
+        const euroComp = competitions.europeanCompetitions.find(comp => comp.competitionId === compId);
+        return euroComp ? euroComp.name.toUpperCase() : compId;
+      });
+      return competitionNames.join(" · ");
+  }
+
+  const seasonsTitle = (): string => {
+    if (selectedSeasons.length === 0) {
+      return "ALL SEASONS";
+    }
+
+    if (selectedSeasons.length === 1) {
+      return formatSeason(selectedSeasons[0]);
+    }
+
+    const seasons = selectedSeasons.sort((a, b) => a - b);
+    const isConsecutive = seasons.every((season, index, arr) => index === 0 || season - arr[index - 1] === 1);
+
+    if (isConsecutive) {
+      return formatSeason(selectedSeasons[0]) + "-" + formatSeason(selectedSeasons[selectedSeasons.length - 1]);
+    }
+
+    if (seasons.length >= 10) {
+      return selectedSeasons.length + " SEASONS";
+    }
+
+    const formattedSeasons = selectedSeasons.sort((a, b) => a - b).map(season => formatSeason(season));
+    return formattedSeasons.join(" · ");
+  }
+
+  const constructTitle = useMemo((): string => {
+      let title = sortByTitle() + "· ";
+      title += competitionsTitle() + " · ";
+      title += seasonsTitle();
+      return title;
+  }, [selectedSeasons, selectedCompetitions, sortBy, competitionsTitle, seasonsTitle, sortByTitle]);
 
   const getSortValue = (player: PlayerSearchResult): number => {
     switch (sortBy) {
@@ -212,17 +286,16 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
   return (
     <div className="table-container">
-      <h2>
-        Premier League Top Scorers 23/24
-      </h2>
-
+        <h4 className="title">
+          {constructTitle}
+        </h4>
       <table className="generic-table">
         <thead>
           <tr>
             <th>Rank</th>
             <th className="player-name">Player</th>
-            <th>Clubs</th>
-            <th>Position</th>
+            <th className="column-to-hide">Clubs</th>
+            <th className="column-to-hide">Position</th>
             <th>Apps</th>
             <th>Mins</th>
             <th>Goals</th>
@@ -257,7 +330,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
                 {player.player_name}
               </Link>
             </td>
-              <td>
+              <td className="column-to-hide">
                 {player.clubs_played_for.split(',').map(clubId => {
                   const trimmedClubId = clubId.trim();
                   return (
@@ -271,7 +344,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
                   );
                 })}
               </td>
-              <td>{player.sub_position}</td>
+              <td className="column-to-hide">{player.sub_position}</td>
               <td><strong>{player.total_appearances}</strong>
               {!subsOnly && (<> ({player.substitute_appearances})</>)}</td>
               <td>{player.total_minutes_played}</td>

@@ -5,13 +5,24 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
+.title {
+  font-size: 23px;
+  word-wrap: break-word;
+  white-space: normal;
+  padding: 10px;
+  max-width: 960px;
+  box-sizing: border-box;
+}
+
 .table-container {
   min-height: 400px;
   background-color: white;
   margin: 0 auto;
   width: fit-content;
+  max-width: 100%;
   border-collapse: collapse;
   padding: 0;
+  position: relative;
 }
 
 .generic-table {
@@ -50,6 +61,12 @@ body {
   width: 40px;
   height: 50px;
   vertical-align: middle;
+}
+
+@media only screen and (max-width: 700px) {
+  .column-to-hide {
+    display: none;
+  }
 }
 
 .filter-button {

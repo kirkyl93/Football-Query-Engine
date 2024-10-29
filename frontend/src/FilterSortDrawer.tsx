@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './FilterSortDrawer.css';
+import { competitions } from "./competitions";
+import {formatSeason} from "./utils";
 
 interface FilterSortDrawerProps {
     isOpen: boolean;
@@ -42,28 +44,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
 }) => {
     const seasons = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009,
         2008, 2007, 2006, 2005, 2004, 2003, 2002, 2001, 2000, 1999, 1998, 1997, 1996, 1995, 1994, 1993, 1992];
-    const leagues = [
-        { name: "Premier League", countryCode: "gb-eng", competitionId: "GB1"},
-        { name: "La Liga", countryCode: "es", competitionId: "ES1" },
-        { name: "Serie A", countryCode: "it", competitionId: "IT1" },
-        { name: "Bundesliga", countryCode: "de", competitionId: "L1" },
-        { name: "Ligue 1", countryCode: "fr", competitionId: "FR1" },
-        { name: "Eredivise", countryCode: "nl", competitionId: "NL1" },
-        { name: "Liga Bwin", countryCode: "pt", competitionId: "PO1" },
-        { name: "Jupiler Pro League", countryCode: "be", competitionId: "BE1" },
-        { name: "Super Lig", countryCode: "tr", competitionId: "TR1" },
-        { name: "Scottish Premiership", countryCode: "gb-sct", competitionId: "SC1" },
-        { name: "Super League 1", countryCode: "gr", competitionId: "GR1" },
-        { name: "Premier Liga Ukraine", countryCode: "ua", competitionId: "UKR1" },
-        { name: "Premier Liga Russia", countryCode: "ru", competitionId: "RU1" },
-        { name: "Superligaen", countryCode: "dk", competitionId: "DK1" }
-    ];
 
-    const europeanCompetitions = [
-        { name: "Champions League", competitionId: "CL" },
-        { name: "Europa League", competitionId: "EL" },
-        { name: "Conference League", competitionId: "UCOL" }
-    ];
 
     const positions: string[] = ["GK", "LB", "RB", "CB", "CDM", "LM", "RM", "CM", "CAM", "LW", "RW", "SS", "CF"];
 
@@ -246,7 +227,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             </div>
                             {isLeaguesOpen && (
                                 <div className="checkbox-group">
-                                    {leagues.map(league => (
+                                    {competitions.leagues.map(league => (
                                         <label key={league.competitionId}>
                                             <input
                                                 type="checkbox"
@@ -271,7 +252,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             </div>
                             {isEuropeanCompetitionsOpen && (
                                 <div className="checkbox-group">
-                                    {europeanCompetitions.map(competition => (
+                                    {competitions.europeanCompetitions.map(competition => (
                                         <label key={competition.competitionId}>
                                             <input
                                                 type='checkbox'
@@ -468,10 +449,5 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         </div>
     );
 };
-
-function formatSeason(year: number) {
-    const nextYear = (year + 1) % 100;
-    return `${year}/${nextYear.toString().padStart(2, '0')}`;
-}
 
 export default FilterSortDrawer;
