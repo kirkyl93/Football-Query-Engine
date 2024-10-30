@@ -69,6 +69,14 @@ body {
   }
 }
 
+.column-to-hide {
+  min-width: 55px;
+}
+
+.table-header {
+  min-width: 50px;
+}
+
 .filter-button {
   position: relative;
   z-index: 10; /* Ensure buttons are above the checkboxes */

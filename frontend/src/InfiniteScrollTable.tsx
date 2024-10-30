@@ -9,14 +9,26 @@ import {formatSeason} from "./utils";
 interface InfiniteScrollTableProps {
   selectedSeasons: number[];
   selectedCompetitions: string[];
-  sortBy: string;
+  selectedPositions: string[];
+  minuteFrom: number | undefined;
+  minuteTo: number | undefined;
+  minAge: number | undefined;
+  maxAge: number | undefined;
+  playerName: string | undefined;
   subsOnly: boolean;
+  earliestSubOnTime: number | undefined;
+  latestSubOnTime: number | undefined;
+  penalties: string;
+  sortBy: string;
+
 }
 
 const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   selectedSeasons,
-  selectedCompetitions, sortBy,
-  subsOnly
+  selectedCompetitions, selectedPositions,
+    minuteFrom, minuteTo, minAge, maxAge,
+    playerName, subsOnly, earliestSubOnTime, latestSubOnTime,
+    penalties, sortBy
 }) => {
   const [data, setData] = useState<PlayerSearchResult[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -72,11 +84,11 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
   const competitionsTitle = (): string => {
     if (selectedCompetitions.length === 0) {
-      return "all competitions";
+      return "ALL COMPS";
     }
 
     if (selectedCompetitions.length >= 10) {
-      return selectedCompetitions.length + " competitions";
+      return selectedCompetitions.length + " COMPS";
     }
 
     const competitionNames = selectedCompetitions.map(compId => {
@@ -114,12 +126,90 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     return formattedSeasons.join(" · ");
   }
 
+  const positionTitle = (): string => {
+    if (selectedPositions.length === 0) {
+      return "";
+    }
+
+    return " · " + selectedPositions.join(" · ");
+  }
+
+  const minsTitle = (): string => {
+    let minuteString = "";
+    if (minuteFrom !== undefined && minuteFrom > 0) {
+      minuteString += " · FROM MINUTE " + minuteFrom;
+    }
+
+    if (minuteTo !== undefined && minuteTo > 0) {
+      minuteString += " · UP UNTIL MINUTE " + minuteTo;
+    }
+    return minuteString;
+  }
+
+  const ageTitle = (): string => {
+    let ageString = "";
+    if (minAge !== undefined && minAge > 0) {
+      ageString += " · MIN AGE: " + minAge;
+    }
+
+    if (maxAge !== undefined && maxAge > 0) {
+      ageString += " · MAX AGE: " + maxAge;
+    }
+    return ageString;
+  }
+
+  const nameTitle = (): string => {
+    if (playerName !== undefined && playerName.trim().length > 0) {
+      return " · PLAYER NAME: " + playerName.trim();
+    }
+    return "";
+  }
+
+  const subsTitle = (): string => {
+    let subString = "";
+    if (!subsOnly) {
+      return subString;
+    }
+
+    subString += " · SUBS ONLY";
+
+    if (earliestSubOnTime !== undefined && earliestSubOnTime > 0) {
+      subString += " · EARLIEST SUB ON TIME: " + earliestSubOnTime;
+    }
+
+    if (latestSubOnTime !== undefined && latestSubOnTime > 0) {
+      subString += " · LATEST SUB ON TIME: " + latestSubOnTime;
+    }
+    return subString;
+  }
+
+  const pensTitle = (): string => {
+    if (penalties === "ep") {
+      return " · EXCLUDE PENALTIES";
+    }
+
+    if (penalties === "op") {
+      return " · ONLY PENALTIES";
+    }
+
+    return "";
+  }
+
   const constructTitle = useMemo((): string => {
-      let title = sortByTitle() + "· ";
-      title += competitionsTitle() + " · ";
-      title += seasonsTitle();
+      let title = sortByTitle();
+      title += "· " + competitionsTitle();
+      title += " · " + seasonsTitle();
+      title += positionTitle();
+      title += minsTitle();
+      title += ageTitle();
+      title += nameTitle();
+      title += subsTitle();
+      title += pensTitle();
+
       return title;
-  }, [selectedSeasons, selectedCompetitions, sortBy, competitionsTitle, seasonsTitle, sortByTitle]);
+  }, [selectedSeasons, selectedCompetitions, selectedCompetitions, selectedPositions, minuteFrom,
+    minuteTo, minAge, maxAge, playerName, subsOnly, earliestSubOnTime, latestSubOnTime, penalties,
+    sortBy]);
 
   const getSortValue = (player: PlayerSearchResult): number => {
     switch (sortBy) {
@@ -245,7 +335,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
       const url = constructSearchUrl();
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch data');
+        return new Error('Failed to fetch data');
       }
       const data: PlayerSearchResult[] = await response.json();
 
@@ -296,8 +386,8 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
             <th className="player-name">Player</th>
             <th className="column-to-hide">Clubs</th>
             <th className="column-to-hide">Position</th>
-            <th>Apps</th>
-            <th>Mins</th>
+            <th className="table-header">Apps</th>
+            <th className="table-header">Mins</th>
             <th>Goals</th>
             <th>Assists</th>
             <th>Yellows</th>

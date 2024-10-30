@@ -123,8 +123,18 @@ const PlayerFilterScreen: React.FC = () => {
             <InfiniteScrollTable
                 selectedSeasons={selectedSeasons}
                 selectedCompetitions={selectedCompetitions}
-                sortBy={selectedSortBy}
+                selectedPositions={selectedPositions}
+                minuteFrom={selectedMinuteFrom}
+                minuteTo={selectedMinuteTo}
+                minAge={selectedMinAge}
+                maxAge={selectedMaxAge}
+                playerName={selectedPlayerName}
                 subsOnly={selectedSubsOnly}
+                earliestSubOnTime={selectedEarliestSubOnTime}
+                latestSubOnTime={selectedLatestSubOnTime}
+                penalties={selectedPenaltyOption}
+                sortBy={selectedSortBy}
+
             />
         </div>
     );
