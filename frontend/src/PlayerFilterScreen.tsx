@@ -20,7 +20,7 @@ const PlayerFilterScreen: React.FC = () => {
             selectedMinuteTo: params.get('minto') ? parseInt(params.get('minto')!, 10) : undefined,
             selectedMinAge: params.get('minage') ? parseInt(params.get('minage')!, 10) : undefined,
             selectedMaxAge: params.get('maxage') ? parseInt(params.get('maxage')!, 10) : undefined,
-            selectedPlayerName: params.get('playername')?.trim() ?? params.get('playername') ?? undefined,
+            selectedPlayerName: params.get('name')?.trim() ?? params.get('name') ?? undefined,
             selectedSubsOnly: params.has('subonly'),
             selectedEarliestSubOnTime: params.get('earliestsub') ? parseInt(params.get('earliestsub')!, 10) : undefined,
             selectedLatestSubOnTime: params.get('latestsub') ? parseInt(params.get('latestsub')!, 10) : undefined,
@@ -134,7 +134,6 @@ const PlayerFilterScreen: React.FC = () => {
                 latestSubOnTime={selectedLatestSubOnTime}
                 penalties={selectedPenaltyOption}
                 sortBy={selectedSortBy}
-
             />
         </div>
     );

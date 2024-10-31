@@ -31,6 +31,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     penalties, sortBy
 }) => {
   const [data, setData] = useState<PlayerSearchResult[]>([]);
+  const [hasData, setHasData] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -44,6 +45,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   useEffect(() => {
     setCurrentPage(0);
     setData([]);
+    setHasData(false);
     setHasMore(true);
     setFiltersKey((prevKey) => prevKey + 1);
   }, [selectedSeasons, selectedCompetitions])
@@ -159,8 +161,9 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   }
 
   const nameTitle = (): string => {
+    console.log(playerName + " is the name");
     if (playerName !== undefined && playerName.trim().length > 0) {
-      return " · PLAYER NAME: " + playerName.trim();
+      return " · PLAYER NAME: " + playerName.trim().toUpperCase();
     }
     return "";
   }
@@ -332,6 +335,10 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
   const fetchMoreData = async () => {
     try {
+      if (currentPage >= 5) {
+        setHasMore(false);
+        return;
+      }
       const url = constructSearchUrl();
       const response = await fetch(url);
       if (!response.ok) {
@@ -341,6 +348,8 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
       if (currentPage === 0) {
         setData(data);
+        setHasData(true);
+
       } else {
         if (data.length === 0) {
           setHasMore(false);
@@ -376,6 +385,8 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
   return (
     <div className="table-container">
+      {hasData && (
+          <>
         <h4 className="title">
           {constructTitle}
         </h4>
@@ -446,7 +457,17 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
           ))}
         </tbody>
       </table>
-      {loading && hasMore && <div className="loading">Loading more players...</div>}
+        </>
+      )}
+
+      {loading && !hasData && <div className="loader-container">
+        <div className="bouncing-dots">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+        </div>
+      </div>}
+      {loading && hasData && hasMore && <div className="loading">Loading more players...</div>}
       {error && <div className="error">{error}</div>}
     </div>
   );

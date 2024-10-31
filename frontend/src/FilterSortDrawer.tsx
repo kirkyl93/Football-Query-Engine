@@ -355,7 +355,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             <input
                                 type="text"
                                 placeholder="Enter player name"
-                                value={playerName}
+                                value={localPlayerName}
                                 onChange={handlePlayerNameChange}
                                 />
                         </div>
