@@ -1,16 +1,16 @@
 export interface Player {
     player_id: number,
-    first_name: String,
+    first_name: string,
     last_name: string,
     current_club_id: number,
-    country_of_birth: String,
-    country_of_citizenship: String,
-    country_code: String,
+    country_of_birth: string,
+    country_of_citizenship: string,
+    country_code: string,
     date_of_birth: string,
     age: number,
-    sub_position: String,
-    position: String,
-    foot: String,
+    sub_position: string,
+    position: string,
+    foot: string,
     height_in_cm: number,
     image_url: string
 }
@@ -55,17 +55,17 @@ export interface PlayerSearchResult {
 
 export interface PlayerWithSeasonStats {
     player_id: number,
-    first_name: String,
+    first_name: string,
     last_name: string,
     current_club_id: number,
-    country_of_birth: String,
-    country_of_citizenship: String,
-    country_code: String,
+    country_of_birth: string,
+    country_of_citizenship: string,
+    country_code: string,
     date_of_birth: string,
     age: number,
-    sub_position: String,
-    position: String,
-    foot: String,
+    sub_position: string,
+    position: string,
+    foot: string,
     height_in_cm: number,
     image_url: string,
     season: number,
@@ -93,17 +93,3 @@ export interface Competition {
     id: string,
     name: string,
 }
-
-// <Link to={`/player/${player.player_id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-//                   <img 
-//                     src={`https://flagicons.lipis.dev/flags/4x3/${player.country_code}.svg`} 
-//                     alt={`${player.country_of_citizenship}`} 
-//                     style={{ width: '30px', height: '20px', marginRight: '10px', borderRadius: 1 }} 
-//                   />
-//                   <img 
-//                     src={player.image_url || 'fake_image.jpg'} 
-//                     alt={`${player.first_name} ${player.last_name}`} 
-//                     style={{ width: '40px', height: '50px', marginRight: '10px' }}
-//                   />
-//                   <span>{`${player.first_name} ${player.last_name}`}</span>
-//                 </Link>
