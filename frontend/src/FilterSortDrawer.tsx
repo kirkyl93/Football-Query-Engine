@@ -12,14 +12,14 @@ interface FilterSortDrawerProps {
     minuteTo: number | undefined,
     minAge: number | undefined,
     maxAge: number | undefined,
-    playerName: string | undefined,
+    playerNames: string[],
     subsOnly: boolean;
     earliestSubOnTime: number | undefined,
     latestSubOnTime: number | undefined,
     penalties: string,
     sortBy: string;
     onFilterChange: (seasons: number[], competitions: string[], positions: string[],  minuteFrom: number | undefined, minuteTo: number | undefined,
-        minAge: number | undefined, maxAge: number | undefined, playerName: string | undefined, subsOnly: boolean, earliestSubOnTime: number | undefined,
+        minAge: number | undefined, maxAge: number | undefined, playerNames: string[], subsOnly: boolean, earliestSubOnTime: number | undefined,
         latestSubOnTime: number | undefined, penalties: string, sortBy: string) => void;
     onClose: () => void;
 }
@@ -33,7 +33,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     minuteTo,
     minAge,
     maxAge,
-    playerName,
+    playerNames,
     subsOnly,
     earliestSubOnTime,
     latestSubOnTime,
@@ -75,7 +75,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const [localMinuteTo, setLocalMinuteTo] = useState<number | undefined>(minuteTo);
     const [localMinAge, setLocalMinAge] = useState<number | undefined>(minAge);
     const [localMaxAge, setLocalMaxAge] = useState<number | undefined>(maxAge);
-    const [localPlayerName, setLocalPlayerName] = useState<string | undefined>(playerName);
+    const [localPlayerNames, setLocalPlayerNames] = useState<string[]>(playerNames);
+    const [newPlayerName, setNewPlayerName] = useState<string>("");
     const [localSubsOnly, setLocalSubsOnly] = useState<boolean>(subsOnly);
     const [localEarliestSubOnTime, setLocalEarliestSubOnTime] = useState<number | undefined>(earliestSubOnTime);
     const [localLatestSubOnTime, setLocalLatestSubOnTime] = useState<number | undefined>(latestSubOnTime);
@@ -102,7 +103,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         setLocalMinuteTo(undefined);
         setLocalMinAge(undefined);
         setLocalMaxAge(undefined);
-        setLocalPlayerName(undefined);
+        setLocalPlayerNames([]);
         setLocalSubsOnly(false);
         setLocalEarliestSubOnTime(undefined);
         setLocalLatestSubOnTime(undefined);
@@ -154,7 +155,25 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     }
 
     const handlePlayerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalPlayerName(e.target.value);
+        setNewPlayerName(e.target.value);
+    }
+
+    const handleRemovePlayerName = (nameToRemove: string) => {
+        setLocalPlayerNames(prev => prev.filter(name => name !== nameToRemove));
+    };
+
+    const handleAddPlayerName = () => {
+        if (newPlayerName.trim() && !localPlayerNames.includes(newPlayerName.trim())) {
+            setLocalPlayerNames(prev => [...prev, newPlayerName.trim()]);
+        }
+        setNewPlayerName("");
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleAddPlayerName();
+            e.preventDefault();
+        }
     }
 
     const handleSubsOnlyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,7 +199,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const applyFilters = () => {
         if (filtersValidated()) {
             onFilterChange(localSelectedSeasons, localSelectedCompetitions, localSelectedPositions, localMinuteFrom, localMinuteTo,
-                localMinAge, localMaxAge, localPlayerName, localSubsOnly, localEarliestSubOnTime, localLatestSubOnTime, localPenalties, localSortBy);
+                localMinAge, localMaxAge, localPlayerNames, localSubsOnly, localEarliestSubOnTime, localLatestSubOnTime, localPenalties, localSortBy);
             onClose();
         }
     };
@@ -365,16 +384,25 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsPlayerNameOpen(!isPlayerNameOpen)}>
-                        Player name {isPlayerNameOpen ? '▲' : '▼'}
+                        Player names {isPlayerNameOpen ? '▲' : '▼'}
                     </div>
                     {isPlayerNameOpen && (
                         <div className="dropdown-content">
                             <input
                                 type="text"
-                                placeholder="Enter player name"
-                                value={localPlayerName}
+                                placeholder="Enter player name and press Enter"
+                                value={newPlayerName}
                                 onChange={handlePlayerNameChange}
-                                />
+                                onKeyDown={handleKeyDown}
+                            />
+                            <div className="player-names-list">
+                                {localPlayerNames.map((name, index) => (
+                                    <span key={index} className="player-name-item">
+                                        {name}
+                                        <button onClick={() => handleRemovePlayerName(name)}>x</button>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                         )}
                 </div>

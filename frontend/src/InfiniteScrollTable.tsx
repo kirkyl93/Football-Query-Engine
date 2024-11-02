@@ -5,6 +5,8 @@ import './InfiniteScrollTable.css';
 import {competitions} from "./competitions";
 import {formatSeason} from "./utils";
 
+const REQUEST_LIMIT = 50;
+
 interface InfiniteScrollTableProps {
   selectedSeasons: number[];
   selectedCompetitions: string[];
@@ -13,7 +15,7 @@ interface InfiniteScrollTableProps {
   minuteTo: number | undefined;
   minAge: number | undefined;
   maxAge: number | undefined;
-  playerName: string | undefined;
+  playerNames: string[];
   subsOnly: boolean;
   earliestSubOnTime: number | undefined;
   latestSubOnTime: number | undefined;
@@ -26,7 +28,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   selectedSeasons,
   selectedCompetitions, selectedPositions,
     minuteFrom, minuteTo, minAge, maxAge,
-    playerName, subsOnly, earliestSubOnTime, latestSubOnTime,
+    playerNames, subsOnly, earliestSubOnTime, latestSubOnTime,
     penalties, sortBy
 }) => {
   const [data, setData] = useState<PlayerSearchResult[]>([]);
@@ -41,7 +43,8 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   const currentRankRef = useRef(1);
   const location = useLocation();
 
-  const searchParamsRef = useRef<string>("-1");
+  const currentSearchParamsRef = useRef<string>("-1");
+  const prevSearchParamsRef = useRef<string>("");
 
   const currentSearchParams = useMemo(() => {
     return new URLSearchParams(location.search).toString();
@@ -55,35 +58,26 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   };
 
   useEffect(() => {
-    abortCurrentRequest();
-    setCurrentPage(0);
-    setData([]);
-    setHasData(false);
-    setLoading(true);
-    setHasMore(true);
-  }, [location.search, selectedSeasons, selectedCompetitions, selectedPositions, minuteFrom, minuteTo, minAge, maxAge, playerName, subsOnly]);
-
-  useEffect(() => {
-    fetchData();
-  }, [currentSearchParams]);
-
-  useEffect(() => {
-    if (currentPage > 0) {
-      fetchData();
-    }
-
-    return () => {
-      if (currentRequestController.current) {
-        currentRequestController.current.abort();
-        currentRequestController.current = null;
+    const handleDataFetch = async  () => {
+      if (prevSearchParamsRef.current !== currentSearchParams) {
+        abortCurrentRequest();
+        setCurrentPage(0);
+        setData([]);
+        setHasData(false);
+        setHasMore(true);
+        setLoading(true);
+        prevSearchParamsRef.current = currentSearchParams;
       }
+
+      await fetchData();
     };
-  }, [currentPage, selectedSeasons, selectedCompetitions]);
+
+    handleDataFetch();
+  }, [currentSearchParams, currentPage]);
+
 
   const fetchData = async (): Promise<void> => {
-    if (searchParamsRef.current === currentSearchParams) {
-      return;
-    }
+    setLoading(true);
 
     if (currentPage >= 5) {
       setHasMore(false);
@@ -94,7 +88,6 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     currentRequestController.current = new AbortController();
 
     try {
-      setLoading(true);
       setError(null);
 
       const url = constructSearchUrl();
@@ -109,7 +102,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
       const newData: PlayerSearchResult[] = await response.json();
 
       if (currentRequestController.current && !currentRequestController.current.signal.aborted) {
-        if (newData.length < 50) {
+        if (newData.length < REQUEST_LIMIT) {
           setHasMore(false);
         }
 
@@ -120,6 +113,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
           setData(prevData => [...prevData, ...newData]);
         }
       }
+      setLoading(false);
     } catch (error) {
       if (error instanceof Error && error.name !== 'AbortError') {
         setError('Failed to fetch players');
@@ -178,7 +172,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
         const euroComp = competitions.europeanCompetitions.find(comp => comp.competitionId === compId);
         return euroComp ? euroComp.name.toUpperCase() : compId;
       });
-      return competitionNames.join(" · ");
+      return competitionNames.join(" + ");
   }
 
   const seasonsTitle = (): string => {
@@ -237,11 +231,12 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     return ageString;
   }
 
-  const nameTitle = (): string => {
-    if (playerName !== undefined && playerName.trim().length > 0) {
-      return " · PLAYER NAME: " + playerName.trim().toUpperCase();
+  const namesTitle = (): string => {
+    if (playerNames.length === 0) {
+      return "";
     }
-    return "";
+
+    return " · " + playerNames.map(name => name.toUpperCase()).join(" OR ");
   }
 
   const subsTitle = (): string => {
@@ -281,13 +276,13 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
       title += positionTitle();
       title += minsTitle();
       title += ageTitle();
-      title += nameTitle();
+      title += namesTitle();
       title += subsTitle();
       title += pensTitle();
 
       return title;
   }, [selectedSeasons, selectedCompetitions, selectedCompetitions, selectedPositions, minuteFrom,
-    minuteTo, minAge, maxAge, playerName, subsOnly, earliestSubOnTime, latestSubOnTime, penalties,
+    minuteTo, minAge, maxAge, playerNames, subsOnly, earliestSubOnTime, latestSubOnTime, penalties,
     sortBy]);
 
   const getSortValue = (player: PlayerSearchResult): number => {
@@ -312,7 +307,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   }
 
   const constructSearchUrl = (): string => {
-    let url = `http://localhost:8080/search?page=${currentPage}&limit=50`;
+    let url = `http://localhost:8080/search?page=${currentPage}&limit=${REQUEST_LIMIT}`;
     const params = new URLSearchParams(location.search);
 
     const paramMapping: Record<string, string> = {
@@ -323,7 +318,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
       minto: 'minto',
       minage: 'minage',
       maxage: 'maxage',
-      name: 'name',
+      names: 'names',
       penalty: 'penalty',
       sort: 'sort'
     };
@@ -354,8 +349,13 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
 
   const lastPlayerElementRef = useCallback(
     (node: HTMLTableRowElement | null) => {
-      if (loading) return;
-      if (observer.current) observer.current.disconnect();
+      if (loading) {
+        return;
+      }
+
+      if (observer.current) {
+        observer.current.disconnect();
+      }
 
       observer.current = new IntersectionObserver(entries => {
         if (entries[0].isIntersecting && hasMore && !loading) {
