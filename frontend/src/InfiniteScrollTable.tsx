@@ -5,7 +5,6 @@ import './InfiniteScrollTable.css';
 import {competitions} from "./competitions";
 import {formatSeason} from "./utils";
 
-
 interface InfiniteScrollTableProps {
   selectedSeasons: number[];
   selectedCompetitions: string[];
@@ -36,19 +35,97 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filtersKey, setFiltersKey] = useState(0);
 
+  const currentRequestController = useRef<AbortController | null>(null);
   const observer = useRef<IntersectionObserver | null>(null);
   const currentRankRef = useRef(1);
   const location = useLocation();
 
+  const searchParamsRef = useRef<string>("-1");
+
+  const currentSearchParams = useMemo(() => {
+    return new URLSearchParams(location.search).toString();
+  }, [location.search]);
+
+  const abortCurrentRequest = () => {
+    if (currentRequestController.current) {
+      currentRequestController.current.abort();
+      currentRequestController.current = null;
+    }
+  };
+
   useEffect(() => {
+    abortCurrentRequest();
     setCurrentPage(0);
     setData([]);
     setHasData(false);
+    setLoading(true);
     setHasMore(true);
-    setFiltersKey((prevKey) => prevKey + 1);
-  }, [selectedSeasons, selectedCompetitions])
+  }, [location.search, selectedSeasons, selectedCompetitions, selectedPositions, minuteFrom, minuteTo, minAge, maxAge, playerName, subsOnly]);
+
+  useEffect(() => {
+    fetchData();
+  }, [currentSearchParams]);
+
+  useEffect(() => {
+    if (currentPage > 0) {
+      fetchData();
+    }
+
+    return () => {
+      if (currentRequestController.current) {
+        currentRequestController.current.abort();
+        currentRequestController.current = null;
+      }
+    };
+  }, [currentPage, selectedSeasons, selectedCompetitions]);
+
+  const fetchData = async (): Promise<void> => {
+    if (searchParamsRef.current === currentSearchParams) {
+      return;
+    }
+
+    if (currentPage >= 5) {
+      setHasMore(false);
+      return;
+    }
+
+    abortCurrentRequest();
+    currentRequestController.current = new AbortController();
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const url = constructSearchUrl();
+      const response = await fetch(url, {
+        signal: currentRequestController.current.signal
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+
+      const newData: PlayerSearchResult[] = await response.json();
+
+      if (currentRequestController.current && !currentRequestController.current.signal.aborted) {
+        if (newData.length < 50) {
+          setHasMore(false);
+        }
+
+        if (currentPage === 0) {
+          setData(newData);
+          setHasData(true);
+        } else {
+          setData(prevData => [...prevData, ...newData]);
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        setError('Failed to fetch players');
+      }
+    }
+  };
 
   const calculateRank = (index: number, player: PlayerSearchResult): number => {
     if (index === 0) {
@@ -161,7 +238,6 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   }
 
   const nameTitle = (): string => {
-    console.log(playerName + " is the name");
     if (playerName !== undefined && playerName.trim().length > 0) {
       return " · PLAYER NAME: " + playerName.trim().toUpperCase();
     }
@@ -235,134 +311,45 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     }
   }
 
-  useEffect(() => {
-    const loadPlayers = async () => {
-      if (loading) {
-        return;
-      }
-      setLoading(true);
-      await fetchMoreData();
-    };
-
-    loadPlayers();
-  }, [filtersKey]);
-
-  useEffect(() => {
-    const loadMorePlayers = async () => {
-      if (loading || currentPage === 0) {
-        return;
-      }
-      setLoading(true);
-      fetchMoreData();
-    }
-
-    loadMorePlayers();
-  }, [currentPage])
-
-
   const constructSearchUrl = (): string => {
     let url = `http://localhost:8080/search?page=${currentPage}&limit=50`;
-
     const params = new URLSearchParams(location.search);
-    const seasonsParam = params.get('seasons');
-    const competitionsParam = params.get('comps');
-    const positionsParam = params.get('positions');
-    const minuteFromParam = params.get('minfrom');
-    const minuteToParam = params.get('minto');
-    const minAgeParam = params.get('minage');
-    const maxAgeParam = params.get('maxage');
-    const playerNameParam = params.get('name');
-    const subsOnlyParam = params.has('subonly');
-    const earliestSubOnTimeParam = params.get('earliestsub');
-    const latestSubOnTimeParam = params.get('latestsub');
-    const penalties = params.get('penalty');
-    const sortByParam = params.get('sort');
 
-    if (seasonsParam) {
-      url += `&seasons=${seasonsParam}`;
-    }
+    const paramMapping: Record<string, string> = {
+      seasons: 'seasons',
+      comps: 'comps',
+      positions: 'positions',
+      minfrom: 'minfrom',
+      minto: 'minto',
+      minage: 'minage',
+      maxage: 'maxage',
+      name: 'name',
+      penalty: 'penalty',
+      sort: 'sort'
+    };
 
-    if (competitionsParam) {
-      url += `&comps=${competitionsParam}`;
-    }
+    Object.entries(paramMapping).forEach(([key, paramKey]) => {
+      const value = params.get(paramKey);
+      if (value) {
+        url += `&${key}=${value}`;
+      }
+    });
 
-    if (positionsParam) {
-      url += `&positions=${positionsParam}`;
-    }
-
-    if (minuteFromParam) {
-      url += `&minfrom=${minuteFromParam}`;
-    }
-
-    if (minuteToParam) {
-      url += `&minto=${minuteToParam}`;
-    }
-
-    if (minAgeParam) {
-      url += `&minage=${minAgeParam}`;
-    }
-
-    if (maxAgeParam) {
-      url += `&maxage=${maxAgeParam}`;
-    }
-
-    if (playerNameParam) {
-      url += `&name=${playerNameParam}`;
-    }
-
-    if (subsOnlyParam) {
+    if (params.has('subonly')) {
       url += "&subonly=1";
-    }
 
-    if (subsOnlyParam && earliestSubOnTimeParam) {
-      url += `&earliestsub=${earliestSubOnTimeParam}`;
-    }
+      const earliestSub = params.get('earliestsub');
+      const latestSub = params.get('latestsub');
 
-    if (subsOnlyParam && latestSubOnTimeParam) {
-      url += `&latestsub=${latestSubOnTimeParam}`;
-    }
+      if (earliestSub) {
+        url += `&earliestsub=${earliestSub}`;
+      }
 
-    if (penalties) {
-      url += `&penalty=${penalties}`;
+      if (latestSub) {
+        url += `&latestsub=${latestSub}`;
+      }
     }
-
-    if (sortByParam) {
-      url += `&sort=${sortByParam}`;
-    }
-
     return url;
-  }
-
-  const fetchMoreData = async () => {
-    try {
-      if (currentPage >= 5) {
-        setHasMore(false);
-        return;
-      }
-      const url = constructSearchUrl();
-      const response = await fetch(url);
-      if (!response.ok) {
-        return new Error('Failed to fetch data');
-      }
-      const data: PlayerSearchResult[] = await response.json();
-
-      if (currentPage === 0) {
-        setData(data);
-        setHasData(true);
-
-      } else {
-        if (data.length === 0) {
-          setHasMore(false);
-        } else {
-          setData(prevPlayers => [...prevPlayers, ...data]);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setError('Failed to fetch players');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const lastPlayerElementRef = useCallback(
@@ -382,6 +369,13 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     },
     [hasMore, loading]
   );
+
+  useEffect(() => {
+    return () => {
+      abortCurrentRequest();
+        observer.current?.disconnect();
+    };
+  }, []);
 
   return (
     <div className="table-container">

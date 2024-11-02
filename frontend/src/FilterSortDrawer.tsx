@@ -94,6 +94,22 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const [isPenaltiesOpen, setIsPenaltiesOpen] = useState(false);
     const [isSortByOpen, setIsSortByOpen] = useState(false);
 
+    const resetFilters = () => {
+        setLocalSelectedSeasons([2024]);
+        setLocalSelectedCompetitions(['GB1']);
+        setLocalSelectedPositions([]);
+        setLocalMinuteFrom(undefined);
+        setLocalMinuteTo(undefined);
+        setLocalMinAge(undefined);
+        setLocalMaxAge(undefined);
+        setLocalPlayerName(undefined);
+        setLocalSubsOnly(false);
+        setLocalEarliestSubOnTime(undefined);
+        setLocalLatestSubOnTime(undefined);
+        setLocalPenalties("ip");
+        setLocalSortBy("g");
+    }
+
     const handleSeasonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
         if (e.target.checked) {
@@ -191,6 +207,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         <div className={`filter-drawer ${isOpen ? 'open' : ''}`}>
             <div className="drawer-header">
                 <h2>Filter & Sort</h2>
+                <button onClick={resetFilters}>Reset</button>
                 <button className="close-button" onClick={onClose}>X</button>
             </div>
 

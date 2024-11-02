@@ -29,61 +29,31 @@ const PlayerFilterScreen: React.FC = () => {
         };
     }, [location.search]);
 
-
     const handleFilterChange = (seasons: number[], competitions: string[], positions: string[], minuteFrom: number | undefined, minuteTo: number | undefined, 
         minAge: number | undefined, maxAge: number | undefined, playerName: string | undefined, subsOnly: boolean, earliestSubOnTime: number | undefined,
         latestSubOnTime: number | undefined, penalties: string, sortBy: string) => {
         const params = new URLSearchParams();
-        if (seasons.length > 0) {
-            params.append('seasons', seasons.join(','));
-        }
-        if (competitions.length > 0) {
-            params.append('comps', competitions.join(','));
-        }
 
-        if (positions.length > 0) {
-            params.append('positions', positions.join(','));
+        const addParam = (key: string, value: any) => {
+            if (value !== undefined && value !== null && value != '') {
+                params.append(key, value.toString().trim());
+            }
         }
-
-        if (minuteFrom !== undefined) {
-            params.append('minfrom', minuteFrom.toString());
-        }
-
-        if (minuteTo !== undefined) {
-            params.append("minto", minuteTo.toString());
-        }
-
-        if (minAge !== undefined) {
-            params.append('minage', minAge.toString());
-        }
-
-        if (maxAge !== undefined) {
-            params.append('maxage', maxAge.toString());
-        }
-
-        if (playerName !== undefined && playerName.trim() !== '') {
-            params.append('name', playerName);
-        }
-
+        addParam('seasons', seasons.join(','));
+        addParam('comps', competitions.join(','));
+        addParam('positions', positions.join(','));
+        addParam('minfrom', minuteFrom);
+        addParam('minto', minuteTo);
+        addParam('minage', minAge);
+        addParam('maxage', maxAge);
+        addParam('name', playerName);
         if (subsOnly) {
-            params.append('subonly', '1');
+            addParam('subonly', 1);
+            addParam('earliestsub', earliestSubOnTime);
+            addParam('latestsub', latestSubOnTime);
         }
-
-        if (subsOnly && earliestSubOnTime !== undefined) {
-            params.append('earliestsub', earliestSubOnTime.toString());
-        }
-
-        if (subsOnly && latestSubOnTime !== undefined) {
-            params.append('latestsub', latestSubOnTime.toString());
-        }
-
-        if (penalties) {
-            params.append('penalty', penalties);
-        }
-
-        if (sortBy) {
-            params.append('sort', sortBy);
-        }
+        addParam('penalty', penalties);
+        addParam('sort', sortBy);
 
         navigate({
             pathname: location.pathname,

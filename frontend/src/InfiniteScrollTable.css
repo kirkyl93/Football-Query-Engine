@@ -16,7 +16,7 @@ body {
 
 .table-container {
   min-height: 400px;
-  overflow: hidden;
+  overflow: inherit;
   background-color: white;
   margin: 0 auto;
   width: fit-content;
