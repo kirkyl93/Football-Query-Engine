@@ -2,51 +2,22 @@ import React, {useEffect, useState} from 'react';
 import './FilterSortDrawer.css';
 import {competitions} from "./competitions";
 import {formatSeason} from "./utils";
-import {Club} from "./types";
+import {Club, FilterState} from "./types";
 
 interface FilterSortDrawerProps {
     isOpen: boolean;
-    selectedSeasons: number[];
-    selectedCompetitions: string[];
-    selectedPositions: string[];
-    minuteFrom: number | undefined,
-    minuteTo: number | undefined,
-    minAge: number | undefined,
-    maxAge: number | undefined,
-    playerNames: string[],
-    clubsPlayedFor: number[],
-    clubsPlayedAgainst: number[],
-    subsOnly: boolean;
-    earliestSubOnTime: number | undefined,
-    latestSubOnTime: number | undefined,
-    penalties: string,
-    sortBy: string;
-    onFilterChange: (seasons: number[], competitions: string[], positions: string[], minuteFrom: number | undefined, minuteTo: number | undefined,
-                     minAge: number | undefined, maxAge: number | undefined, playerNames: string[], clubsPlayedFor: number[], clubsPlayedAgainst: number[],
-                     subsOnly: boolean, earliestSubOnTime: number | undefined, latestSubOnTime: number | undefined, penalties: string, sortBy: string) => void;
+    filterState: FilterState;
+    onFilterChange: (filterState: FilterState) => void;
     onClose: () => void;
 }
 
-const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
-                                                               isOpen,
-                                                               selectedSeasons,
-                                                               selectedCompetitions,
-                                                               selectedPositions,
-                                                               minuteFrom,
-                                                               minuteTo,
-                                                               minAge,
-                                                               maxAge,
-                                                               playerNames,
-                                                               clubsPlayedFor,
-                                                               clubsPlayedAgainst,
-                                                               subsOnly,
-                                                               earliestSubOnTime,
-                                                               latestSubOnTime,
-                                                               penalties,
-                                                               sortBy,
-                                                               onFilterChange,
-                                                               onClose,
-                                                           }) => {
+const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
+    {
+        isOpen,
+        filterState,
+        onFilterChange,
+        onClose,
+    }) => {
     const seasons = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009,
         2008, 2007, 2006, 2005, 2004, 2003, 2002, 2001, 2000, 1999, 1998, 1997, 1996, 1995, 1994, 1993, 1992];
 
@@ -73,28 +44,14 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         {name: "Red cards", id: "r"}
     ];
 
-    const [localSelectedSeasons, setLocalSelectedSeasons] = useState<number[]>(selectedSeasons);
-    const [localSelectedCompetitions, setLocalSelectedCompetitions] = useState<string[]>(selectedCompetitions);
-    const [localSelectedPositions, setLocalSelectedPositions] = useState<string[]>(selectedPositions);
-    const [localMinuteFrom, setLocalMinuteFrom] = useState<number | undefined>(minuteFrom);
-    const [localMinuteTo, setLocalMinuteTo] = useState<number | undefined>(minuteTo);
-    const [localMinAge, setLocalMinAge] = useState<number | undefined>(minAge);
-    const [localMaxAge, setLocalMaxAge] = useState<number | undefined>(maxAge);
-    const [localPlayerNames, setLocalPlayerNames] = useState<string[]>(playerNames);
+    const [localFilterState, setLocalFilterState] = useState<FilterState>(filterState);
     const [newPlayerName, setNewPlayerName] = useState<string>("");
-    const [localClubsPlayedFor, setLocalClubsPlayedFor] = useState<number[]>(clubsPlayedFor);
     const [newClubPlayedFor, setNewClubPlayedFor] = useState<string>("");
     const [newClubsPlayedForSuggestions, setNewClubsPlayedForSuggestions] = useState<number[]>([]);
     const [isClubsPlayedForDropdownVisible, setIsClubsPlayedForDropdownVisible] = useState<boolean>(false);
-    const [localClubsPlayedAgainst, setLocalClubsPlayedAgainst] = useState<number[]>(clubsPlayedAgainst);
     const [newClubPlayedAgainst, setNewClubPlayedAgainst] = useState<string>("");
     const [newClubsPlayedAgainstSuggestions, setNewClubsPlayedAgainstSuggestions] = useState<number[]>([]);
     const [isClubsPlayedAgainstDropdownVisible, setIsClubsPlayedAgainstDropdownVisible] = useState<boolean>(false);
-    const [localSubsOnly, setLocalSubsOnly] = useState<boolean>(subsOnly);
-    const [localEarliestSubOnTime, setLocalEarliestSubOnTime] = useState<number | undefined>(earliestSubOnTime);
-    const [localLatestSubOnTime, setLocalLatestSubOnTime] = useState<number | undefined>(latestSubOnTime);
-    const [localPenalties, setLocalPenalties] = useState<string>(penalties);
-    const [localSortBy, setLocalSortBy] = useState<string>(sortBy);
 
     const [isSeasonsOpen, setIsSeasonsOpen] = useState(false);
     const [isCompetitionsOpen, setIsCompetitionsOpen] = useState(false);
@@ -110,25 +67,27 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const [isSortByOpen, setIsSortByOpen] = useState(false);
 
     const resetFilters = () => {
-        setLocalSelectedSeasons([2024]);
-        setLocalSelectedCompetitions(['GB1']);
-        setLocalSelectedPositions([]);
-        setLocalMinuteFrom(undefined);
-        setLocalMinuteTo(undefined);
-        setLocalMinAge(undefined);
-        setLocalMaxAge(undefined);
+        setLocalFilterState({
+            seasons: [2024],
+            competitions: ['GB1'],
+            positions: [],
+            minuteFrom: undefined,
+            minuteTo: undefined,
+            minAge: undefined,
+            maxAge: undefined,
+            playerNames: [],
+            clubsPlayedFor: [],
+            clubsPlayedAgainst: [],
+            subsOnly: false,
+            earliestSubOnTime: undefined,
+            latestSubOnTime: undefined,
+            penalties: "ip",
+            sortBy: "g",
+        });
         setNewPlayerName("");
-        setLocalPlayerNames([]);
-        setLocalClubsPlayedFor([]);
         setNewClubPlayedFor("");
-        setLocalClubsPlayedAgainst([]);
         setNewClubPlayedAgainst("");
-        setLocalSubsOnly(false);
-        setLocalEarliestSubOnTime(undefined);
-        setLocalLatestSubOnTime(undefined);
-        setLocalPenalties("ip");
-        setLocalSortBy("g");
-    }
+    };
 
     const fetchClubSuggestions = async (playedFor: boolean) => {
         try {
@@ -175,61 +134,83 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
 
     const handleSeasonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
-        if (e.target.checked) {
-            setLocalSelectedSeasons(prev => [...prev, value]);
-        } else {
-            setLocalSelectedSeasons(prev => prev.filter(season => season !== value));
-        }
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            selectedSeasons: e.target.checked
+                ? [...prevState.seasons, value]
+                : prevState.seasons.filter(season => season !== value)
+        }));
     };
 
     const handleClubPlayedForSuggestionClick = (suggestion: number) => {
         setNewClubPlayedFor("");
         setIsClubsPlayedForDropdownVisible(false);
-        if (localClubsPlayedFor !== undefined && !localClubsPlayedFor.includes(suggestion)) {
-            setLocalClubsPlayedFor(prev => [...prev, suggestion]);
+        if (localFilterState.clubsPlayedFor !== undefined && !localFilterState.clubsPlayedFor.includes(suggestion)) {
+            setLocalFilterState(prevState => ({
+                ...prevState,
+                clubsPlayedFor: [...prevState.clubsPlayedFor, suggestion]
+            }));
         }
     };
 
     const handleClubPlayedAgainstSuggestionClick = (suggestion: number) => {
         setNewClubPlayedAgainst("");
         setIsClubsPlayedAgainstDropdownVisible(false);
-        if (localClubsPlayedAgainst !== undefined && !localClubsPlayedAgainst.includes(suggestion)) {
-            setLocalClubsPlayedAgainst(prev => [...prev, suggestion]);
+        if (localFilterState.clubsPlayedFor !== undefined && !localFilterState.clubsPlayedFor.includes(suggestion)) {
+            setLocalFilterState(prevState => ({
+                ...prevState,
+                clubsPlayedAgainst: [...prevState.clubsPlayedAgainst, suggestion]
+            }));
         }
     };
 
     const handleCompetitionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        if (e.target.checked) {
-            setLocalSelectedCompetitions(prev => [...prev, value]);
-        } else {
-            setLocalSelectedCompetitions(prev => prev.filter(competition => competition !== value));
-        }
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            competitions: e.target.checked
+                ? [...prevState.competitions, value]
+                : prevState.competitions.filter(competition => competition !== value)
+        }));
     };
 
     const handlePositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        if (e.target.checked) {
-            setLocalSelectedPositions(prev => [...prev, value]);
-        } else {
-            setLocalSelectedPositions(prev => prev.filter(position => position !== value));
-        }
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            positions: e.target.checked
+                ? [...prevState.positions, value]
+                : prevState.positions.filter(positions => positions !== value)
+        }));
+
     }
 
     const handleMinuteFromChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLocalMinuteFrom(e.target.value ? parseInt(e.target.value) : undefined);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            minuteFrom: e.target.value ? parseInt(e.target.value) : undefined
+        }))
     }
 
     const handleMinuteToChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLocalMinuteTo(e.target.value ? parseInt(e.target.value) : undefined);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            minuteTo: e.target.value ? parseInt(e.target.value) : undefined
+        }));
     }
 
     const handleMinAgeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLocalMinAge(e.target.value ? parseInt(e.target.value) : undefined);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            minAge: e.target.value ? parseInt(e.target.value) : undefined
+        }));
     }
 
     const handleMaxAgeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLocalMaxAge(e.target.value ? parseInt(e.target.value) : undefined);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            maxAge: e.target.value ? parseInt(e.target.value) : undefined
+        }));
     }
 
     const handlePlayerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,20 +226,32 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     }
 
     const handleRemovePlayedForClub = (clubIdToRemove: number) => {
-        setLocalClubsPlayedFor(prev => prev.filter(club => club !== clubIdToRemove));
-    };
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            clubsPlayedFor: prevState.clubsPlayedFor.filter(club => club !== clubIdToRemove)
+        }));
+    }
 
     const handleRemovePlayedAgainstClub = (clubIdToRemove: number) => {
-        setLocalClubsPlayedAgainst(prev => prev.filter(club => club !== clubIdToRemove));
-    };
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            clubsPlayedAgainst: prevState.clubsPlayedAgainst.filter(club => club !== clubIdToRemove)
+        }));
+    }
 
     const handleRemovePlayerName = (nameToRemove: string) => {
-        setLocalPlayerNames(prev => prev.filter(name => name !== nameToRemove));
-    };
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            playerNames: prevState.playerNames.filter(name => name !== nameToRemove)
+        }));
+    }
 
     const handleAddPlayerName = () => {
-        if (newPlayerName.trim() && !localPlayerNames.includes(newPlayerName.trim())) {
-            setLocalPlayerNames(prev => [...prev, newPlayerName.trim()]);
+        if (newPlayerName.trim() && !localFilterState.playerNames.includes(newPlayerName.trim())) {
+            setLocalFilterState(prevState => ({
+                ...prevState,
+                playerNames: [...prevState.playerNames, newPlayerName.trim()]
+            }));
         }
         setNewPlayerName("");
     }
@@ -271,46 +264,61 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     }
 
     const handleSubsOnlyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalSubsOnly(!localSubsOnly);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            subsOnly: !prevState.subsOnly
+        }));
     }
 
+
     const handleEarliestSubOnTimeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLocalEarliestSubOnTime(e.target.value ? parseInt(e.target.value) : undefined);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            earliestSubOnTime: e.target.value ? parseInt(e.target.value) : undefined
+        }));
     }
 
     const handleLatestSubOnTimeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLocalLatestSubOnTime(e.target.value ? parseInt(e.target.value) : undefined);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            latestSubOnTime: e.target.value ? parseInt(e.target.value) : undefined
+        }));
     }
 
     const handlePenaltyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalPenalties(e.target.value);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            penalties: e.target.value
+        }));
     }
 
     const handleSortByChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalSortBy(e.target.value);
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            sortBy: e.target.value
+        }));
     }
 
     const applyFilters = () => {
         if (filtersValidated()) {
-            onFilterChange(localSelectedSeasons, localSelectedCompetitions, localSelectedPositions, localMinuteFrom, localMinuteTo,
-                localMinAge, localMaxAge, localPlayerNames, localClubsPlayedFor, localClubsPlayedAgainst, localSubsOnly, localEarliestSubOnTime,
-                localLatestSubOnTime, localPenalties, localSortBy);
+            onFilterChange(localFilterState);
             onClose();
         }
     };
 
     const filtersValidated = () => {
-        if (localMinAge !== undefined && localMaxAge !== undefined && localMinAge > localMaxAge) {
+        if (localFilterState.minAge !== undefined && localFilterState.maxAge !== undefined && localFilterState.minAge > localFilterState.maxAge) {
             alert("Max age should be greater than or equal to Min age");
             return false;
         }
 
-        if (localMinuteFrom !== undefined && localMinuteTo !== undefined && localMinuteFrom > localMinuteTo) {
+        if (localFilterState.minuteFrom !== undefined && localFilterState.minuteTo !== undefined && localFilterState.minuteFrom > localFilterState.minuteTo) {
             alert("Minute to should be later than or equal to minute from");
             return false;
         }
 
-        if (localSubsOnly && localEarliestSubOnTime !== undefined && localLatestSubOnTime !== undefined && localEarliestSubOnTime > localLatestSubOnTime) {
+        if (localFilterState.subsOnly && localFilterState.earliestSubOnTime !== undefined && localFilterState.latestSubOnTime !== undefined &&
+            localFilterState.earliestSubOnTime > localFilterState.latestSubOnTime) {
             alert("Latest sub on minute should be later or equal to earliest sub on minute");
             return false;
         }
@@ -337,7 +345,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                     <input
                                         type="checkbox"
                                         value={season}
-                                        checked={localSelectedSeasons.includes(season)}
+                                        checked={localFilterState.seasons.includes(season)}
                                         onChange={handleSeasonChange}
                                     />
                                     {formatSeason(season)}
@@ -363,7 +371,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                             <input
                                                 type="checkbox"
                                                 value={league.competitionId}
-                                                checked={localSelectedCompetitions.includes(league.competitionId)}
+                                                checked={localFilterState.competitions.includes(league.competitionId)}
                                                 onChange={handleCompetitionChange}
                                             />
                                             <img
@@ -388,7 +396,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                             <input
                                                 type='checkbox'
                                                 value={competition.competitionId}
-                                                checked={localSelectedCompetitions.includes(competition.competitionId)}
+                                                checked={localFilterState.competitions.includes(competition.competitionId)}
                                                 onChange={handleCompetitionChange}
                                             />
                                             <img
@@ -417,7 +425,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                     <input
                                         type="checkbox"
                                         value={position}
-                                        checked={localSelectedPositions.includes(position)}
+                                        checked={localFilterState.positions.includes(position)}
                                         onChange={handlePositionChange}
                                     />
                                     {position}
@@ -434,7 +442,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                     {isMinutesOpen && (
                         <div className="dropdown-group">
                             <label>Played from:</label>
-                            <select value={localMinuteFrom ?? ''} onChange={handleMinuteFromChange}>
+                            <select value={localFilterState.minuteFrom ?? ''} onChange={handleMinuteFromChange}>
                                 <option value="">Any</option>
                                 {minutes.map(minute => (
                                     <option key={minute} value={minute}>{minute}</option>
@@ -442,7 +450,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             </select>
 
                             <label>Played to:</label>
-                            <select value={localMinuteTo ?? ''} onChange={handleMinuteToChange}>
+                            <select value={localFilterState.minuteTo ?? ''} onChange={handleMinuteToChange}>
                                 <option value="">Any</option>
                                 {minutes.map(minute => (
                                     <option key={minute} value={minute}>{minute}</option>
@@ -459,7 +467,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                     {isAgeOpen && (
                         <div className="dropdown-group">
                             <label>Min age:</label>
-                            <select value={localMinAge ?? ''} onChange={handleMinAgeChange}>
+                            <select value={localFilterState.minAge ?? ''} onChange={handleMinAgeChange}>
                                 <option value="">Any</option>
                                 {ages.map(age => (
                                     <option key={age} value={age}>{age}</option>
@@ -467,7 +475,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             </select>
 
                             <label>Max age:</label>
-                            <select value={localMaxAge ?? ''} onChange={handleMaxAgeChange}>
+                            <select value={localFilterState.maxAge ?? ''} onChange={handleMaxAgeChange}>
                                 <option value="">Any</option>
                                 {ages.map(age => (
                                     <option key={age} value={age}>{age}</option>
@@ -491,7 +499,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                 onKeyDown={handleKeyDown}
                             />
                             <div className="player-names-list">
-                                {localPlayerNames.map((name, index) => (
+                                {localFilterState.playerNames.map((name, index) => (
                                     <span key={index} className="player-name-item">
                                         {name}
                                         <button onClick={() => handleRemovePlayerName(name)}>x</button>
@@ -532,7 +540,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                 </ul>
                             )}
                             <div className="club-names-list">
-                                {(localClubsPlayedFor || []).map((club, index) => (
+                                {(localFilterState.clubsPlayedFor || []).map((club, index) => (
                                     <span key={index} className="club-name-item">
                                             <img
                                                 style={{width: 30}}
@@ -572,7 +580,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                 </ul>
                             )}
                             <div className="club-names-list">
-                                {(localClubsPlayedAgainst || []).map((club, index) => (
+                                {(localFilterState.clubsPlayedAgainst || []).map((club, index) => (
                                     <span key={index} className="club-name-item">
                                             <img
                                                 style={{width: 30}}
@@ -597,17 +605,18 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                 <input
                                     type="checkbox"
                                     value={"subsOnly"}
-                                    checked={localSubsOnly}
+                                    checked={localFilterState.subsOnly}
                                     onChange={handleSubsOnlyChange}
                                 />
                                 Substitutes only?
                             </label>
                         </div>
                     )}
-                    {isSubstitutesOpen && localSubsOnly && (
+                    {isSubstitutesOpen && localFilterState.subsOnly && (
                         <div className="dropdown-group">
                             <label>Earliest minute:</label>
-                            <select value={localEarliestSubOnTime ?? ''} onChange={handleEarliestSubOnTimeChange}>
+                            <select value={localFilterState.earliestSubOnTime ?? ''}
+                                    onChange={handleEarliestSubOnTimeChange}>
                                 <option value="">Any</option>
                                 {minutes.map(minute => (
                                     <option key={minute} value={minute}>{minute}</option>
@@ -616,7 +625,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
 
 
                             <label>Latest minute:</label>
-                            <select value={localLatestSubOnTime ?? ''} onChange={handleLatestSubOnTimeChange}>
+                            <select value={localFilterState.latestSubOnTime ?? ''}
+                                    onChange={handleLatestSubOnTimeChange}>
                                 <option value="">Any</option>
                                 {minutes.map(minute => (
                                     <option key={minute} value={minute}>{minute}</option>
@@ -638,7 +648,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                     <input
                                         type="radio"
                                         value={option.id}
-                                        checked={localPenalties === option.id}
+                                        checked={localFilterState.penalties === option.id}
                                         onChange={handlePenaltyChange}
                                     />
                                     {option.name}
@@ -659,7 +669,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                     <input
                                         type="radio"
                                         value={sort.id}
-                                        checked={localSortBy === sort.id}
+                                        checked={localFilterState.sortBy === sort.id}
                                         onChange={handleSortByChange}
                                     />
                                     {sort.name}

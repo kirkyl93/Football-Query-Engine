@@ -3,6 +3,7 @@ import InfiniteScrollTable from "./InfiniteScrollTable";
 import FilterSortDrawer from "./FilterSortDrawer";
 import './PlayerFilterScreen.css';
 import {useNavigate, useLocation} from "react-router-dom";
+import {FilterState} from "./types";
 
 const PlayerFilterScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -46,9 +47,7 @@ const PlayerFilterScreen: React.FC = () => {
         };
     }, [location.search]);
 
-    const handleFilterChange = (seasons: number[], competitions: string[], positions: string[], minuteFrom: number | undefined, minuteTo: number | undefined,
-                                minAge: number | undefined, maxAge: number | undefined, playerNames: string[], clubsPlayedFor: number[], clubsPlayedAgainst: number[], subsOnly: boolean, earliestSubOnTime: number | undefined,
-                                latestSubOnTime: number | undefined, penalties: string, sortBy: string) => {
+    const handleFilterChange = (filterState: FilterState) => {
         const params = new URLSearchParams();
 
         const addParam = (key: string, value: any) => {
@@ -56,23 +55,23 @@ const PlayerFilterScreen: React.FC = () => {
                 params.append(key, value.toString().trim());
             }
         }
-        addParam('seasons', seasons.join(','));
-        addParam('comps', competitions.join(','));
-        addParam('positions', positions.join(','));
-        addParam('minfrom', minuteFrom);
-        addParam('minto', minuteTo);
-        addParam('minage', minAge);
-        addParam('maxage', maxAge);
-        addParam('names', playerNames);
-        addParam('clubspf', clubsPlayedFor);
-        addParam('clubspa', clubsPlayedAgainst);
-        if (subsOnly) {
+        addParam('seasons', filterState.seasons.join(','));
+        addParam('comps', filterState.competitions.join(','));
+        addParam('positions', filterState.positions.join(','));
+        addParam('minfrom', filterState.minuteFrom);
+        addParam('minto', filterState.minuteTo);
+        addParam('minage', filterState.minAge);
+        addParam('maxage', filterState.maxAge);
+        addParam('names', filterState.playerNames);
+        addParam('clubspf', filterState.clubsPlayedFor);
+        addParam('clubspa', filterState.clubsPlayedAgainst);
+        if (filterState.subsOnly) {
             addParam('subonly', 1);
-            addParam('earliestsub', earliestSubOnTime);
-            addParam('latestsub', latestSubOnTime);
+            addParam('earliestsub', filterState.earliestSubOnTime);
+            addParam('latestsub', filterState.latestSubOnTime);
         }
-        addParam('penalty', penalties);
-        addParam('sort', sortBy);
+        addParam('penalty', filterState.penalties);
+        addParam('sort', filterState.sortBy);
 
         navigate({
             pathname: location.pathname,
@@ -84,6 +83,16 @@ const PlayerFilterScreen: React.FC = () => {
         setIsDrawerOpen(!isDrawerOpen);
     }
 
+    const filterState = {
+        seasons: selectedSeasons, competitions: selectedCompetitions, positions: selectedPositions,
+        minuteFrom: selectedMinuteFrom, minuteTo: selectedMinuteTo,
+        minAge: selectedMinAge, maxAge: selectedMaxAge,
+        playerNames: selectedPlayerNames, clubsPlayedFor: selectedClubsPlayedFor,
+        clubsPlayedAgainst: selectedClubsPlayedAgainst, subsOnly: selectedSubsOnly,
+        earliestSubOnTime: selectedEarliestSubOnTime, latestSubOnTime: selectedLatestSubOnTime,
+        penalties: selectedPenaltyOption, sortBy: selectedSortBy
+    };
+
     return (
         <div className="player-filter-screen">
             <button className="filter-button" onClick={toggleDrawer}>
@@ -92,39 +101,13 @@ const PlayerFilterScreen: React.FC = () => {
 
             <FilterSortDrawer
                 isOpen={isDrawerOpen}
-                selectedSeasons={selectedSeasons}
-                selectedCompetitions={selectedCompetitions}
-                selectedPositions={selectedPositions}
-                minuteFrom={selectedMinuteFrom}
-                minuteTo={selectedMinuteTo}
-                minAge={selectedMinAge}
-                maxAge={selectedMaxAge}
-                playerNames={selectedPlayerNames}
-                clubsPlayedFor={selectedClubsPlayedFor}
-                clubsPlayedAgainst={selectedClubsPlayedAgainst}
-                subsOnly={selectedSubsOnly}
-                earliestSubOnTime={selectedEarliestSubOnTime}
-                latestSubOnTime={selectedLatestSubOnTime}
-                penalties={selectedPenaltyOption}
-                sortBy={selectedSortBy}
+                filterState={filterState}
                 onFilterChange={handleFilterChange}
                 onClose={toggleDrawer}
             />
 
             <InfiniteScrollTable
-                selectedSeasons={selectedSeasons}
-                selectedCompetitions={selectedCompetitions}
-                selectedPositions={selectedPositions}
-                minuteFrom={selectedMinuteFrom}
-                minuteTo={selectedMinuteTo}
-                minAge={selectedMinAge}
-                maxAge={selectedMaxAge}
-                playerNames={selectedPlayerNames}
-                subsOnly={selectedSubsOnly}
-                earliestSubOnTime={selectedEarliestSubOnTime}
-                latestSubOnTime={selectedLatestSubOnTime}
-                penalties={selectedPenaltyOption}
-                sortBy={selectedSortBy}
+                filterState={filterState}
             />
         </div>
     );

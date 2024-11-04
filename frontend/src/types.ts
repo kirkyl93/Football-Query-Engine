@@ -37,6 +37,24 @@ export interface SeasonStats {
     mins_per_red_card: number | null
 }
 
+export interface FilterState {
+    seasons: number[];
+    competitions: string[];
+    positions: string[];
+    minuteFrom?: number;
+    minuteTo?: number;
+    minAge?: number;
+    maxAge?: number;
+    playerNames: string[];
+    clubsPlayedFor: number[];
+    clubsPlayedAgainst: number[];
+    subsOnly: boolean;
+    earliestSubOnTime?: number;
+    latestSubOnTime?: number;
+    penalties: string;
+    sortBy: string;
+}
+
 export interface PlayerSearchResult {
     player_id: number,
     player_name: string,
