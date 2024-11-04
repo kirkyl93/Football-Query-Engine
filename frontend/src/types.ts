@@ -86,7 +86,7 @@ export interface PlayerWithSeasonStats {
     mins_per_goal: number | null,
     mins_per_assist: number | null,
     mins_per_yellow_card: number | null,
-    mins_per_red_card: number | null 
+    mins_per_red_card: number | null
 }
 
 export interface Competition {

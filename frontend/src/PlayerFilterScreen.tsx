@@ -1,16 +1,31 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import InfiniteScrollTable from "./InfiniteScrollTable";
 import FilterSortDrawer from "./FilterSortDrawer";
 import './PlayerFilterScreen.css';
-import { useNavigate, useLocation } from "react-router-dom";
+import {useNavigate, useLocation} from "react-router-dom";
 
 const PlayerFilterScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { selectedSeasons, selectedCompetitions, selectedPositions, selectedMinuteFrom, selectedMinuteTo, selectedMinAge, selectedMaxAge, 
-        selectedPlayerNames, selectedClubsPlayedFor, selectedClubsPlayedAgainst, selectedSubsOnly, selectedEarliestSubOnTime, selectedLatestSubOnTime, selectedPenaltyOption, selectedSortBy } = useMemo(() => {
+    const {
+        selectedSeasons,
+        selectedCompetitions,
+        selectedPositions,
+        selectedMinuteFrom,
+        selectedMinuteTo,
+        selectedMinAge,
+        selectedMaxAge,
+        selectedPlayerNames,
+        selectedClubsPlayedFor,
+        selectedClubsPlayedAgainst,
+        selectedSubsOnly,
+        selectedEarliestSubOnTime,
+        selectedLatestSubOnTime,
+        selectedPenaltyOption,
+        selectedSortBy
+    } = useMemo(() => {
         const params = new URLSearchParams(location.search);
         return {
             selectedSeasons: params.get('seasons')?.split(',').map(Number) || [],
@@ -31,9 +46,9 @@ const PlayerFilterScreen: React.FC = () => {
         };
     }, [location.search]);
 
-    const handleFilterChange = (seasons: number[], competitions: string[], positions: string[], minuteFrom: number | undefined, minuteTo: number | undefined, 
-        minAge: number | undefined, maxAge: number | undefined, playerNames: string[], clubsPlayedFor: number[], clubsPlayedAgainst: number[], subsOnly: boolean, earliestSubOnTime: number | undefined,
-        latestSubOnTime: number | undefined, penalties: string, sortBy: string) => {
+    const handleFilterChange = (seasons: number[], competitions: string[], positions: string[], minuteFrom: number | undefined, minuteTo: number | undefined,
+                                minAge: number | undefined, maxAge: number | undefined, playerNames: string[], clubsPlayedFor: number[], clubsPlayedAgainst: number[], subsOnly: boolean, earliestSubOnTime: number | undefined,
+                                latestSubOnTime: number | undefined, penalties: string, sortBy: string) => {
         const params = new URLSearchParams();
 
         const addParam = (key: string, value: any) => {
@@ -62,7 +77,7 @@ const PlayerFilterScreen: React.FC = () => {
         navigate({
             pathname: location.pathname,
             search: params.toString() ? `?${params.toString()}` : ''
-        }, { replace: true });
+        }, {replace: true});
     };
 
     const toggleDrawer = () => {
@@ -95,7 +110,7 @@ const PlayerFilterScreen: React.FC = () => {
                 onFilterChange={handleFilterChange}
                 onClose={toggleDrawer}
             />
-      
+
             <InfiniteScrollTable
                 selectedSeasons={selectedSeasons}
                 selectedCompetitions={selectedCompetitions}

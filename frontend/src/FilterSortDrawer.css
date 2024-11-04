@@ -1,138 +1,138 @@
 /* Drawer container */
 .filter-drawer {
-  position: fixed;
-  top: 0;
-  right: -400px;
-  width: 300px;
-  height: 100vh; /* Ensure it takes full viewport height */
-  background-color: #ffffff;
-  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
-  padding: 0; /* Remove padding to fit the full height */
-  transition: right 0.3s ease;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 300px;
+    height: 100vh; /* Ensure it takes full viewport height */
+    background-color: #ffffff;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    padding: 0; /* Remove padding to fit the full height */
+    transition: right 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Open state for the drawer */
 .filter-drawer.open {
-  right: 0;
+    right: 0;
 }
 
 /* Ensure the header is not scrollable */
 .drawer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px; /* Adjust padding as needed */
-  background-color: #ffffff; /* Match the background color */
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); /* Optional: add shadow to differentiate */
-  z-index: 1; /* Ensure it stays above the scrolling content */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px; /* Adjust padding as needed */
+    background-color: #ffffff; /* Match the background color */
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); /* Optional: add shadow to differentiate */
+    z-index: 1; /* Ensure it stays above the scrolling content */
 }
 
 /* Ensure the content area scrolls, and the header is fixed */
 .filter-drawer-content {
-  flex: 1; /* Take up remaining space */
-  overflow-y: auto; /* Enable scrolling for the content */
-  padding: 10px; /* Adjust padding to fit content */
+    flex: 1; /* Take up remaining space */
+    overflow-y: auto; /* Enable scrolling for the content */
+    padding: 10px; /* Adjust padding to fit content */
 }
 
 /* Apply button fixed at the bottom of the drawer */
 .apply-button {
-  width: calc(100% - 40px); /* Full width minus padding */
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  bottom: 20px; /* Adjust bottom margin */
-  margin-bottom: 40px;
+    width: calc(100% - 40px); /* Full width minus padding */
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    bottom: 20px; /* Adjust bottom margin */
+    margin-bottom: 40px;
 }
 
 .apply-button:hover {
-  background-color: #0056b3;
+    background-color: #0056b3;
 }
 
 /* Ensure sections take full width and adjust margins */
 .dropdown-section {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .dropdown-title, .sub-dropdown-title {
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
 }
 
 .sub-dropdown-title {
-  padding-left: 10px;
-  font-size: 15px;
+    padding-left: 10px;
+    font-size: 15px;
 }
 
 .checkbox-group {
-  display: flex;
-  flex-direction: column;
-  margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
 }
 
 .checkbox-group label {
-  font-size: 14px;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
 }
 
 .flag-icon {
-  width: 20px;
-  height: auto;
-  margin-right: 10px;
+    width: 20px;
+    height: auto;
+    margin-right: 10px;
 }
 
 /* New radio button group styles */
 .radio-group {
-  display: flex;
-  flex-direction: column;
-  margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
 }
 
 .radio-group label {
-  font-size: 14px;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
 }
 
 .radio-group input[type="radio"] {
-  margin-right: 10px;
+    margin-right: 10px;
 }
 
 .dropdown-group {
-  display: flex;
-  gap: 16px; /* Adjust the gap as needed */
+    display: flex;
+    gap: 16px; /* Adjust the gap as needed */
 }
 
 .dropdown-group label {
-  margin: 0;
+    margin: 0;
 }
 
 .dropdown-group select {
-  margin-left: 8px; /* Optional: Add space between label and select */
+    margin-left: 8px; /* Optional: Add space between label and select */
 }
 
 .suggestions-dropdown {
-  position: relative;
-  top: 100%;
-  right: 0;
-  background-color: white;
-  border: 1px solid #ccc;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  z-index: 10000; /* Ensure dropdown is on top of other elements */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  width: 16%; /* Full width matching the input field */
+    position: relative;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 10000; /* Ensure dropdown is on top of other elements */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    width: 16%; /* Full width matching the input field */
 }
 

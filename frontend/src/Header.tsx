@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, {useEffect, useRef, useState} from 'react';
+import {Link} from 'react-router-dom';
 import './Header.css';
-import { Player } from './types';
+import {Player} from './types';
 
 const Header: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -58,7 +58,7 @@ const Header: React.FC = () => {
             const data = await response.json();
             setSuggestions(data);
             setIsDropdownVisible(true);
-        
+
         } catch (error) {
             console.error(`Error fetching suggestions: `, error);
         }
@@ -77,9 +77,9 @@ const Header: React.FC = () => {
         <header className="header">
             <nav className="nav">
                 <Link to="/?seasons=2024&comps=GB1" className="nav-link">
-                    <img src="/icons8-home.svg" alt="Home" className="home_icon" />
+                    <img src="/icons8-home.svg" alt="Home" className="home_icon"/>
                 </Link>
-                
+
                 <form ref={dropdownRef} className="search-form">
                     <input
                         type="text"
@@ -98,19 +98,34 @@ const Header: React.FC = () => {
                                     className="suggestion-item"
                                     onClick={() => handleSuggestionClick(suggestion.last_name)}
                                 >
-                                    <Link to={`/player/${suggestion.player_id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-                    <img 
-                      src={`https://flagicons.lipis.dev/flags/4x3/${suggestion.country_code}.svg`} 
-                      alt={`${suggestion.country_of_citizenship}`} 
-                      style={{ width: '30px', height: '20px', marginRight: '10px', borderRadius: 1 }} 
-                    />
-                    <img 
-                      src={suggestion.image_url || 'fake_image.jpg'} 
-                      alt={`${suggestion.first_name} ${suggestion.last_name}`} 
-                      style={{ width: '40px', height: '50px', marginRight: '10px', borderRadius: '50%' }}
-                    />
-                    <span>{`${suggestion.first_name} ${suggestion.last_name}`}</span>
-                  </Link>
+                                    <Link to={`/player/${suggestion.player_id}`} style={{
+                                        textDecoration: 'none',
+                                        color: 'inherit',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}>
+                                        <img
+                                            src={`https://flagicons.lipis.dev/flags/4x3/${suggestion.country_code}.svg`}
+                                            alt={`${suggestion.country_of_citizenship}`}
+                                            style={{
+                                                width: '30px',
+                                                height: '20px',
+                                                marginRight: '10px',
+                                                borderRadius: 1
+                                            }}
+                                        />
+                                        <img
+                                            src={suggestion.image_url || 'fake_image.jpg'}
+                                            alt={`${suggestion.first_name} ${suggestion.last_name}`}
+                                            style={{
+                                                width: '40px',
+                                                height: '50px',
+                                                marginRight: '10px',
+                                                borderRadius: '50%'
+                                            }}
+                                        />
+                                        <span>{`${suggestion.first_name} ${suggestion.last_name}`}</span>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>

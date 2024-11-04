@@ -2,131 +2,131 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
 body {
-  font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 .title {
-  font-size: 23px;
-  word-wrap: break-word;
-  white-space: normal;
-  padding: 10px;
-  max-width: 800px;
-  box-sizing: border-box;
+    font-size: 23px;
+    word-wrap: break-word;
+    white-space: normal;
+    padding: 10px;
+    max-width: 800px;
+    box-sizing: border-box;
 }
 
 .table-container {
-  min-height: 400px;
-  overflow: inherit;
-  background-color: white;
-  margin: 0 auto;
-  width: fit-content;
-  max-width: 100%;
-  border-collapse: collapse;
-  padding: 0;
-  position: relative;
+    min-height: 400px;
+    overflow: inherit;
+    background-color: white;
+    margin: 0 auto;
+    width: fit-content;
+    max-width: 100%;
+    border-collapse: collapse;
+    padding: 0;
+    position: relative;
 }
 
 .generic-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-  width: fit-content;
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: fit-content;
 }
 
 .generic-table tbody tr td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  width: fit-content;
-  align-items: center;
-  white-space: nowrap;
-  font-size: 14px;
-  min-width: 40px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    width: fit-content;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 14px;
+    min-width: 40px;
 }
 
 .player-name {
-  min-width: 140px;
+    min-width: 140px;
 }
 
 /* Sticky table header styling */
 .generic-table thead th {
-  background-color: white;
-  border-bottom: 2px solid #ddd;
-  padding: 10px;
-  text-align: left;
-  font-weight: 800;
-  font-size: 13px;
-  width: fit-content;
+    background-color: white;
+    border-bottom: 2px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    font-weight: 800;
+    font-size: 13px;
+    width: fit-content;
 }
 
 /* Styling for images within the table */
 .generic-table img {
-  width: 40px;
-  height: 50px;
-  vertical-align: middle;
+    width: 40px;
+    height: 50px;
+    vertical-align: middle;
 }
 
 @media only screen and (max-width: 700px) {
-  .column-to-hide {
-    display: none;
-  }
+    .column-to-hide {
+        display: none;
+    }
 }
 
 .column-to-hide {
-  min-width: 55px;
+    min-width: 55px;
 }
 
 .table-header {
-  min-width: 50px;
+    min-width: 50px;
 }
 
 .filter-button {
-  position: relative;
-  z-index: 10; /* Ensure buttons are above the checkboxes */
-  background-color: white;
-  color: black;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-right: 10px;
+    position: relative;
+    z-index: 10; /* Ensure buttons are above the checkboxes */
+    background-color: white;
+    color: black;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-right: 10px;
 }
 
 .loader-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 70vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70vh;
 }
 
 .bouncing-dots {
-  display: flex;
-  justify-content: space-between;
-  width: 60px;
+    display: flex;
+    justify-content: space-between;
+    width: 60px;
 }
 
 .dot {
-  width: 15px;
-  height: 15px;
-  background-color: #FF5C35;
-  border-radius: 50%;
-  animation: bounce 1.5s infinite;
+    width: 15px;
+    height: 15px;
+    background-color: #FF5C35;
+    border-radius: 50%;
+    animation: bounce 1.5s infinite;
 }
 
 .dot:nth-child(1) {
-  animation-delay: 0s;
+    animation-delay: 0s;
 }
 
 .dot:nth-child(2) {
-  animation-delay: 0.3s;
+    animation-delay: 0.3s;
 }
 
 .dot:nth-child(3) {
-  animation-delay: 0.6s;
+    animation-delay: 0.6s;
 }
 
 @keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
 }

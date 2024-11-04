@@ -24,11 +24,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-        .wrap(
-            Cors::default()
-                .allowed_origin("http://localhost:3000")
-                .max_age(3600)
-        )
+            .wrap(
+                Cors::default()
+                    .allowed_origin("http://localhost:3000")
+                    .max_age(3600)
+            )
             .app_data(web::Data::new(pool.clone()))
             .service(get_players)
             .service(fetch_player)
@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
             .service(search)
             .service(get_clubs)
     })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await
 }

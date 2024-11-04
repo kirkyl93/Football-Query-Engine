@@ -674,6 +674,5 @@ impl Country {
             Country::Missing => ""
         }
     }
-
 }
 

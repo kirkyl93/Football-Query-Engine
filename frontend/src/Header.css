@@ -1,22 +1,22 @@
 .header {
-  background-color: #2e89a5;
-  padding: 10px;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    background-color: #2e89a5;
+    padding: 10px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .nav-link {
-  color: white;
-  text-decoration: none;
-  margin: 0 15px;
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
 }
 
 .home-icon {
@@ -24,51 +24,52 @@
     height: 35px;
     margin-right: 8px;
 }
+
 .search-input {
-  padding: 5px;
-  border-radius: 4px;
-  border: none;
-  margin-right: 10px;
+    padding: 5px;
+    border-radius: 4px;
+    border: none;
+    margin-right: 10px;
 }
 
 .search-button {
-  padding: 5px 10px;
-  background-color: #555;
-  border: none;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
+    padding: 5px 10px;
+    background-color: #555;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .search-form {
-  position: relative;
-  width: 100%;
-  max-width: 400px; /* Optional: Adjust based on the size of your search input */
+    position: relative;
+    width: 100%;
+    max-width: 400px; /* Optional: Adjust based on the size of your search input */
 }
 
 /* Style the suggestions dropdown */
 .suggestions-dropdown {
-  position: absolute;
-  top: 100%; /* Ensure the dropdown starts directly below the input */
-  left: 0;
-  right: 0;
-  background-color: rgb(231, 60, 60);
-  border: 1px solid #ccc;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  z-index: 1000; /* Ensure dropdown is on top of other elements */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  width: 100%; /* Full width matching the input field */
+    position: absolute;
+    top: 100%; /* Ensure the dropdown starts directly below the input */
+    left: 0;
+    right: 0;
+    background-color: rgb(231, 60, 60);
+    border: 1px solid #ccc;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 1000; /* Ensure dropdown is on top of other elements */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Full width matching the input field */
 }
 
 /* Style each suggestion item */
 .suggestion-item {
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
 }
 
 .suggestion-item:hover {
-  background-color: #2e89a5;
+    background-color: #2e89a5;
 }

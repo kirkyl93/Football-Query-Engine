@@ -1,4 +1,3 @@
-
 use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{Error, FromRow, Row};
@@ -36,7 +35,7 @@ pub enum PlayerSubPosition {
     SecondStriker,
     #[serde(rename = "CF")]
     CentreForward,
-    Missing
+    Missing,
 }
 
 impl PlayerSubPosition {
@@ -55,7 +54,7 @@ impl PlayerSubPosition {
             "Attacking Midfield" => PlayerSubPosition::AttackingMidfield,
             "Second Striker" => PlayerSubPosition::SecondStriker,
             "Centre-Forward" => PlayerSubPosition::CentreForward,
-            _ => PlayerSubPosition::Missing 
+            _ => PlayerSubPosition::Missing
         }
     }
 }
@@ -87,7 +86,7 @@ pub enum PlayerPosition {
     Midfield,
     Attack,
     #[serde(rename = "Unknown")]
-    Missing
+    Missing,
 }
 
 impl PlayerPosition {
@@ -104,10 +103,10 @@ impl PlayerPosition {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Foot {
-    Left, 
+    Left,
     Right,
     Both,
-    Missing
+    Missing,
 }
 
 impl Foot {
@@ -139,7 +138,7 @@ pub struct Player {
     height_in_cm: i32,
     image_url: String,
     highest_market_value_in_eur: i64,
-    occurrences: i64
+    occurrences: i64,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -157,9 +156,8 @@ pub struct PlayerSearchResult {
     total_yellow_cards: i64,
     total_red_cards: i64,
     total_minutes_played: i64,
-    clubs_played_for: String
+    clubs_played_for: String,
 }
-
 
 
 #[derive(Debug, Serialize, Clone)]
@@ -183,7 +181,7 @@ pub struct PlayerSeasonByCompAndTeam {
     mins_per_goal: Option<i64>,
     mins_per_assist: Option<i64>,
     mins_per_yellow_card: Option<i64>,
-    mins_per_red_card: Option<i64>
+    mins_per_red_card: Option<i64>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -222,7 +220,7 @@ pub struct PlayerWithSeason {
     mins_per_goal: Option<i64>,
     mins_per_assist: Option<i64>,
     mins_per_yellow_card: Option<i64>,
-    mins_per_red_card: Option<i64>
+    mins_per_red_card: Option<i64>,
 }
 
 impl<'r> FromRow<'r, PgRow> for Player {
@@ -247,7 +245,6 @@ impl<'r> FromRow<'r, PgRow> for Player {
             sub_position: {
                 let sub_position_string: &str = row.try_get("sub_position").unwrap_or_default();
                 PlayerSubPosition::from_str(sub_position_string)
-                
             },
             position: {
                 let position_string: &str = row.try_get("position").unwrap_or_default();
@@ -260,9 +257,10 @@ impl<'r> FromRow<'r, PgRow> for Player {
             height_in_cm: row.try_get("height_in_cm").unwrap_or_default(),
             image_url: row.try_get("image_url").unwrap_or_default(),
             highest_market_value_in_eur: row.try_get("highest_market_value_in_eur").unwrap_or_default(),
-            occurrences: row.try_get("occurrences").unwrap_or_default()
+            occurrences: row.try_get("occurrences").unwrap_or_default(),
         }
-    )}
+        )
+    }
 }
 
 impl<'r> FromRow<'r, PgRow> for PlayerSeasonByCompAndTeam {
@@ -301,9 +299,10 @@ impl<'r> FromRow<'r, PgRow> for PlayerSeasonByCompAndTeam {
             mins_per_goal: row.try_get("mins_per_goal").ok().unwrap_or_default(),
             mins_per_assist: row.try_get("mins_per_assist").ok().unwrap_or_default(),
             mins_per_yellow_card: row.try_get("mins_per_yellow_card").ok().unwrap_or_default(),
-            mins_per_red_card: row.try_get("mins_per_red_card").ok().unwrap_or_default(),        
+            mins_per_red_card: row.try_get("mins_per_red_card").ok().unwrap_or_default(),
         }
-    )}
+        )
+    }
 }
 
 impl<'r> FromRow<'r, PgRow> for PlayerWithSeason {
@@ -329,7 +328,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerWithSeason {
             age: calculate_age(date_of_birth),
             sub_position: {
                 let sub_position_string: &str = row.try_get("sub_position").unwrap_or_default();
-                PlayerSubPosition::from_str(sub_position_string) 
+                PlayerSubPosition::from_str(sub_position_string)
             },
             position: {
                 let position_string: &str = row.try_get("position").unwrap_or_default();
@@ -374,7 +373,8 @@ impl<'r> FromRow<'r, PgRow> for PlayerWithSeason {
             mins_per_yellow_card: row.try_get("mins_per_yellow_card").ok().unwrap_or_default(),
             mins_per_red_card: row.try_get("mins_per_red_card").ok().unwrap_or_default(),
         }
-    )}
+        )
+    }
 }
 
 impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
@@ -388,7 +388,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
             country_code: country_of_citizenship.code().to_string(),
             sub_position: {
                 let sub_position_string: &str = row.try_get("sub_position").unwrap_or_default();
-                PlayerSubPosition::from_str(sub_position_string) 
+                PlayerSubPosition::from_str(sub_position_string)
             },
             image_url: row.try_get("image_url").unwrap_or_default(),
             total_appearances: row.try_get("total_appearances").unwrap_or_default(),
@@ -398,9 +398,10 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
             total_yellow_cards: row.try_get("total_yellow_cards").unwrap_or_default(),
             total_red_cards: row.try_get("total_red_cards").unwrap_or_default(),
             total_minutes_played: row.try_get("total_minutes_played").unwrap_or_default(),
-            clubs_played_for: row.try_get("clubs_played_for").unwrap_or_default()
+            clubs_played_for: row.try_get("clubs_played_for").unwrap_or_default(),
         }
-    )}
+        )
+    }
 }
 
 

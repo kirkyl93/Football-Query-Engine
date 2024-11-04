@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import './FilterSortDrawer.css';
-import { competitions } from "./competitions";
+import {competitions} from "./competitions";
 import {formatSeason} from "./utils";
 import {Club} from "./types";
 
@@ -21,56 +21,56 @@ interface FilterSortDrawerProps {
     latestSubOnTime: number | undefined,
     penalties: string,
     sortBy: string;
-    onFilterChange: (seasons: number[], competitions: string[], positions: string[],  minuteFrom: number | undefined, minuteTo: number | undefined,
-        minAge: number | undefined, maxAge: number | undefined, playerNames: string[], clubsPlayedFor: number[], clubsPlayedAgainst: number[],
+    onFilterChange: (seasons: number[], competitions: string[], positions: string[], minuteFrom: number | undefined, minuteTo: number | undefined,
+                     minAge: number | undefined, maxAge: number | undefined, playerNames: string[], clubsPlayedFor: number[], clubsPlayedAgainst: number[],
                      subsOnly: boolean, earliestSubOnTime: number | undefined, latestSubOnTime: number | undefined, penalties: string, sortBy: string) => void;
     onClose: () => void;
 }
 
 const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
-    isOpen,
-    selectedSeasons,
-    selectedCompetitions,
-    selectedPositions,
-    minuteFrom,
-    minuteTo,
-    minAge,
-    maxAge,
-    playerNames,
-    clubsPlayedFor,
-    clubsPlayedAgainst,
-    subsOnly,
-    earliestSubOnTime,
-    latestSubOnTime,
-    penalties,
-    sortBy,
-    onFilterChange,
-    onClose,
-}) => {
+                                                               isOpen,
+                                                               selectedSeasons,
+                                                               selectedCompetitions,
+                                                               selectedPositions,
+                                                               minuteFrom,
+                                                               minuteTo,
+                                                               minAge,
+                                                               maxAge,
+                                                               playerNames,
+                                                               clubsPlayedFor,
+                                                               clubsPlayedAgainst,
+                                                               subsOnly,
+                                                               earliestSubOnTime,
+                                                               latestSubOnTime,
+                                                               penalties,
+                                                               sortBy,
+                                                               onFilterChange,
+                                                               onClose,
+                                                           }) => {
     const seasons = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009,
         2008, 2007, 2006, 2005, 2004, 2003, 2002, 2001, 2000, 1999, 1998, 1997, 1996, 1995, 1994, 1993, 1992];
 
 
     const positions: string[] = ["GK", "LB", "RB", "CB", "CDM", "LM", "RM", "CM", "CAM", "LW", "RW", "SS", "CF"];
 
-    const ages = Array.from({ length: 37 }, (_, i) => i + 14);
+    const ages = Array.from({length: 37}, (_, i) => i + 14);
 
-    const minutes = Array.from({ length: 120 }, (_, i) => i + 1);
+    const minutes = Array.from({length: 120}, (_, i) => i + 1);
 
     const penaltyOptions = [
-        { name: "Include penalties", id: "ip" },
-        { name: "Exclude penalties", id: "ep" },
-        { name: "Include only penalties", id: "op" }
+        {name: "Include penalties", id: "ip"},
+        {name: "Exclude penalties", id: "ep"},
+        {name: "Include only penalties", id: "op"}
     ];
 
     const sortTypes = [
-        { name: "Goals", id: "g"},
-        { name: "Assists", id: "a"},
-        { name: "Goals and Assists", id: "ga"},
-        { name: "Appearances", id: "ap"}, 
-        { name: "Minutes played", id: "m"},
-        { name: "Yellow cards", id: "y"},
-        { name: "Red cards", id: "r"}
+        {name: "Goals", id: "g"},
+        {name: "Assists", id: "a"},
+        {name: "Goals and Assists", id: "ga"},
+        {name: "Appearances", id: "ap"},
+        {name: "Minutes played", id: "m"},
+        {name: "Yellow cards", id: "y"},
+        {name: "Red cards", id: "r"}
     ];
 
     const [localSelectedSeasons, setLocalSelectedSeasons] = useState<number[]>(selectedSeasons);
@@ -508,41 +508,41 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                     </div>
                     {isClubsOpen && (
                         <div className="dropdown-content">
-                                <input
-                                    type="text"
-                                    placeholder="Clubs played for"
-                                    value={newClubPlayedFor}
-                                    onChange={handleClubPlayedForChange}
-                                />
-                                {isClubsPlayedForDropdownVisible && newClubsPlayedForSuggestions.length > 0 && (
-                                    <ul className="suggestions-dropdown">
-                                        {newClubsPlayedForSuggestions.map((suggestion, index) => (
-                                            <li key={index}
-                                                className="suggestion-item"
-                                                onClick={() => handleClubPlayedForSuggestionClick(suggestion)}
-                                            >
-                                                <img
-                                                    style={{width: 20, fontSize: 15}}
-                                                    alt="Badge of football team selected"
-                                                    src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion)}.png`}
-                                                />
+                            <input
+                                type="text"
+                                placeholder="Clubs played for"
+                                value={newClubPlayedFor}
+                                onChange={handleClubPlayedForChange}
+                            />
+                            {isClubsPlayedForDropdownVisible && newClubsPlayedForSuggestions.length > 0 && (
+                                <ul className="suggestions-dropdown">
+                                    {newClubsPlayedForSuggestions.map((suggestion, index) => (
+                                        <li key={index}
+                                            className="suggestion-item"
+                                            onClick={() => handleClubPlayedForSuggestionClick(suggestion)}
+                                        >
+                                            <img
+                                                style={{width: 20, fontSize: 15}}
+                                                alt="Badge of football team selected"
+                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion)}.png`}
+                                            />
 
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                                <div className="club-names-list">
-                                    {(localClubsPlayedFor || []).map((club, index) => (
-                                        <span key={index} className="club-name-item">
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            <div className="club-names-list">
+                                {(localClubsPlayedFor || []).map((club, index) => (
+                                    <span key={index} className="club-name-item">
                                             <img
                                                 style={{width: 30}}
                                                 alt="Badge of football team selected"
                                                 src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(club)}.png`}
                                             />
                                             <button onClick={() => handleRemovePlayedForClub(club)}>x</button>
-                                        </span>
-                                    ))}
-                                </div>
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     )}
                     {isClubsOpen && (
@@ -584,7 +584,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                 ))}
                             </div>
                         </div>
-                        )}
+                    )}
                 </div>
 
                 <div className="dropdown-section">

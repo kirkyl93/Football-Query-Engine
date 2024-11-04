@@ -2,10 +2,10 @@
 .player-filter-screen {
     position: relative;
     padding: 20px;
-  }
-  
-  /* Stylish Filter Button */
-  .filter-button {
+}
+
+/* Stylish Filter Button */
+.filter-button {
     position: absolute;
     top: 20px;
     right: 20px;
@@ -17,14 +17,14 @@
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-  }
-  
-  .filter-button:hover {
+}
+
+.filter-button:hover {
     background-color: #0056b3;
-  }
-  
-  /* Filter Drawer */
-  .filter-drawer {
+}
+
+/* Filter Drawer */
+.filter-drawer {
     position: fixed;
     top: 0;
     right: -400px; /* Hidden off-screen initially */
@@ -35,62 +35,62 @@
     padding: 20px;
     transition: right 0.3s ease; /* Sliding animation */
     z-index: 1000;
-  }
-  
-  .filter-drawer.open {
+}
+
+.filter-drawer.open {
     right: 0; /* Slide in when open */
-  }
-  
-  /* Drawer Header */
-  .drawer-header {
+}
+
+/* Drawer Header */
+.drawer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-  }
-  
-  .drawer-header h2 {
+}
+
+.drawer-header h2 {
     margin: 0;
     font-size: 18px;
-  }
-  
-  .close-button {
+}
+
+.close-button {
     background: none;
     border: none;
     font-size: 20px;
     cursor: pointer;
-  }
-  
-  /* Dropdown section styling */
-  .dropdown-section {
+}
+
+/* Dropdown section styling */
+.dropdown-section {
     margin-bottom: 20px;
-  }
-  
-  .dropdown-title {
+}
+
+.dropdown-title {
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 10px;
-  }
-  
-  /* Checkbox group styling */
-  .checkbox-group {
+}
+
+/* Checkbox group styling */
+.checkbox-group {
     display: flex;
     flex-direction: column;
-  }
-  
-  .checkbox-group label {
+}
+
+.checkbox-group label {
     display: flex;
     align-items: center;
     font-size: 14px;
     margin-bottom: 10px;
-  }
-  
-  .checkbox-group input[type="checkbox"] {
+}
+
+.checkbox-group input[type="checkbox"] {
     margin-right: 10px;
-  }
-  
-  /* Apply Filters Button */
-  .apply-button {
+}
+
+/* Apply Filters Button */
+.apply-button {
     width: 100%;
     padding: 10px;
     background-color: #007bff;
@@ -99,30 +99,30 @@
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
-  }
-  
-  .apply-button:hover {
+}
+
+.apply-button:hover {
     background-color: #0056b3;
-  }
-  
-  /* Make the table fill the remaining space and have proper spacing */
-  .infinite-scroll-table {
+}
+
+/* Make the table fill the remaining space and have proper spacing */
+.infinite-scroll-table {
     margin-top: 80px; /* To make space for the filter button */
     padding: 20px;
-  }
-  
-  /* Loading state */
-  .loading {
+}
+
+/* Loading state */
+.loading {
     text-align: center;
     font-size: 16px;
     color: #555;
-  }
-  
-  /* Error state */
-  .error {
+}
+
+/* Error state */
+.error {
     text-align: center;
     color: red;
     font-size: 16px;
     margin-top: 10px;
-  }
+}
   

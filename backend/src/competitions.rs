@@ -16,7 +16,7 @@ pub enum Competition {
     ChampionsLeague,
     #[serde(rename = "Champions League Qualification")]
     ChampionsLeagueQualification,
-    #[serde(rename = "DFB Pokal")]    
+    #[serde(rename = "DFB Pokal")]
     DFBPokal,
     #[serde(rename = "DFL Super Cup")]
     DFLSuperCup,
@@ -149,7 +149,7 @@ pub enum CompetitionType {
     Other,
     Europe,
     #[serde(rename = "European Qualifying")]
-    Missing
+    Missing,
 }
 
 impl CompetitionType {

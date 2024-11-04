@@ -8,7 +8,7 @@ use crate::club::Club;
 struct ToolbarSearchParams {
     page: Option<i32>,
     limit: Option<i32>,
-    search_name: Option<String>
+    search_name: Option<String>,
 }
 
 #[get("/clubs")]
@@ -21,7 +21,7 @@ pub async fn get_clubs(pool: web::Data<PgPool>, params: web::Query<ToolbarSearch
 
     add_club_name_to_query(&mut query, search_name);
 
-    query.push( " ORDER BY stadium_seats DESC NULLS LAST, name");
+    query.push(" ORDER BY stadium_seats DESC NULLS LAST, name");
 
     add_limit_and_offset_to_query(&mut query, limit, page);
 
@@ -39,7 +39,6 @@ pub async fn get_clubs(pool: web::Data<PgPool>, params: web::Query<ToolbarSearch
 
 fn add_club_name_to_query(query: &mut QueryBuilder<Postgres>, club_name: &str) {
     if !club_name.is_empty() {
-
         let names: Vec<&str> = club_name.split_whitespace().collect();
         let count = names.len();
 
