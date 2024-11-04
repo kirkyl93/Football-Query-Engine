@@ -68,13 +68,7 @@ const Header: React.FC = () => {
         setSearchTerm(e.target.value);
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (searchTerm.trim()) {
-        }
-      };
-
-      const handleSuggestionClick = (suggestion: string) => {
+    const handleSuggestionClick = (suggestion: string) => {
         setSearchTerm('');
         setIsDropdownVisible(false);
     };
@@ -86,7 +80,7 @@ const Header: React.FC = () => {
                     <img src="/icons8-home.svg" alt="Home" className="home_icon" />
                 </Link>
                 
-                <form ref={dropdownRef} onSubmit={handleSearchSubmit} className="search-form">
+                <form ref={dropdownRef} className="search-form">
                     <input
                         type="text"
                         placeholder="Search for a player..."
@@ -96,7 +90,6 @@ const Header: React.FC = () => {
                     />
                     <button type="submit" className="search-button">Search</button>
 
-                    {/* Render suggestions below the search bar */}
                     {isDropdownVisible && suggestions.length > 0 && (
                         <ul className="suggestions-dropdown">
                             {suggestions.map((suggestion, index) => (
@@ -106,13 +99,11 @@ const Header: React.FC = () => {
                                     onClick={() => handleSuggestionClick(suggestion.last_name)}
                                 >
                                     <Link to={`/player/${suggestion.player_id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-                    {/* Flag Image */}
                     <img 
                       src={`https://flagicons.lipis.dev/flags/4x3/${suggestion.country_code}.svg`} 
                       alt={`${suggestion.country_of_citizenship}`} 
                       style={{ width: '30px', height: '20px', marginRight: '10px', borderRadius: 1 }} 
                     />
-                    {/* Player Info */}
                     <img 
                       src={suggestion.image_url || 'fake_image.jpg'} 
                       alt={`${suggestion.first_name} ${suggestion.last_name}`} 

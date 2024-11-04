@@ -97,6 +97,8 @@ struct SearchParams {
     minto: Option<i32>,
     minage: Option<i32>,
     names: Option<String>,
+    clubspf: Option<String>,
+    clubspa: Option<String>,
     maxage: Option<i32>,
     subonly: Option<i32>,
     earliestsub: Option<i32>,
@@ -154,18 +156,33 @@ fn construct_search_query_from_params(params: &web::Query<SearchParams>) -> Quer
         .map(|p| p.split(',').collect())
         .unwrap_or_else(Vec::new);
 
+    let clubs_played_for: Vec<i32> = params.clubspf
+        .as_ref()
+        .map(|s| s.split(',').filter_map(|s| s.parse().ok()).collect())
+        .unwrap_or_else(Vec::new);
+
+    let clubs_played_against: Vec<i32> = params.clubspa
+        .as_ref()
+        .map(|s| s.split(',').filter_map(|s| s.parse().ok()).collect())
+        .unwrap_or_else(Vec::new);
+
     // These are the defaults when no values are passed in the URL
     if minute_from == 0 && minute_to == 120 {
-        return build_query_from_appearances(page, limit, min_age, max_age, names, subs_only, earliest_sub_on_time, latest_sub_on_time, penalties, sort_by, seasons, competitions, positions);
+        return build_query_from_appearances(page, limit, min_age, max_age, names, clubs_played_for, clubs_played_against,
+                                            subs_only, earliest_sub_on_time, latest_sub_on_time, penalties,
+                                            sort_by, seasons, competitions, positions);
     }
 
-    return build_query_from_events(page, limit, min_age, max_age, names, minute_from, minute_to, subs_only, earliest_sub_on_time,
+    return build_query_from_events(page, limit, min_age, max_age, names, clubs_played_for, clubs_played_against,
+                                   minute_from, minute_to, subs_only, earliest_sub_on_time,
         latest_sub_on_time, penalties, sort_by, seasons, competitions, positions);
 }
 
-fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32, player_names: Vec<&str>, minute_from: i32, minute_to: i32, subs_only: i32,
-    earliest_sub_on_time: i32, latest_sub_on_time: i32, penalties: &'a str, sort_by: &'a str, seasons: Vec<i32>,
-    competitions: Vec<&str>, positions: Vec<&str>) -> QueryBuilder<'a, Postgres> {
+fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32, player_names: Vec<&str>,
+                               clubs_played_for: Vec<i32>, clubs_played_against: Vec<i32>, minute_from: i32,
+                               minute_to: i32, subs_only: i32, earliest_sub_on_time: i32, latest_sub_on_time: i32,
+                               penalties: &'a str, sort_by: &'a str, seasons: Vec<i32>, competitions: Vec<&str>,
+                               positions: Vec<&str>) -> QueryBuilder<'a, Postgres> {
         
         let mut query = QueryBuilder::new(
             "WITH games_minute_appearance_filter AS (SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, ");
@@ -191,6 +208,8 @@ fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32
         add_positions_to_query(&mut query, positions);
         add_ages_to_query(&mut query, min_age, max_age);
         add_player_names_to_query(&mut query, player_names);
+        add_clubs_played_for_to_query(&mut query, clubs_played_for);
+        add_clubs_played_against_to_query(&mut query, clubs_played_against);
         add_sub_info_to_query(&mut query, subs_only, earliest_sub_on_time, latest_sub_on_time);
 
         query.push("GROUP BY a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, c.club_id, g.game_id) ");
@@ -213,7 +232,8 @@ fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32
 }
 
 
-fn build_query_from_appearances<'a>(page: i32, limit: i32, min_age: i32, max_age: i32, player_names: Vec<&str>, subs_only: i32,
+fn build_query_from_appearances<'a>(page: i32, limit: i32, min_age: i32, max_age: i32, player_names: Vec<&str>,
+                                    clubs_played_for: Vec<i32>, clubs_played_against: Vec<i32>, subs_only: i32,
     earliest_sub_on_time: i32, latest_sub_on_time: i32, penalties: &'a str, sort_by: &'a str, seasons: Vec<i32>, 
     competitions: Vec<&str>, positions: Vec<&str>) -> QueryBuilder<'a, Postgres> {
 
@@ -243,6 +263,8 @@ fn build_query_from_appearances<'a>(page: i32, limit: i32, min_age: i32, max_age
     add_positions_to_query(&mut query, positions);
     add_ages_to_query(&mut query, min_age, max_age);
     add_player_names_to_query(&mut query, player_names);
+    add_clubs_played_for_to_query(&mut query, clubs_played_for);
+    add_clubs_played_against_to_query(&mut query, clubs_played_against);
     add_sub_info_to_query(&mut query, subs_only, earliest_sub_on_time, latest_sub_on_time);
 
     add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation, false);
@@ -393,6 +415,46 @@ fn add_player_names_to_query(query: &mut QueryBuilder<Postgres>, player_names: V
     }
 }
 
+fn add_clubs_played_for_to_query(query: &mut QueryBuilder<Postgres>, clubs_played_for: Vec<i32>) {
+    if !clubs_played_for.is_empty() {
+        query.push("AND player_club_id IN (");
+
+        for (i, club) in clubs_played_for.into_iter().enumerate() {
+            if i > 0 {
+                query.push(", ");
+            }
+            query.push_bind(club);
+        }
+        query.push(") ");
+    }
+}
+
+fn add_clubs_played_against_to_query(query: &mut QueryBuilder<Postgres>, clubs_played_against: Vec<i32>) {
+    if !clubs_played_against.is_empty() {
+        query.push("AND (");
+
+        for (i, club_id) in clubs_played_against.into_iter().enumerate() {
+            if i > 0 {
+                query.push(" OR ");
+            }
+
+            query.push("(")
+                .push_bind(club_id)
+                .push(" = home_club_id AND player_club_id != ")
+                .push_bind(club_id)
+                .push(")");
+
+            query.push(" OR (")
+                .push_bind(club_id)
+                .push(" = away_club_id AND player_club_id != ")
+                .push_bind(club_id)
+                .push(")");
+        }
+        query.push(") ");
+    }
+}
+
+
 fn add_sub_info_to_query(query: &mut QueryBuilder<Postgres>, subs_only: i32, earliest_sub_on_time: i32, latest_sub_on_time: i32) {
     if subs_only > 0 {
         query.push("AND a.played_from_minute > ").push_bind(if earliest_sub_on_time > 0 { earliest_sub_on_time - 1 } else { 0 }).push(" ");
@@ -449,6 +511,6 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
     query.push(sort_clause);
 }
 
-fn add_limit_and_offset_to_query(query: &mut QueryBuilder<Postgres>, limit: i32, page: i32) {
+pub fn add_limit_and_offset_to_query(query: &mut QueryBuilder<Postgres>, limit: i32, page: i32) {
     query.push(" LIMIT ").push_bind(limit).push(" OFFSET ").push_bind(page * limit);
 }

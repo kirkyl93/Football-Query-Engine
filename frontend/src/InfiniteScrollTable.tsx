@@ -43,8 +43,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
   const currentRankRef = useRef(1);
   const location = useLocation();
 
-  const currentSearchParamsRef = useRef<string>("-1");
-  const prevSearchParamsRef = useRef<string>("");
+  const prevSearchParamsRef = useRef<string>("-1");
 
   const currentSearchParams = useMemo(() => {
     return new URLSearchParams(location.search).toString();
@@ -310,21 +309,14 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = ({
     let url = `http://localhost:8080/search?page=${currentPage}&limit=${REQUEST_LIMIT}`;
     const params = new URLSearchParams(location.search);
 
-    const paramMapping: Record<string, string> = {
-      seasons: 'seasons',
-      comps: 'comps',
-      positions: 'positions',
-      minfrom: 'minfrom',
-      minto: 'minto',
-      minage: 'minage',
-      maxage: 'maxage',
-      names: 'names',
-      penalty: 'penalty',
-      sort: 'sort'
-    };
+    const paramMapping = [
+      'seasons', 'comps', 'positions', 'minfrom', 'minto',
+      'minage', 'maxage', 'names', 'clubspf', 'clubspa',
+      'penalty', 'sort'
+    ];
 
-    Object.entries(paramMapping).forEach(([key, paramKey]) => {
-      const value = params.get(paramKey);
+    paramMapping.forEach((key) => {
+      const value = params.get(key);
       if (value) {
         url += `&${key}=${value}`;
       }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './FilterSortDrawer.css';
 import { competitions } from "./competitions";
 import {formatSeason} from "./utils";
+import {Club} from "./types";
 
 interface FilterSortDrawerProps {
     isOpen: boolean;
@@ -13,14 +14,16 @@ interface FilterSortDrawerProps {
     minAge: number | undefined,
     maxAge: number | undefined,
     playerNames: string[],
+    clubsPlayedFor: number[],
+    clubsPlayedAgainst: number[],
     subsOnly: boolean;
     earliestSubOnTime: number | undefined,
     latestSubOnTime: number | undefined,
     penalties: string,
     sortBy: string;
     onFilterChange: (seasons: number[], competitions: string[], positions: string[],  minuteFrom: number | undefined, minuteTo: number | undefined,
-        minAge: number | undefined, maxAge: number | undefined, playerNames: string[], subsOnly: boolean, earliestSubOnTime: number | undefined,
-        latestSubOnTime: number | undefined, penalties: string, sortBy: string) => void;
+        minAge: number | undefined, maxAge: number | undefined, playerNames: string[], clubsPlayedFor: number[], clubsPlayedAgainst: number[],
+                     subsOnly: boolean, earliestSubOnTime: number | undefined, latestSubOnTime: number | undefined, penalties: string, sortBy: string) => void;
     onClose: () => void;
 }
 
@@ -34,6 +37,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     minAge,
     maxAge,
     playerNames,
+    clubsPlayedFor,
+    clubsPlayedAgainst,
     subsOnly,
     earliestSubOnTime,
     latestSubOnTime,
@@ -77,6 +82,14 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const [localMaxAge, setLocalMaxAge] = useState<number | undefined>(maxAge);
     const [localPlayerNames, setLocalPlayerNames] = useState<string[]>(playerNames);
     const [newPlayerName, setNewPlayerName] = useState<string>("");
+    const [localClubsPlayedFor, setLocalClubsPlayedFor] = useState<number[]>(clubsPlayedFor);
+    const [newClubPlayedFor, setNewClubPlayedFor] = useState<string>("");
+    const [newClubsPlayedForSuggestions, setNewClubsPlayedForSuggestions] = useState<number[]>([]);
+    const [isClubsPlayedForDropdownVisible, setIsClubsPlayedForDropdownVisible] = useState<boolean>(false);
+    const [localClubsPlayedAgainst, setLocalClubsPlayedAgainst] = useState<number[]>(clubsPlayedAgainst);
+    const [newClubPlayedAgainst, setNewClubPlayedAgainst] = useState<string>("");
+    const [newClubsPlayedAgainstSuggestions, setNewClubsPlayedAgainstSuggestions] = useState<number[]>([]);
+    const [isClubsPlayedAgainstDropdownVisible, setIsClubsPlayedAgainstDropdownVisible] = useState<boolean>(false);
     const [localSubsOnly, setLocalSubsOnly] = useState<boolean>(subsOnly);
     const [localEarliestSubOnTime, setLocalEarliestSubOnTime] = useState<number | undefined>(earliestSubOnTime);
     const [localLatestSubOnTime, setLocalLatestSubOnTime] = useState<number | undefined>(latestSubOnTime);
@@ -91,6 +104,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const [isMinutesOpen, setIsMinutesOpen] = useState(false);
     const [isAgeOpen, setIsAgeOpen] = useState(false);
     const [isPlayerNameOpen, setIsPlayerNameOpen] = useState(false);
+    const [isClubsOpen, setIsClubsOpen] = useState(false);
     const [isSubstitutesOpen, setIsSubstitutesOpen] = useState(false);
     const [isPenaltiesOpen, setIsPenaltiesOpen] = useState(false);
     const [isSortByOpen, setIsSortByOpen] = useState(false);
@@ -103,7 +117,12 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         setLocalMinuteTo(undefined);
         setLocalMinAge(undefined);
         setLocalMaxAge(undefined);
+        setNewPlayerName("");
         setLocalPlayerNames([]);
+        setLocalClubsPlayedFor([]);
+        setNewClubPlayedFor("");
+        setLocalClubsPlayedAgainst([]);
+        setNewClubPlayedAgainst("");
         setLocalSubsOnly(false);
         setLocalEarliestSubOnTime(undefined);
         setLocalLatestSubOnTime(undefined);
@@ -111,12 +130,71 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         setLocalSortBy("g");
     }
 
+    const fetchClubSuggestions = async (playedFor: boolean) => {
+        try {
+            const newClub = playedFor ? newClubPlayedFor.trim() : newClubPlayedAgainst.trim();
+            if (newClub.length < 3) {
+                return;
+            }
+            const response = await fetch(`http://localhost:8080/clubs?search_name=${newClub}&page=0&limit=10`);
+            const data: Club[] = await response.json();
+            playedFor ? setNewClubsPlayedForSuggestions(data.map(club => club.club_id)) : setNewClubsPlayedAgainstSuggestions(data.map(club => club.club_id));
+            playedFor ? setIsClubsPlayedForDropdownVisible(true) : setIsClubsPlayedAgainstDropdownVisible(true);
+        } catch (error) {
+            console.error(`Error fetching suggestions: `, error);
+        }
+    }
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (newClubPlayedFor.trim()) {
+                fetchClubSuggestions(true);
+            } else {
+                setNewClubPlayedFor("");
+                setNewClubsPlayedForSuggestions([]);
+                setIsClubsPlayedForDropdownVisible(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [newClubPlayedFor]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (newClubPlayedAgainst.trim()) {
+                fetchClubSuggestions(false);
+            } else {
+                setNewClubPlayedAgainst("");
+                setNewClubsPlayedAgainstSuggestions([]);
+                setIsClubsPlayedAgainstDropdownVisible(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [newClubPlayedAgainst]);
+
     const handleSeasonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
         if (e.target.checked) {
             setLocalSelectedSeasons(prev => [...prev, value]);
         } else {
             setLocalSelectedSeasons(prev => prev.filter(season => season !== value));
+        }
+    };
+
+    const handleClubPlayedForSuggestionClick = (suggestion: number) => {
+        setNewClubPlayedFor("");
+        setIsClubsPlayedForDropdownVisible(false);
+        if (localClubsPlayedFor !== undefined && !localClubsPlayedFor.includes(suggestion)) {
+            setLocalClubsPlayedFor(prev => [...prev, suggestion]);
+        }
+    };
+
+    const handleClubPlayedAgainstSuggestionClick = (suggestion: number) => {
+        setNewClubPlayedAgainst("");
+        setIsClubsPlayedAgainstDropdownVisible(false);
+        if (localClubsPlayedAgainst !== undefined && !localClubsPlayedAgainst.includes(suggestion)) {
+            setLocalClubsPlayedAgainst(prev => [...prev, suggestion]);
         }
     };
 
@@ -157,6 +235,22 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const handlePlayerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewPlayerName(e.target.value);
     }
+
+    const handleClubPlayedForChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewClubPlayedFor(e.target.value);
+    }
+
+    const handleClubPlayedAgainstChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewClubPlayedAgainst(e.target.value);
+    }
+
+    const handleRemovePlayedForClub = (clubIdToRemove: number) => {
+        setLocalClubsPlayedFor(prev => prev.filter(club => club !== clubIdToRemove));
+    };
+
+    const handleRemovePlayedAgainstClub = (clubIdToRemove: number) => {
+        setLocalClubsPlayedAgainst(prev => prev.filter(club => club !== clubIdToRemove));
+    };
 
     const handleRemovePlayerName = (nameToRemove: string) => {
         setLocalPlayerNames(prev => prev.filter(name => name !== nameToRemove));
@@ -199,7 +293,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
     const applyFilters = () => {
         if (filtersValidated()) {
             onFilterChange(localSelectedSeasons, localSelectedCompetitions, localSelectedPositions, localMinuteFrom, localMinuteTo,
-                localMinAge, localMaxAge, localPlayerNames, localSubsOnly, localEarliestSubOnTime, localLatestSubOnTime, localPenalties, localSortBy);
+                localMinAge, localMaxAge, localPlayerNames, localClubsPlayedFor, localClubsPlayedAgainst, localSubsOnly, localEarliestSubOnTime,
+                localLatestSubOnTime, localPenalties, localSortBy);
             onClose();
         }
     };
@@ -401,6 +496,91 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                         {name}
                                         <button onClick={() => handleRemovePlayerName(name)}>x</button>
                                     </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="dropdown-section">
+                    <div className="dropdown-title" onClick={() => setIsClubsOpen(!isClubsOpen)}>
+                        Clubs {isClubsOpen ? '▲' : '▼'}
+                    </div>
+                    {isClubsOpen && (
+                        <div className="dropdown-content">
+                                <input
+                                    type="text"
+                                    placeholder="Clubs played for"
+                                    value={newClubPlayedFor}
+                                    onChange={handleClubPlayedForChange}
+                                />
+                                {isClubsPlayedForDropdownVisible && newClubsPlayedForSuggestions.length > 0 && (
+                                    <ul className="suggestions-dropdown">
+                                        {newClubsPlayedForSuggestions.map((suggestion, index) => (
+                                            <li key={index}
+                                                className="suggestion-item"
+                                                onClick={() => handleClubPlayedForSuggestionClick(suggestion)}
+                                            >
+                                                <img
+                                                    style={{width: 20, fontSize: 15}}
+                                                    alt="Badge of football team selected"
+                                                    src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion)}.png`}
+                                                />
+
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <div className="club-names-list">
+                                    {(localClubsPlayedFor || []).map((club, index) => (
+                                        <span key={index} className="club-name-item">
+                                            <img
+                                                style={{width: 30}}
+                                                alt="Badge of football team selected"
+                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(club)}.png`}
+                                            />
+                                            <button onClick={() => handleRemovePlayedForClub(club)}>x</button>
+                                        </span>
+                                    ))}
+                                </div>
+                        </div>
+                    )}
+                    {isClubsOpen && (
+                        <div className="dropdown-content">
+                            <input
+                                style={{marginTop: 10}}
+                                type="text"
+                                placeholder="Clubs played against"
+                                value={newClubPlayedAgainst}
+                                onChange={handleClubPlayedAgainstChange}
+                            />
+                            {isClubsPlayedAgainstDropdownVisible && newClubsPlayedAgainstSuggestions.length > 0 && (
+                                <ul className="suggestions-dropdown">
+                                    {newClubsPlayedAgainstSuggestions.map((suggestion, index) => (
+                                        <li key={index}
+                                            className="suggestion-item"
+                                            onClick={() => handleClubPlayedAgainstSuggestionClick(suggestion)}
+                                        >
+                                            <img
+                                                style={{width: 20, fontSize: 15}}
+                                                alt="Badge of football team selected"
+                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion)}.png`}
+                                            />
+
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            <div className="club-names-list">
+                                {(localClubsPlayedAgainst || []).map((club, index) => (
+                                    <span key={index} className="club-name-item">
+                                            <img
+                                                style={{width: 30}}
+                                                alt="Badge of football team selected"
+                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(club)}.png`}
+                                            />
+                                            <button onClick={() => handleRemovePlayedAgainstClub(club)}>x</button>
+                                        </span>
                                 ))}
                             </div>
                         </div>

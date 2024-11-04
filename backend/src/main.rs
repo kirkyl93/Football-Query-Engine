@@ -1,13 +1,16 @@
 mod player_queries;
+mod club_queries;
 mod player;
 mod countries;
 mod competitions;
+mod club;
 
 use actix_cors::Cors;
 use actix_web::{web::{self}, App, HttpServer};
 use dotenv::dotenv;
 use player_queries::{get_players, fetch_player, fetch_player_stats_by_season, search};
 use sqlx::postgres::PgPoolOptions;
+use club_queries::{get_clubs};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -31,6 +34,7 @@ async fn main() -> std::io::Result<()> {
             .service(fetch_player)
             .service(fetch_player_stats_by_season)
             .service(search)
+            .service(get_clubs)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

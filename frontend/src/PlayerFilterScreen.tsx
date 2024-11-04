@@ -10,7 +10,7 @@ const PlayerFilterScreen: React.FC = () => {
     const location = useLocation();
 
     const { selectedSeasons, selectedCompetitions, selectedPositions, selectedMinuteFrom, selectedMinuteTo, selectedMinAge, selectedMaxAge, 
-        selectedPlayerNames, selectedSubsOnly, selectedEarliestSubOnTime, selectedLatestSubOnTime, selectedPenaltyOption, selectedSortBy } = useMemo(() => {
+        selectedPlayerNames, selectedClubsPlayedFor, selectedClubsPlayedAgainst, selectedSubsOnly, selectedEarliestSubOnTime, selectedLatestSubOnTime, selectedPenaltyOption, selectedSortBy } = useMemo(() => {
         const params = new URLSearchParams(location.search);
         return {
             selectedSeasons: params.get('seasons')?.split(',').map(Number) || [],
@@ -21,6 +21,8 @@ const PlayerFilterScreen: React.FC = () => {
             selectedMinAge: params.get('minage') ? parseInt(params.get('minage')!, 10) : undefined,
             selectedMaxAge: params.get('maxage') ? parseInt(params.get('maxage')!, 10) : undefined,
             selectedPlayerNames: params.get('names')?.split(',').map(name => name.trim()) || [],
+            selectedClubsPlayedFor: params.get('clubspf')?.split(',').map(Number) || [],
+            selectedClubsPlayedAgainst: params.get('clubspa')?.split(',').map(Number) || [],
             selectedSubsOnly: params.has('subonly'),
             selectedEarliestSubOnTime: params.get('earliestsub') ? parseInt(params.get('earliestsub')!, 10) : undefined,
             selectedLatestSubOnTime: params.get('latestsub') ? parseInt(params.get('latestsub')!, 10) : undefined,
@@ -30,7 +32,7 @@ const PlayerFilterScreen: React.FC = () => {
     }, [location.search]);
 
     const handleFilterChange = (seasons: number[], competitions: string[], positions: string[], minuteFrom: number | undefined, minuteTo: number | undefined, 
-        minAge: number | undefined, maxAge: number | undefined, playerNames: string[], subsOnly: boolean, earliestSubOnTime: number | undefined,
+        minAge: number | undefined, maxAge: number | undefined, playerNames: string[], clubsPlayedFor: number[], clubsPlayedAgainst: number[], subsOnly: boolean, earliestSubOnTime: number | undefined,
         latestSubOnTime: number | undefined, penalties: string, sortBy: string) => {
         const params = new URLSearchParams();
 
@@ -47,6 +49,8 @@ const PlayerFilterScreen: React.FC = () => {
         addParam('minage', minAge);
         addParam('maxage', maxAge);
         addParam('names', playerNames);
+        addParam('clubspf', clubsPlayedFor);
+        addParam('clubspa', clubsPlayedAgainst);
         if (subsOnly) {
             addParam('subonly', 1);
             addParam('earliestsub', earliestSubOnTime);
@@ -81,6 +85,8 @@ const PlayerFilterScreen: React.FC = () => {
                 minAge={selectedMinAge}
                 maxAge={selectedMaxAge}
                 playerNames={selectedPlayerNames}
+                clubsPlayedFor={selectedClubsPlayedFor}
+                clubsPlayedAgainst={selectedClubsPlayedAgainst}
                 subsOnly={selectedSubsOnly}
                 earliestSubOnTime={selectedEarliestSubOnTime}
                 latestSubOnTime={selectedLatestSubOnTime}

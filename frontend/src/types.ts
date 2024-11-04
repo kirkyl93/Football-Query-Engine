@@ -93,3 +93,8 @@ export interface Competition {
     id: string,
     name: string,
 }
+
+export interface Club {
+    club_id: number,
+    name: string
+}
