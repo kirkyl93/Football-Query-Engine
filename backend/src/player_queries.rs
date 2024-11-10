@@ -104,6 +104,7 @@ struct SearchParams {
     latestsub: Option<i32>,
     penalty: Option<String>,
     sort: Option<String>,
+    ma: Option<i32>
 }
 
 #[get("/search")]
@@ -134,6 +135,7 @@ fn construct_search_query_from_params(params: &web::Query<SearchParams>) -> Quer
     let latest_sub_on_time = params.latestsub.unwrap_or(0);
     let penalties: &str = params.penalty.as_deref().unwrap_or("ip");
     let sort_by: &str = params.sort.as_deref().unwrap_or("g");
+    let minimum_appearances: i32 = params.ma.unwrap_or(0);
 
     let seasons: Vec<i32> = params.seasons
         .as_ref()
@@ -167,17 +169,17 @@ fn construct_search_query_from_params(params: &web::Query<SearchParams>) -> Quer
 
     // These are the defaults when no values are passed in the URL
     if minute_from == 0 && minute_to == 120 {
-        return build_query_from_appearances(page, limit, min_age, max_age, names, clubs_played_for, clubs_played_against,
+        return build_query_from_appearances(page, limit, minimum_appearances, min_age, max_age, names, clubs_played_for, clubs_played_against,
                                             subs_only, earliest_sub_on_time, latest_sub_on_time, penalties,
                                             sort_by, seasons, competitions, positions);
     }
 
-    return build_query_from_events(page, limit, min_age, max_age, names, clubs_played_for, clubs_played_against,
+    return build_query_from_events(page, limit, minimum_appearances, min_age, max_age, names, clubs_played_for, clubs_played_against,
                                    minute_from, minute_to, subs_only, earliest_sub_on_time,
                                    latest_sub_on_time, penalties, sort_by, seasons, competitions, positions);
 }
 
-fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32, player_names: Vec<&str>,
+fn build_query_from_events<'a>(page: i32, limit: i32, minimum_appearances: i32, min_age: i32, max_age: i32, player_names: Vec<&str>,
                                clubs_played_for: Vec<i32>, clubs_played_against: Vec<i32>, minute_from: i32,
                                minute_to: i32, subs_only: i32, earliest_sub_on_time: i32, latest_sub_on_time: i32,
                                penalties: &'a str, sort_by: &'a str, seasons: Vec<i32>, competitions: Vec<&str>,
@@ -216,7 +218,7 @@ fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32
 
     add_rank_to_query(&mut query, sort_by, goals_calculation, true);
 
-    query.push("player_id, player_name, image_url, country_of_citizenship, sub_position, count(*) AS total_appearances,
+    query.push("player_id, player_name, image_url, country_of_citizenship, sub_position, COUNT(*) AS total_appearances,
 	        CAST(SUM(substitute_appearances) AS BIGINT) AS substitute_appearances, ");
 
     query.push(goals_calculation).push("AS total_goals, ");
@@ -227,18 +229,20 @@ fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32
 
     query.push("SUM(a.minutes_played) / NULLIF((").push(goals_calculation).push("), 0) AS mins_per_goal, ");
 
-    query.push("SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0) AS mins_per_assist,
-    	SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0) AS mins_per_yellow,
-    	SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0) AS mins_per_red
+    query.push("CAST(SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0) AS BIGINT) AS mins_per_assist,
+    	CAST(SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0) AS BIGINT) AS mins_per_yellow,
+    	CAST(SUM(a.minutes_played) / NULLIF(SUM(a.red_cards), 0) AS BIGINT) AS mins_per_red
     FROM games_minute_appearance_filter a WHERE appearances > 0 ");
 
-    add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation, true);
+    add_group_by_to_query(&mut query);
+    add_minimum_appearances_to_query(&mut query, minimum_appearances);
+    add_order_by_to_query(&mut query, sort_by, goals_calculation, true);
     add_limit_and_offset_to_query(&mut query, limit, page);
 
     return query;
 }
 
-fn build_query_from_appearances<'a>(page: i32, limit: i32, min_age: i32, max_age: i32, player_names: Vec<&str>,
+fn build_query_from_appearances<'a>(page: i32, limit: i32, minimum_appearances: i32,  min_age: i32, max_age: i32, player_names: Vec<&str>,
                                     clubs_played_for: Vec<i32>, clubs_played_against: Vec<i32>, subs_only: i32,
                                     earliest_sub_on_time: i32, latest_sub_on_time: i32, penalties: &'a str, sort_by: &'a str, seasons: Vec<i32>,
                                     competitions: Vec<&str>, positions: Vec<&str>) -> QueryBuilder<'a, Postgres> {
@@ -283,7 +287,9 @@ fn build_query_from_appearances<'a>(page: i32, limit: i32, min_age: i32, max_age
     add_clubs_played_against_to_query(&mut query, clubs_played_against);
     add_sub_info_to_query(&mut query, subs_only, earliest_sub_on_time, latest_sub_on_time);
 
-    add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation, false);
+    add_group_by_to_query(&mut query);
+    add_minimum_appearances_to_query(&mut query, minimum_appearances);
+    add_order_by_to_query(&mut query, sort_by, goals_calculation, false);
     add_limit_and_offset_to_query(&mut query, limit, page);
 
     return query;
@@ -333,7 +339,7 @@ fn add_reds_minute_filter_to_query(query: &mut QueryBuilder<Postgres>, minute_fr
 }
 
 fn add_minutes_played_minute_filter_to_query(query: &mut QueryBuilder<Postgres>, minute_from: i32, minute_to: i32) {
-    query.push("MIN(LEAST(").push_bind(minute_to).push(", subbed_off_minute, played_from_minute + minutes_played) - GREATEST(").push_bind(minute_from).push(", played_from_minute)) AS minutes_played, ");
+    query.push("MIN(LEAST(").push_bind(minute_to).push(", subbed_off_minute, played_from_minute + minutes_played) - GREATEST(").push_bind(minute_from).push(", played_from_minute)) + 1 AS minutes_played, ");
 }
 
 fn add_rank_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_calculation: &str, from_events_table: bool) {
@@ -366,13 +372,16 @@ fn add_rank_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_ca
         ),
         "mpa" => "SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0)".to_string(),
         "mpy" => "SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0)".to_string(),
-        "mpr" => "SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0)".to_string(),
+        "mpr" =>  if from_events_table {
+            "SUM(a.minutes_played) / NULLIF(SUM(a.red_cards), 0)".to_string()
+        } else {
+            "SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0)".to_string()
+        },
         _ => format!("{} DESC", goals_calculation)
     };
 
     query.push(rank_order).push("), ");
 }
-
 fn add_seasons_to_query(query: &mut QueryBuilder<Postgres>, seasons: Vec<i32>) {
     if !seasons.is_empty() {
         query.push("AND season IN (");
@@ -516,11 +525,18 @@ fn add_sub_info_to_query(query: &mut QueryBuilder<Postgres>, subs_only: i32, ear
     }
 }
 
-fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_calculation: &str, from_events_table: bool) {
-    query.push("GROUP BY 
-        a.player_id, a.player_name, image_url, country_of_citizenship, sub_position 
-        ORDER BY ");
+fn add_group_by_to_query(query: &mut QueryBuilder<Postgres>) {
+    query.push("GROUP BY a.player_id, a.player_name, image_url, country_of_citizenship, sub_position ");
+}
 
+fn add_minimum_appearances_to_query(query: &mut QueryBuilder<Postgres>, minimum_appearances: i32) {
+    if minimum_appearances > 1 {
+        query.push("HAVING COUNT(*) > ").push_bind(minimum_appearances).push(" ");
+    }
+}
+
+fn add_order_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_calculation: &str, from_events_table: bool) {
+    query.push("ORDER BY ");
 
     // Sort parameter shortened in URL for efficiency
     let sort_clause = match sort_by {
@@ -560,7 +576,7 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
         "mpa" => "SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0), SUM(a.assists) DESC, a.player_name".to_string(),
         "mpy" => "SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0), SUM(a.yellow_cards) DESC, a.player_name".to_string(),
         "mpr" => if from_events_table {
-            "SUM(a.minutes_played) / NULLIF(SUM a.red_cards), 0), SUM a.red_cards) DESC, a.player_name".to_string()
+            "SUM(a.minutes_played) / NULLIF(SUM(a.red_cards), 0), SUM(a.red_cards) DESC, a.player_name".to_string()
         } else {
             "SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0), \
             SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) DESC, a.player_name".to_string()

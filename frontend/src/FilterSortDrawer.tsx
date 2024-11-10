@@ -209,7 +209,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     const handleMinimumAppearanceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setLocalFilterState(prevState => ({
             ...prevState,
-            appearances: e.target.value ? parseInt(e.target.value) : undefined
+            minimumAppearances: e.target.value ? parseInt(e.target.value) : undefined
         }));
     }
 

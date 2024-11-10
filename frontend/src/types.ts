@@ -52,7 +52,8 @@ export enum UrlFilters {
     EARLIEST_SUB_ON_TIME = 'earliestsub',
     LATEST_SUB_ON_TIME = 'latestsub',
     PENALTIES = "penalty",
-    SORT_BY = "sort"
+    SORT_BY = "sort",
+    MINIMUM_APPEARANCES="ma"
 }
 
 export enum PenaltyOptions {

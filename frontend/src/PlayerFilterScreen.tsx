@@ -25,7 +25,8 @@ const PlayerFilterScreen: React.FC = () => {
         selectedEarliestSubOnTime,
         selectedLatestSubOnTime,
         selectedPenaltyOption,
-        selectedSortBy
+        selectedSortBy,
+        selectedMinimumAppearances
     } = useMemo(() => {
         const params = new URLSearchParams(location.search);
         return {
@@ -50,6 +51,8 @@ const PlayerFilterScreen: React.FC = () => {
                 parseInt(params.get(UrlFilters.LATEST_SUB_ON_TIME)!, 10) : undefined,
             selectedPenaltyOption: params.get(UrlFilters.PENALTIES) || PenaltyOptions.INCLUDE_PENALTIES,
             selectedSortBy: params.get(UrlFilters.SORT_BY) || SortOptions.GOALS,
+            selectedMinimumAppearances: params.get(UrlFilters.MINIMUM_APPEARANCES) ?
+                parseInt(params.get(UrlFilters.MINIMUM_APPEARANCES)!, 10) : undefined
         };
     }, [location.search]);
 
@@ -78,6 +81,7 @@ const PlayerFilterScreen: React.FC = () => {
         }
         addParam(UrlFilters.PENALTIES, filterState.penalties);
         addParam(UrlFilters.SORT_BY, filterState.sortBy);
+        addParam(UrlFilters.MINIMUM_APPEARANCES, filterState.minimumAppearances);
 
         navigate({
             pathname: location.pathname,
@@ -96,7 +100,7 @@ const PlayerFilterScreen: React.FC = () => {
         playerNames: selectedPlayerNames, clubsPlayedFor: selectedClubsPlayedFor,
         clubsPlayedAgainst: selectedClubsPlayedAgainst, subsOnly: selectedSubsOnly,
         earliestSubOnTime: selectedEarliestSubOnTime, latestSubOnTime: selectedLatestSubOnTime,
-        penalties: selectedPenaltyOption, sortBy: selectedSortBy
+        penalties: selectedPenaltyOption, sortBy: selectedSortBy, minimumAppearances: selectedMinimumAppearances
     };
 
     return (

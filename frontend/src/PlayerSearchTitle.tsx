@@ -210,7 +210,7 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             )}
             {filterState.clubsPlayedAgainst.length > 0 && (
                 <>
-                    <span>PLAYED AGAINST:</span>
+                    <span> PLAYED AGAINST:</span>
                     {filterState.clubsPlayedAgainst.length > 10 ? (
                         <span style={{marginLeft: '5px'}}>{filterState.clubsPlayedAgainst.length} CLUBS SELECTED</span>
                     ) : (

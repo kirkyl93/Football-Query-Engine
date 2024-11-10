@@ -109,7 +109,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
         const paramMapping = [
             UrlFilters.SEASONS, UrlFilters.COMPETITIONS, UrlFilters.POSITIONS, UrlFilters.MINUTE_FROM, UrlFilters.MINUTE_TO,
             UrlFilters.MINIMUM_AGE, UrlFilters.MAXIMUM_AGE, UrlFilters.PLAYER_NAMES, UrlFilters.CLUBS_PLAYED_FOR,
-            UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.SORT_BY
+            UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.SORT_BY, UrlFilters.MINIMUM_APPEARANCES
         ];
 
         paramMapping.forEach((key) => {
