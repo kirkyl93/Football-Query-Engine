@@ -1,4 +1,4 @@
-import {FilterState} from "./types";
+import {FilterState, minuteBasedSortOptions, SortOptions} from "./types";
 import React, {useMemo} from "react";
 import {competitions} from "./competitions";
 import {formatSeason} from "./utils";
@@ -16,44 +16,44 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
     const sortByTitle = (): string => {
         let sortByTitle = "";
         switch (filterState.sortBy) {
-            case 'g':
+            case SortOptions.GOALS:
                 sortByTitle += "TOP SCORERS ";
                 break;
-            case 'a':
+            case SortOptions.ASSISTS:
                 sortByTitle += "MOST ASSISTS ";
                 break;
-            case 'ga':
+            case SortOptions.GOALS_AND_ASSISTS:
                 sortByTitle += "MOST ASSISTS + GOALS ";
                 break;
-            case 'ap':
+            case SortOptions.APPEARANCES:
                 sortByTitle += "MOST APPS ";
                 break;
-            case 'm':
+            case SortOptions.MINUTES_PLAYED:
                 sortByTitle += "MOST MINS ";
                 break;
-            case 'y':
+            case SortOptions.YELLOW_CARDS:
                 sortByTitle += "MOST YELLOWS ";
                 break;
-            case 'r':
+            case SortOptions.RED_CARDS:
                 sortByTitle += "MOST REDS ";
                 break;
-            case 'mpg':
+            case SortOptions.MINUTES_PER_GOAL:
                 sortByTitle += "BEST MINS PER GOAL ";
                 break;
-            case 'mpa':
+            case SortOptions.MINUTES_PER_ASSIST:
                 sortByTitle += "BEST MINS PER ASSIST ";
                 break;
-            case 'mpy':
+            case SortOptions.MINUTES_PER_YELLOW:
                 sortByTitle += "LEAST MINS PER YELLOW ";
                 break;
-            case 'mpr':
+            case SortOptions.MINUTES_PER_RED:
                 sortByTitle += "LEAST MINS PER RED ";
                 break;
             default:
                 sortByTitle += "TOP SCORERS ";
         }
 
-        if (['mpa', 'mpg', 'mpy', 'mpr'].includes(filterState.sortBy) &&
+        if (minuteBasedSortOptions.includes(filterState.sortBy as SortOptions) &&
             filterState.minimumAppearances !== undefined && filterState.minimumAppearances > 0) {
             sortByTitle += "(AT LEAST " + filterState.minimumAppearances + " APPS) ";
         }
