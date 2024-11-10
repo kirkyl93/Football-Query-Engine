@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import './FilterSortDrawer.css';
 import {competitions} from "./competitions";
 import {formatSeason} from "./utils";
-import {Club, FilterState} from "./types";
+import {Club, FilterState, minuteBasedSortOptions, PenaltyOptions, SortOptions} from "./types";
 
 interface FilterSortDrawerProps {
     isOpen: boolean;
@@ -28,20 +28,26 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
     const minutes = Array.from({length: 120}, (_, i) => i + 1);
 
+    const appearances = Array.from({length: 249}, (_, i) => i + 2);
+
     const penaltyOptions = [
-        {name: "Include penalties", id: "ip"},
-        {name: "Exclude penalties", id: "ep"},
-        {name: "Include only penalties", id: "op"}
+        {name: "Include penalties", id: PenaltyOptions.INCLUDE_PENALTIES},
+        {name: "Exclude penalties", id: PenaltyOptions.EXCLUDE_PENALTIES},
+        {name: "Include only penalties", id: PenaltyOptions.ONLY_PENALTIES}
     ];
 
     const sortTypes = [
-        {name: "Goals", id: "g"},
-        {name: "Assists", id: "a"},
-        {name: "Goals and Assists", id: "ga"},
-        {name: "Appearances", id: "ap"},
-        {name: "Minutes played", id: "m"},
-        {name: "Yellow cards", id: "y"},
-        {name: "Red cards", id: "r"}
+        {name: "Goals", id: SortOptions.GOALS},
+        {name: "Assists", id: SortOptions.ASSISTS},
+        {name: "Goals and Assists", id: SortOptions.GOALS_AND_ASSISTS},
+        {name: "Appearances", id: SortOptions.APPEARANCES},
+        {name: "Minutes played", id: SortOptions.MINUTES_PLAYED},
+        {name: "Yellow cards", id: SortOptions.YELLOW_CARDS},
+        {name: "Red cards", id: SortOptions.RED_CARDS},
+        {name: "Minutes per goal", id: SortOptions.MINUTES_PER_GOAL},
+        {name: "Minutes per assist", id: SortOptions.MINUTES_PER_ASSIST},
+        {name: "Minutes per yellow card", id: SortOptions.MINUTES_PER_YELLOW},
+        {name: "Minutes per red card", id: SortOptions.MINUTES_PER_RED}
     ];
 
     const [localFilterState, setLocalFilterState] = useState<FilterState>(filterState);
@@ -83,6 +89,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
             latestSubOnTime: undefined,
             penalties: "ip",
             sortBy: "g",
+            minimumAppearances: undefined
         });
         setNewPlayerName("");
         setNewClubPlayedFor("");
@@ -107,7 +114,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (newClubPlayedFor.trim()) {
-                fetchClubSuggestions(true);
+                void fetchClubSuggestions(true);
             } else {
                 setNewClubPlayedFor("");
                 setNewClubsPlayedForSuggestions([]);
@@ -121,7 +128,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (newClubPlayedAgainst.trim()) {
-                fetchClubSuggestions(false);
+                void fetchClubSuggestions(false);
             } else {
                 setNewClubPlayedAgainst("");
                 setNewClubsPlayedAgainstSuggestions([]);
@@ -136,7 +143,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         const value = parseInt(e.target.value);
         setLocalFilterState(prevState => ({
             ...prevState,
-            selectedSeasons: e.target.checked
+            seasons: e.target.checked
                 ? [...prevState.seasons, value]
                 : prevState.seasons.filter(season => season !== value)
         }));
@@ -196,6 +203,13 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         setLocalFilterState(prevState => ({
             ...prevState,
             minuteTo: e.target.value ? parseInt(e.target.value) : undefined
+        }));
+    }
+
+    const handleMinimumAppearanceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            appearances: e.target.value ? parseInt(e.target.value) : undefined
         }));
     }
 
@@ -675,6 +689,19 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                     {sort.name}
                                 </label>
                             ))}
+                        </div>
+                    )}
+
+                    {isSortByOpen && minuteBasedSortOptions.includes(localFilterState.sortBy as SortOptions) && (
+                        <div className="appearance-dropdown">
+                            <label>Minimum Appearances: </label>
+                            <select value={localFilterState.minimumAppearances ?? ''}
+                                    onChange={handleMinimumAppearanceChange}>
+                                <option value="">Any</option>
+                                {appearances.map(appearance => (
+                                    <option key={appearance} value={appearance}>{appearance}</option>
+                                ))}
+                            </select>
                         </div>
                     )}
                 </div>

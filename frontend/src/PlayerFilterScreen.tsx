@@ -1,9 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useMemo, useState} from "react";
 import InfiniteScrollTable from "./InfiniteScrollTable";
 import FilterSortDrawer from "./FilterSortDrawer";
 import './PlayerFilterScreen.css';
 import {useNavigate, useLocation} from "react-router-dom";
-import {FilterState} from "./types";
+import {FilterState, PenaltyOptions, SortOptions, UrlFilters} from "./types";
 
 const PlayerFilterScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -29,21 +29,27 @@ const PlayerFilterScreen: React.FC = () => {
     } = useMemo(() => {
         const params = new URLSearchParams(location.search);
         return {
-            selectedSeasons: params.get('seasons')?.split(',').map(Number) || [],
-            selectedCompetitions: params.get('comps')?.split(',') || [],
-            selectedPositions: params.get('positions')?.split(',') || [],
-            selectedMinuteFrom: params.get('minfrom') ? parseInt(params.get('minfrom')!, 10) : undefined,
-            selectedMinuteTo: params.get('minto') ? parseInt(params.get('minto')!, 10) : undefined,
-            selectedMinAge: params.get('minage') ? parseInt(params.get('minage')!, 10) : undefined,
-            selectedMaxAge: params.get('maxage') ? parseInt(params.get('maxage')!, 10) : undefined,
-            selectedPlayerNames: params.get('names')?.split(',').map(name => name.trim()) || [],
-            selectedClubsPlayedFor: params.get('clubspf')?.split(',').map(Number) || [],
-            selectedClubsPlayedAgainst: params.get('clubspa')?.split(',').map(Number) || [],
-            selectedSubsOnly: params.has('subonly'),
-            selectedEarliestSubOnTime: params.get('earliestsub') ? parseInt(params.get('earliestsub')!, 10) : undefined,
-            selectedLatestSubOnTime: params.get('latestsub') ? parseInt(params.get('latestsub')!, 10) : undefined,
-            selectedPenaltyOption: params.get("penalty") || "ip",
-            selectedSortBy: params.get("sort") || "g",
+            selectedSeasons: params.get(UrlFilters.SEASONS)?.split(',').map(Number) || [],
+            selectedCompetitions: params.get(UrlFilters.COMPETITIONS)?.split(',') || [],
+            selectedPositions: params.get(UrlFilters.POSITIONS)?.split(',') || [],
+            selectedMinuteFrom: params.get(UrlFilters.MINUTE_FROM) ?
+                parseInt(params.get(UrlFilters.MINUTE_FROM)!, 10) : undefined,
+            selectedMinuteTo: params.get(UrlFilters.MINUTE_TO) ?
+                parseInt(params.get(UrlFilters.MINUTE_TO)!, 10) : undefined,
+            selectedMinAge: params.get(UrlFilters.MINIMUM_AGE) ?
+                parseInt(params.get(UrlFilters.MINIMUM_AGE)!, 10) : undefined,
+            selectedMaxAge: params.get(UrlFilters.MAXIMUM_AGE) ?
+                parseInt(params.get(UrlFilters.MAXIMUM_AGE)!, 10) : undefined,
+            selectedPlayerNames: params.get(UrlFilters.PLAYER_NAMES)?.split(',').map(name => name.trim()) || [],
+            selectedClubsPlayedFor: params.get(UrlFilters.CLUBS_PLAYED_FOR)?.split(',').map(Number) || [],
+            selectedClubsPlayedAgainst: params.get(UrlFilters.CLUBS_PLAYED_AGAINST)?.split(',').map(Number) || [],
+            selectedSubsOnly: params.has(UrlFilters.SUBS_ONLY),
+            selectedEarliestSubOnTime: params.get(UrlFilters.EARLIEST_SUB_ON_TIME) ?
+                parseInt(params.get(UrlFilters.EARLIEST_SUB_ON_TIME)!, 10) : undefined,
+            selectedLatestSubOnTime: params.get(UrlFilters.LATEST_SUB_ON_TIME) ?
+                parseInt(params.get(UrlFilters.LATEST_SUB_ON_TIME)!, 10) : undefined,
+            selectedPenaltyOption: params.get(UrlFilters.PENALTIES) || PenaltyOptions.INCLUDE_PENALTIES,
+            selectedSortBy: params.get(UrlFilters.SORT_BY) || SortOptions.GOALS,
         };
     }, [location.search]);
 
@@ -55,23 +61,23 @@ const PlayerFilterScreen: React.FC = () => {
                 params.append(key, value.toString().trim());
             }
         }
-        addParam('seasons', filterState.seasons.join(','));
-        addParam('comps', filterState.competitions.join(','));
-        addParam('positions', filterState.positions.join(','));
-        addParam('minfrom', filterState.minuteFrom);
-        addParam('minto', filterState.minuteTo);
-        addParam('minage', filterState.minAge);
-        addParam('maxage', filterState.maxAge);
-        addParam('names', filterState.playerNames);
-        addParam('clubspf', filterState.clubsPlayedFor);
-        addParam('clubspa', filterState.clubsPlayedAgainst);
+        addParam(UrlFilters.SEASONS, filterState.seasons.join(','));
+        addParam(UrlFilters.COMPETITIONS, filterState.competitions.join(','));
+        addParam(UrlFilters.POSITIONS, filterState.positions.join(','));
+        addParam(UrlFilters.MINUTE_FROM, filterState.minuteFrom);
+        addParam(UrlFilters.MINUTE_TO, filterState.minuteTo);
+        addParam(UrlFilters.MINIMUM_AGE, filterState.minAge);
+        addParam(UrlFilters.MAXIMUM_AGE, filterState.maxAge);
+        addParam(UrlFilters.PLAYER_NAMES, filterState.playerNames);
+        addParam(UrlFilters.CLUBS_PLAYED_FOR, filterState.clubsPlayedFor);
+        addParam(UrlFilters.CLUBS_PLAYED_AGAINST, filterState.clubsPlayedAgainst);
         if (filterState.subsOnly) {
-            addParam('subonly', 1);
-            addParam('earliestsub', filterState.earliestSubOnTime);
-            addParam('latestsub', filterState.latestSubOnTime);
+            addParam(UrlFilters.SUBS_ONLY, 1);
+            addParam(UrlFilters.EARLIEST_SUB_ON_TIME, filterState.earliestSubOnTime);
+            addParam(UrlFilters.LATEST_SUB_ON_TIME, filterState.latestSubOnTime);
         }
-        addParam('penalty', filterState.penalties);
-        addParam('sort', filterState.sortBy);
+        addParam(UrlFilters.PENALTIES, filterState.penalties);
+        addParam(UrlFilters.SORT_BY, filterState.sortBy);
 
         navigate({
             pathname: location.pathname,

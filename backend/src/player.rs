@@ -143,6 +143,7 @@ pub struct Player {
 
 #[derive(Debug, Serialize, Clone)]
 pub struct PlayerSearchResult {
+    rank: i64,
     player_id: i32,
     player_name: String,
     country_of_citizenship: Country,
@@ -157,6 +158,10 @@ pub struct PlayerSearchResult {
     total_red_cards: i64,
     total_minutes_played: i64,
     clubs_played_for: String,
+    mins_per_goal: i64,
+    mins_per_assist: i64,
+    mins_per_yellow: i64,
+    mins_per_red: i64,
 }
 
 
@@ -382,6 +387,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
         let country_of_citizenship_str = row.try_get("country_of_citizenship").unwrap_or_default();
         let country_of_citizenship = Country::from_str(country_of_citizenship_str);
         Ok(Self {
+            rank: row.try_get("rank").unwrap_or_default(),
             player_id: row.try_get("player_id").unwrap_or_default(),
             player_name: row.try_get("player_name").unwrap_or_default(),
             country_of_citizenship: country_of_citizenship,
@@ -399,8 +405,11 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
             total_red_cards: row.try_get("total_red_cards").unwrap_or_default(),
             total_minutes_played: row.try_get("total_minutes_played").unwrap_or_default(),
             clubs_played_for: row.try_get("clubs_played_for").unwrap_or_default(),
-        }
-        )
+            mins_per_goal: row.try_get("mins_per_goal").unwrap_or_default(),
+            mins_per_assist: row.try_get("mins_per_assist").unwrap_or_default(),
+            mins_per_yellow: row.try_get("mins_per_yellow").unwrap_or_default(),
+            mins_per_red: row.try_get("mins_per_red").unwrap_or_default(),
+        })
     }
 }
 

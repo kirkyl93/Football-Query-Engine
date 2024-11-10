@@ -1,9 +1,8 @@
 import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
-import {FilterState, PlayerSearchResult} from './types'; // Import the Player type
+import {FilterState, PlayerSearchResult, SortOptions, UrlFilters} from './types'; // Import the Player type
 import {Link, useLocation} from "react-router-dom";
 import './InfiniteScrollTable.css';
-import {competitions} from "./competitions";
-import {formatSeason} from "./utils";
+import PlayerSearchTitle from "./PlayerSearchTitle";
 
 const REQUEST_LIMIT = 50;
 
@@ -24,7 +23,6 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
 
     const currentRequestController = useRef<AbortController | null>(null);
     const observer = useRef<IntersectionObserver | null>(null);
-    const currentRankRef = useRef(1);
     const location = useLocation();
 
     const prevSearchParamsRef = useRef<string>("-1");
@@ -104,197 +102,14 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
         }
     };
 
-    const calculateRank = (index: number, player: PlayerSearchResult): number => {
-        if (index === 0) {
-            currentRankRef.current = 1;
-            return currentRankRef.current;
-        }
-
-        if (getSortValue(player) < getSortValue(data[index - 1])) {
-            currentRankRef.current = index + 1;
-        }
-
-        return currentRankRef.current;
-    }
-
-    const sortByTitle = (): string => {
-        switch (filterState.sortBy) {
-            case 'g':
-                return "TOP SCORERS ";
-            case 'a':
-                return "MOST ASSISTS ";
-            case 'ga':
-                return "MOST ASSISTS + GOALS ";
-            case 'ap':
-                return "MOST APPS ";
-            case 'm':
-                return "MOST MINS ";
-            case 'y':
-                return "MOST YELLOWS ";
-            case 'r':
-                return "MOST REDS ";
-            default:
-                return "TOP SCORERS ";
-        }
-    }
-
-    const competitionsTitle = (): string => {
-        if (filterState.competitions.length === 0) {
-            return "ALL COMPS";
-        }
-
-        if (filterState.competitions.length >= 10) {
-            return filterState.competitions.length + " COMPS";
-        }
-
-        const competitionNames = filterState.competitions.map(compId => {
-            const leagueComp = competitions.leagues.find(comp => comp.competitionId === compId);
-            if (leagueComp) {
-                return leagueComp.name.toUpperCase();
-            }
-            const euroComp = competitions.europeanCompetitions.find(comp => comp.competitionId === compId);
-            return euroComp ? euroComp.name.toUpperCase() : compId;
-        });
-        return competitionNames.join(" + ");
-    }
-
-    const seasonsTitle = (): string => {
-        if (filterState.seasons.length === 0) {
-            return "ALL SEASONS";
-        }
-
-        if (filterState.seasons.length === 1) {
-            return formatSeason(filterState.seasons[0]);
-        }
-
-        const seasons = filterState.seasons.sort((a, b) => a - b);
-        const isConsecutive = seasons.every((season, index, arr) => index === 0 || season - arr[index - 1] === 1);
-
-        if (isConsecutive) {
-            return formatSeason(filterState.seasons[0]) + "-" + formatSeason(filterState.seasons[filterState.seasons.length - 1]);
-        }
-
-        if (seasons.length >= 10) {
-            return filterState.seasons.length + " SEASONS";
-        }
-
-        const formattedSeasons = filterState.seasons.sort((a, b) => a - b).map(season => formatSeason(season));
-        return formattedSeasons.join(" · ");
-    }
-
-    const positionTitle = (): string => {
-        if (filterState.positions.length === 0) {
-            return "";
-        }
-
-        return " · " + filterState.positions.join(" · ");
-    }
-
-    const minsTitle = (): string => {
-        let minuteString = "";
-        if (filterState.minuteFrom !== undefined && filterState.minuteFrom > 0) {
-            minuteString += " · FROM MINUTE " + filterState.minuteFrom;
-        }
-
-        if (filterState.minuteTo !== undefined && filterState.minuteTo > 0) {
-            minuteString += " · UP UNTIL MINUTE " + filterState.minuteTo;
-        }
-        return minuteString;
-    }
-
-    const ageTitle = (): string => {
-        let ageString = "";
-        if (filterState.minAge !== undefined && filterState.minAge > 0) {
-            ageString += " · MIN AGE: " + filterState.minAge;
-        }
-
-        if (filterState.maxAge !== undefined && filterState.maxAge > 0) {
-            ageString += " · MAX AGE: " + filterState.maxAge;
-        }
-        return ageString;
-    }
-
-    const namesTitle = (): string => {
-        if (filterState.playerNames.length === 0) {
-            return "";
-        }
-
-        return " · " + filterState.playerNames.map(name => name.toUpperCase()).join(" OR ");
-    }
-
-    const subsTitle = (): string => {
-        let subString = "";
-        if (!filterState.subsOnly) {
-            return subString;
-        }
-
-        subString += " · SUBS ONLY";
-
-        if (filterState.earliestSubOnTime !== undefined && filterState.earliestSubOnTime > 0) {
-            subString += " · EARLIEST SUB ON TIME: " + filterState.earliestSubOnTime;
-        }
-
-        if (filterState.latestSubOnTime !== undefined && filterState.latestSubOnTime > 0) {
-            subString += " · LATEST SUB ON TIME: " + filterState.latestSubOnTime;
-        }
-        return subString;
-    }
-
-    const pensTitle = (): string => {
-        if (filterState.penalties === "ep") {
-            return " · EXCLUDE PENALTIES";
-        }
-
-        if (filterState.penalties === "op") {
-            return " · ONLY PENALTIES";
-        }
-
-        return "";
-    }
-
-    const constructTitle = useMemo((): string => {
-        let title = sortByTitle();
-        title += "· " + competitionsTitle();
-        title += " · " + seasonsTitle();
-        title += positionTitle();
-        title += minsTitle();
-        title += ageTitle();
-        title += namesTitle();
-        title += subsTitle();
-        title += pensTitle();
-
-        return title;
-    }, [filterState]);
-
-    const getSortValue = (player: PlayerSearchResult): number => {
-        switch (filterState.sortBy) {
-            case 'g':
-                return player.total_goals;
-            case 'a':
-                return player.total_assists;
-            case 'ga':
-                return player.total_goals + player.total_assists;
-            case 'ap':
-                return player.total_appearances;
-            case 'm':
-                return player.total_minutes_played;
-            case 'y':
-                return player.total_yellow_cards
-            case 'r':
-                return player.total_red_cards
-            default:
-                return player.total_goals
-        }
-    }
-
     const constructSearchUrl = (): string => {
         let url = `http://localhost:8080/search?page=${currentPage}&limit=${REQUEST_LIMIT}`;
         const params = new URLSearchParams(location.search);
 
         const paramMapping = [
-            'seasons', 'comps', 'positions', 'minfrom', 'minto',
-            'minage', 'maxage', 'names', 'clubspf', 'clubspa',
-            'penalty', 'sort'
+            UrlFilters.SEASONS, UrlFilters.COMPETITIONS, UrlFilters.POSITIONS, UrlFilters.MINUTE_FROM, UrlFilters.MINUTE_TO,
+            UrlFilters.MINIMUM_AGE, UrlFilters.MAXIMUM_AGE, UrlFilters.PLAYER_NAMES, UrlFilters.CLUBS_PLAYED_FOR,
+            UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.SORT_BY
         ];
 
         paramMapping.forEach((key) => {
@@ -304,18 +119,18 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
             }
         });
 
-        if (params.has('subonly')) {
-            url += "&subonly=1";
+        if (params.has(UrlFilters.SUBS_ONLY)) {
+            url += `&${UrlFilters.SUBS_ONLY}=1`;
 
-            const earliestSub = params.get('earliestsub');
-            const latestSub = params.get('latestsub');
+            const earliestSub = params.get(UrlFilters.EARLIEST_SUB_ON_TIME);
+            const latestSub = params.get(UrlFilters.LATEST_SUB_ON_TIME);
 
             if (earliestSub) {
-                url += `&earliestsub=${earliestSub}`;
+                url += `&${UrlFilters.EARLIEST_SUB_ON_TIME}=${earliestSub}`;
             }
 
             if (latestSub) {
-                url += `&latestsub=${latestSub}`;
+                url += `&${UrlFilters.LATEST_SUB_ON_TIME}=${latestSub}`;
             }
         }
         return url;
@@ -355,9 +170,9 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
         <div className="table-container">
             {hasData && (
                 <>
-                    <h4 className="title">
-                        {constructTitle}
-                    </h4>
+                    <PlayerSearchTitle
+                        filterState={filterState}
+                    />
                     <table className="generic-table">
                         <thead>
                         <tr>
@@ -371,6 +186,10 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                             <th>Assists</th>
                             <th>Yellows</th>
                             <th>Reds</th>
+                            {filterState.sortBy === SortOptions.MINUTES_PER_GOAL && <th>Mins per goal</th>}
+                            {filterState.sortBy === SortOptions.MINUTES_PER_ASSIST && <th>Mins per assist</th>}
+                            {filterState.sortBy === SortOptions.MINUTES_PER_YELLOW && <th>Mins per Yellow</th>}
+                            {filterState.sortBy === SortOptions.MINUTES_PER_RED && <th>Mins per Red</th>}
                         </tr>
                         </thead>
                         <tbody>
@@ -379,7 +198,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                                 ref={data.length === index + 1 ? lastPlayerElementRef : null}
                             >
                                 <td>
-                                    {calculateRank(index, player)}.
+                                    {player.rank}.
                                 </td>
                                 <td>
                                     <img
@@ -422,6 +241,10 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                                 <td>{player.total_assists}</td>
                                 <td>{player.total_yellow_cards}</td>
                                 <td>{player.total_red_cards}</td>
+                                {filterState.sortBy === SortOptions.MINUTES_PER_GOAL && <td>{player.mins_per_goal}</td>}
+                                {filterState.sortBy === SortOptions.MINUTES_PER_ASSIST && <td>{player.mins_per_assist}</td>}
+                                {filterState.sortBy === SortOptions.MINUTES_PER_YELLOW && <td>{player.mins_per_yellow}</td>}
+                                {filterState.sortBy === SortOptions.MINUTES_PER_RED && <td>{player.mins_per_red}</td>}
                             </tr>
                         ))}
                         </tbody>

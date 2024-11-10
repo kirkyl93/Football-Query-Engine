@@ -214,14 +214,23 @@ fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32
 
     let goals_calculation = goals_query_string(penalties);
 
-    query.push("SELECT player_id, player_name, image_url, country_of_citizenship, sub_position, count(*) AS total_appearances,
+    add_rank_to_query(&mut query, sort_by, goals_calculation, true);
+
+    query.push("player_id, player_name, image_url, country_of_citizenship, sub_position, count(*) AS total_appearances,
 	        CAST(SUM(substitute_appearances) AS BIGINT) AS substitute_appearances, ");
 
     query.push(goals_calculation).push("AS total_goals, ");
 
     query.push("CAST(SUM(assists) AS BIGINT) AS total_assists, CAST(SUM(yellow_cards) AS BIGINT) AS total_yellow_cards, CAST(SUM(red_cards) AS BIGINT) AS total_red_cards,
-	        CAST(SUM(minutes_played) AS BIGINT) AS total_minutes_played, STRING_AGG(DISTINCT a.club_id::TEXT, ', ') AS clubs_played_for
-            FROM games_minute_appearance_filter a WHERE appearances > 0 ");
+	        CAST(SUM(minutes_played) AS BIGINT) AS total_minutes_played, STRING_AGG(DISTINCT a.club_id::TEXT, ', ') AS clubs_played_for,
+	");
+
+    query.push("SUM(a.minutes_played) / NULLIF((").push(goals_calculation).push("), 0) AS mins_per_goal, ");
+
+    query.push("SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0) AS mins_per_assist,
+    	SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0) AS mins_per_yellow,
+    	SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0) AS mins_per_red
+    FROM games_minute_appearance_filter a WHERE appearances > 0 ");
 
     add_group_and_sort_by_to_query(&mut query, sort_by, goals_calculation, true);
     add_limit_and_offset_to_query(&mut query, limit, page);
@@ -229,22 +238,32 @@ fn build_query_from_events<'a>(page: i32, limit: i32, min_age: i32, max_age: i32
     return query;
 }
 
-
 fn build_query_from_appearances<'a>(page: i32, limit: i32, min_age: i32, max_age: i32, player_names: Vec<&str>,
                                     clubs_played_for: Vec<i32>, clubs_played_against: Vec<i32>, subs_only: i32,
                                     earliest_sub_on_time: i32, latest_sub_on_time: i32, penalties: &'a str, sort_by: &'a str, seasons: Vec<i32>,
                                     competitions: Vec<&str>, positions: Vec<&str>) -> QueryBuilder<'a, Postgres> {
-    let mut query = QueryBuilder::new(
-        "SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
-        COUNT(*) AS total_appearances, SUM(CASE WHEN a.played_from_minute > 0 THEN 1 ELSE 0 END) AS substitute_appearances, ");
-
     let goals_calculation = goals_query_string(penalties);
+
+    let mut query = QueryBuilder::new("");
+
+    add_rank_to_query(&mut query, sort_by, goals_calculation, false);
+
+    query.push(
+        "a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
+        COUNT(*) AS total_appearances, SUM(CASE WHEN a.played_from_minute > 0 THEN 1 ELSE 0 END) AS substitute_appearances, ");
 
     query.push(goals_calculation).push("AS total_goals, ");
 
     query.push("SUM(a.assists) AS total_assists, SUM(a.yellow_cards) AS total_yellow_cards, 
         SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) AS total_red_cards, 
-        SUM(a.minutes_played) AS total_minutes_played, STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for
+        SUM(a.minutes_played) AS total_minutes_played, STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
+        ");
+
+    query.push("SUM(a.minutes_played) / NULLIF((").push(goals_calculation).push("), 0) AS mins_per_goal, ");
+
+    query.push("SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0) AS mins_per_assist,
+    	SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0) AS mins_per_yellow,
+    	SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0) AS mins_per_red
         FROM 
             appearances_enhanced a 
         JOIN 
@@ -317,6 +336,42 @@ fn add_minutes_played_minute_filter_to_query(query: &mut QueryBuilder<Postgres>,
     query.push("MIN(LEAST(").push_bind(minute_to).push(", subbed_off_minute, played_from_minute + minutes_played) - GREATEST(").push_bind(minute_from).push(", played_from_minute)) AS minutes_played, ");
 }
 
+fn add_rank_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_calculation: &str, from_events_table: bool) {
+    query.push("SELECT RANK() OVER (ORDER BY ");
+    let rank_order = match sort_by {
+        // Goals
+        "g" => format!("{} DESC", goals_calculation),
+        // Assists
+        "a" => "SUM(a.assists) DESC".to_string(),
+        // Goals and Assists combined
+        "ga" => format!(
+            "SUM(a.assists) + {} DESC",
+            goals_calculation
+        ),
+        // Appearances
+        "ap" => "COUNT(*) DESC".to_string(),
+        // Total minutes played
+        "m" => "SUM(a.minutes_played) DESC".to_string(),
+        // Yellow cards
+        "y" => "SUM(a.yellow_cards) DESC".to_string(),
+        // Red cards
+        "r" => if from_events_table {
+                "SUM(a.red_cards) DESC".to_string()
+            } else {
+                "SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) DESC".to_string()
+            },
+        "mpg" => format!(
+            "SUM(a.minutes_played) / NULLIF(({}), 0)",
+            goals_calculation
+        ),
+        "mpa" => "SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0)".to_string(),
+        "mpy" => "SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0)".to_string(),
+        "mpr" => "SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0)".to_string(),
+        _ => format!("{} DESC", goals_calculation)
+    };
+
+    query.push(rank_order).push("), ");
+}
 
 fn add_seasons_to_query(query: &mut QueryBuilder<Postgres>, seasons: Vec<i32>) {
     if !seasons.is_empty() {
@@ -498,6 +553,18 @@ fn add_group_and_sort_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &
             } else {
                 "SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) DESC"
             }),
+        "mpg" => format!(
+            "SUM(a.minutes_played) / NULLIF(({}), 0), {} DESC, a.player_name",
+            goals_calculation, goals_calculation
+        ),
+        "mpa" => "SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0), SUM(a.assists) DESC, a.player_name".to_string(),
+        "mpy" => "SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0), SUM(a.yellow_cards) DESC, a.player_name".to_string(),
+        "mpr" => if from_events_table {
+            "SUM(a.minutes_played) / NULLIF(SUM a.red_cards), 0), SUM a.red_cards) DESC, a.player_name".to_string()
+        } else {
+            "SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0), \
+            SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) DESC, a.player_name".to_string()
+        }
         _ => format!(
             "{} DESC, SUM(a.assists) DESC, SUM(a.minutes_played) ASC, SUM(a.red_cards) ASC, SUM(a.yellow_cards) ASC, a.player_name",
             goals_calculation

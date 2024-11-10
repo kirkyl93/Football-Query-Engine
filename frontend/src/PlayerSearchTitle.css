@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+.title {
+    font-size: 21px;
+    word-wrap: break-word;
+    white-space: normal;
+    padding: 10px;
+    max-width: 800px;
+    box-sizing: border-box;
+}
+
+.title-badge {
+    vertical-align: middle;
+    width: 20px;
+    margin: 0 5px;
+}
