@@ -62,6 +62,12 @@ export enum PenaltyOptions {
     ONLY_PENALTIES = 'op'
 }
 
+export enum StatScope {
+    OVERALL = 'Overall',
+    SEASON = 'Season',
+    GAME = 'Game'
+}
+
 export enum SortOptions {
     GOALS = 'g',
     ASSISTS = 'a',
@@ -72,6 +78,7 @@ export enum SortOptions {
     RED_CARDS = 'r',
     MINUTES_PER_GOAL = 'mpg',
     MINUTES_PER_ASSIST = 'mpa',
+    MINUTES_PER_GOAL_OR_ASSIST = 'mpga',
     MINUTES_PER_YELLOW = 'mpy',
     MINUTES_PER_RED = 'mpr'
 }
@@ -79,8 +86,15 @@ export enum SortOptions {
 export const minuteBasedSortOptions = [
     SortOptions.MINUTES_PER_GOAL,
     SortOptions.MINUTES_PER_ASSIST,
+    SortOptions.MINUTES_PER_GOAL_OR_ASSIST,
     SortOptions.MINUTES_PER_YELLOW,
     SortOptions.MINUTES_PER_RED
+]
+
+export const gameOnlySortOptions = [
+    SortOptions.GOALS,
+    SortOptions.ASSISTS,
+    SortOptions.GOALS_AND_ASSISTS
 ]
 
 export interface FilterState {
@@ -97,8 +111,9 @@ export interface FilterState {
     subsOnly: boolean;
     earliestSubOnTime?: number;
     latestSubOnTime?: number;
-    penalties: string;
-    sortBy: string;
+    penalties: PenaltyOptions;
+    statScope: StatScope;
+    sortBy: SortOptions;
     minimumAppearances?: number;
 }
 
@@ -119,6 +134,7 @@ export interface PlayerSearchResult {
     clubs_played_for: string,
     mins_per_goal: number,
     mins_per_assist: number,
+    mins_per_goal_or_assist: number,
     mins_per_yellow: number,
     mins_per_red: number
 }

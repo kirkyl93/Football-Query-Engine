@@ -72,6 +72,20 @@
     font-size: 15px;
 }
 
+.season-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 75%;
+    padding: 5px;
+}
+
+.season-group label {
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
 .checkbox-group {
     display: flex;
     flex-direction: column;
@@ -79,6 +93,20 @@
 }
 
 .checkbox-group label {
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.position-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 75%;
+    padding: 5px;
+}
+
+.position-group label {
     font-size: 14px;
     margin-bottom: 10px;
     display: flex;

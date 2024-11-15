@@ -160,6 +160,7 @@ pub struct PlayerSearchResult {
     clubs_played_for: String,
     mins_per_goal: i64,
     mins_per_assist: i64,
+    mins_per_goal_or_assist: i64,
     mins_per_yellow: i64,
     mins_per_red: i64,
 }
@@ -407,6 +408,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
             clubs_played_for: row.try_get("clubs_played_for").unwrap_or_default(),
             mins_per_goal: row.try_get("mins_per_goal").unwrap_or_default(),
             mins_per_assist: row.try_get("mins_per_assist").unwrap_or_default(),
+            mins_per_goal_or_assist: row.try_get("mins_per_goal_or_assist").unwrap_or_default(),
             mins_per_yellow: row.try_get("mins_per_yellow").unwrap_or_default(),
             mins_per_red: row.try_get("mins_per_red").unwrap_or_default(),
         })

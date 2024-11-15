@@ -188,6 +188,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                             <th>Reds</th>
                             {filterState.sortBy === SortOptions.MINUTES_PER_GOAL && <th>Mins per goal</th>}
                             {filterState.sortBy === SortOptions.MINUTES_PER_ASSIST && <th>Mins per assist</th>}
+                            {filterState.sortBy === SortOptions.MINUTES_PER_GOAL_OR_ASSIST && <th>Mins per goal or assist</th>}
                             {filterState.sortBy === SortOptions.MINUTES_PER_YELLOW && <th>Mins per Yellow</th>}
                             {filterState.sortBy === SortOptions.MINUTES_PER_RED && <th>Mins per Red</th>}
                         </tr>
@@ -243,6 +244,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                                 <td>{player.total_red_cards}</td>
                                 {filterState.sortBy === SortOptions.MINUTES_PER_GOAL && <td>{player.mins_per_goal}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_ASSIST && <td>{player.mins_per_assist}</td>}
+                                {filterState.sortBy === SortOptions.MINUTES_PER_GOAL_OR_ASSIST && <td>{player.mins_per_goal_or_assist}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_YELLOW && <td>{player.mins_per_yellow}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_RED && <td>{player.mins_per_red}</td>}
                             </tr>

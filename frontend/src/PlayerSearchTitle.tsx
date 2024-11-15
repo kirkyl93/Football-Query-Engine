@@ -43,6 +43,9 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             case SortOptions.MINUTES_PER_ASSIST:
                 sortByTitle += "BEST MINS PER ASSIST ";
                 break;
+            case SortOptions.MINUTES_PER_GOAL_OR_ASSIST:
+                sortByTitle += "BEST MINS PER GOAL OR ASSIST ";
+                break;
             case SortOptions.MINUTES_PER_YELLOW:
                 sortByTitle += "LEAST MINS PER YELLOW ";
                 break;
@@ -194,7 +197,7 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             {constructTitle}
             {filterState.clubsPlayedFor.length > 0 && (
                 <>
-                    <span style={{marginLeft: '10px'}}>PLAYED FOR:</span>
+                    <span style={{marginLeft: '10px'}}> · PLAYED FOR:</span>
                     {filterState.clubsPlayedFor.length > 10 ? (
                         <span style={{marginLeft: '5px'}}>{filterState.clubsPlayedFor.length} CLUBS SELECTED</span>
                     ) : (
@@ -210,7 +213,7 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             )}
             {filterState.clubsPlayedAgainst.length > 0 && (
                 <>
-                    <span> PLAYED AGAINST:</span>
+                    <span> · PLAYED AGAINST:</span>
                     {filterState.clubsPlayedAgainst.length > 10 ? (
                         <span style={{marginLeft: '5px'}}>{filterState.clubsPlayedAgainst.length} CLUBS SELECTED</span>
                     ) : (

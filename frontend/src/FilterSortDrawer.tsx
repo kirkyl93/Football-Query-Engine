@@ -2,7 +2,15 @@ import React, {useEffect, useState} from 'react';
 import './FilterSortDrawer.css';
 import {competitions} from "./competitions";
 import {formatSeason} from "./utils";
-import {Club, FilterState, minuteBasedSortOptions, PenaltyOptions, SortOptions} from "./types";
+import {
+    Club,
+    FilterState,
+    gameOnlySortOptions,
+    minuteBasedSortOptions,
+    PenaltyOptions,
+    SortOptions,
+    StatScope
+} from "./types";
 
 interface FilterSortDrawerProps {
     isOpen: boolean;
@@ -46,9 +54,13 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         {name: "Red cards", id: SortOptions.RED_CARDS},
         {name: "Minutes per goal", id: SortOptions.MINUTES_PER_GOAL},
         {name: "Minutes per assist", id: SortOptions.MINUTES_PER_ASSIST},
+        {name: "Minutes per goal or assist", id: SortOptions.MINUTES_PER_GOAL_OR_ASSIST},
         {name: "Minutes per yellow card", id: SortOptions.MINUTES_PER_YELLOW},
         {name: "Minutes per red card", id: SortOptions.MINUTES_PER_RED}
     ];
+
+    const statScopes = [
+        StatScope.OVERALL, StatScope.SEASON, StatScope.GAME];
 
     const [localFilterState, setLocalFilterState] = useState<FilterState>(filterState);
     const [newPlayerName, setNewPlayerName] = useState<string>("");
@@ -87,8 +99,9 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
             subsOnly: false,
             earliestSubOnTime: undefined,
             latestSubOnTime: undefined,
-            penalties: "ip",
-            sortBy: "g",
+            penalties: PenaltyOptions.INCLUDE_PENALTIES,
+            statScope: StatScope.OVERALL,
+            sortBy: SortOptions.GOALS,
             minimumAppearances: undefined
         });
         setNewPlayerName("");
@@ -300,17 +313,36 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     }
 
     const handlePenaltyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const penaltyOption = e.target.value as PenaltyOptions;
         setLocalFilterState(prevState => ({
             ...prevState,
-            penalties: e.target.value
+            penalties: penaltyOption
         }));
     }
 
     const handleSortByChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const sortOption = e.target.value as SortOptions;
         setLocalFilterState(prevState => ({
             ...prevState,
-            sortBy: e.target.value
+            sortBy: sortOption
         }));
+    }
+
+    const handleStatScopeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const statScope = e.target.value as StatScope;
+        const localStatScope = localFilterState.statScope;
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            statScope: statScope
+        }));
+
+        // If we move from Overall/Season scope to Game, and currently have an Overall/Season only sort by selected, default to sort by goals
+        if (statScope === StatScope.GAME && statScope !== localStatScope && !gameOnlySortOptions.includes(localFilterState.sortBy)) {
+            setLocalFilterState(prevState => ({
+                ...prevState,
+                sortBy: SortOptions.GOALS
+            }))
+        }
     }
 
     const applyFilters = () => {
@@ -353,7 +385,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                         Seasons {isSeasonsOpen ? '▲' : '▼'}
                     </div>
                     {isSeasonsOpen && (
-                        <div className="checkbox-group">
+                        <div className="season-group">
                             {seasons.map(season => (
                                 <label key={season}>
                                     <input
@@ -433,7 +465,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                         Positions {isPositionsOpen ? '▲' : '▼'}
                     </div>
                     {isPositionsOpen && (
-                        <div className="checkbox-group">
+                        <div className="position-group">
                             {positions.map(position => (
                                 <label key={position}>
                                     <input
@@ -678,7 +710,24 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                     </div>
                     {isSortByOpen && (
                         <div className="radio-group">
-                            {sortTypes.map(sort => (
+                            {statScopes.map(score => (
+                                <label key={score}>
+                                    <input
+                                        type="radio"
+                                        value={score}
+                                        checked={localFilterState.statScope === score}
+                                        onChange={handleStatScopeChange}
+                                    />
+                                    {score}
+                                </label>
+                            ))}
+                        </div>
+                    )}
+                    {isSortByOpen && (
+                        <div className="radio-group">
+                            {sortTypes
+                                .filter(sort => localFilterState.statScope !== StatScope.GAME || gameOnlySortOptions.includes(sort.id))
+                                .map(sort => (
                                 <label key={sort.id}>
                                     <input
                                         type="radio"
