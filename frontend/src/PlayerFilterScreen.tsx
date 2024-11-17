@@ -3,7 +3,7 @@ import InfiniteScrollTable from "./InfiniteScrollTable";
 import FilterSortDrawer from "./FilterSortDrawer";
 import './PlayerFilterScreen.css';
 import {useNavigate, useLocation} from "react-router-dom";
-import {FilterState, PenaltyOptions, SortOptions, UrlFilters} from "./types";
+import {FilterState, PenaltyOptions, SortOptions, StatScope, UrlFilters} from "./types";
 
 const PlayerFilterScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -25,6 +25,7 @@ const PlayerFilterScreen: React.FC = () => {
         selectedEarliestSubOnTime,
         selectedLatestSubOnTime,
         selectedPenaltyOption,
+        selectedScope,
         selectedSortBy,
         selectedMinimumAppearances
     } = useMemo(() => {
@@ -49,8 +50,9 @@ const PlayerFilterScreen: React.FC = () => {
                 parseInt(params.get(UrlFilters.EARLIEST_SUB_ON_TIME)!, 10) : undefined,
             selectedLatestSubOnTime: params.get(UrlFilters.LATEST_SUB_ON_TIME) ?
                 parseInt(params.get(UrlFilters.LATEST_SUB_ON_TIME)!, 10) : undefined,
-            selectedPenaltyOption: params.get(UrlFilters.PENALTIES) || PenaltyOptions.INCLUDE_PENALTIES,
-            selectedSortBy: params.get(UrlFilters.SORT_BY) || SortOptions.GOALS,
+            selectedPenaltyOption: params.get(UrlFilters.PENALTIES) as PenaltyOptions || PenaltyOptions.INCLUDE_PENALTIES,
+            selectedSortBy: params.get(UrlFilters.SORT_BY) as SortOptions || SortOptions.GOALS,
+            selectedScope: params.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL,
             selectedMinimumAppearances: params.get(UrlFilters.MINIMUM_APPEARANCES) ?
                 parseInt(params.get(UrlFilters.MINIMUM_APPEARANCES)!, 10) : undefined
         };
@@ -81,6 +83,7 @@ const PlayerFilterScreen: React.FC = () => {
         }
         addParam(UrlFilters.PENALTIES, filterState.penalties);
         addParam(UrlFilters.SORT_BY, filterState.sortBy);
+        addParam(UrlFilters.SCOPE, filterState.statScope);
         addParam(UrlFilters.MINIMUM_APPEARANCES, filterState.minimumAppearances);
 
         navigate({
@@ -100,7 +103,8 @@ const PlayerFilterScreen: React.FC = () => {
         playerNames: selectedPlayerNames, clubsPlayedFor: selectedClubsPlayedFor,
         clubsPlayedAgainst: selectedClubsPlayedAgainst, subsOnly: selectedSubsOnly,
         earliestSubOnTime: selectedEarliestSubOnTime, latestSubOnTime: selectedLatestSubOnTime,
-        penalties: selectedPenaltyOption, sortBy: selectedSortBy, minimumAppearances: selectedMinimumAppearances
+        penalties: selectedPenaltyOption, statScope: selectedScope, sortBy: selectedSortBy,
+        minimumAppearances: selectedMinimumAppearances
     };
 
     return (

@@ -1,4 +1,4 @@
-import {FilterState, minuteBasedSortOptions, SortOptions} from "./types";
+import {FilterState, minuteBasedSortOptions, SortOptions, StatScope} from "./types";
 import React, {useMemo} from "react";
 import {competitions} from "./competitions";
 import {formatSeason} from "./utils";
@@ -59,6 +59,10 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
         if (minuteBasedSortOptions.includes(filterState.sortBy as SortOptions) &&
             filterState.minimumAppearances !== undefined && filterState.minimumAppearances > 0) {
             sortByTitle += "(AT LEAST " + filterState.minimumAppearances + " APPS) ";
+        }
+
+        if (filterState.statScope === StatScope.SEASON) {
+            sortByTitle += "· SEASON SCOPE "
         }
 
         return sortByTitle;

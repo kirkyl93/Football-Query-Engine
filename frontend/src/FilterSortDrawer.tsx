@@ -60,7 +60,10 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     ];
 
     const statScopes = [
-        StatScope.OVERALL, StatScope.SEASON, StatScope.GAME];
+        {name: "Overall", id: StatScope.OVERALL},
+        {name: "Season", id: StatScope.SEASON},
+        {name: "Game", id: StatScope.GAME}
+    ];
 
     const [localFilterState, setLocalFilterState] = useState<FilterState>(filterState);
     const [newPlayerName, setNewPlayerName] = useState<string>("");
@@ -711,14 +714,14 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                     {isSortByOpen && (
                         <div className="radio-group">
                             {statScopes.map(score => (
-                                <label key={score}>
+                                <label key={score.id}>
                                     <input
                                         type="radio"
-                                        value={score}
-                                        checked={localFilterState.statScope === score}
+                                        value={score.id}
+                                        checked={localFilterState.statScope === score.id}
                                         onChange={handleStatScopeChange}
                                     />
-                                    {score}
+                                    {score.name}
                                 </label>
                             ))}
                         </div>

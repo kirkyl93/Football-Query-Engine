@@ -1,8 +1,9 @@
-import React, {useEffect, useState, useRef, useCallback, useMemo} from 'react';
-import {FilterState, PlayerSearchResult, SortOptions, UrlFilters} from './types'; // Import the Player type
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FilterState, PlayerSearchResult, SortOptions, StatScope, UrlFilters} from './types'; // Import the Player type
 import {Link, useLocation} from "react-router-dom";
 import './InfiniteScrollTable.css';
 import PlayerSearchTitle from "./PlayerSearchTitle";
+import {formatSeason} from "./utils";
 
 const REQUEST_LIMIT = 50;
 
@@ -109,7 +110,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
         const paramMapping = [
             UrlFilters.SEASONS, UrlFilters.COMPETITIONS, UrlFilters.POSITIONS, UrlFilters.MINUTE_FROM, UrlFilters.MINUTE_TO,
             UrlFilters.MINIMUM_AGE, UrlFilters.MAXIMUM_AGE, UrlFilters.PLAYER_NAMES, UrlFilters.CLUBS_PLAYED_FOR,
-            UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.SORT_BY, UrlFilters.MINIMUM_APPEARANCES
+            UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.SORT_BY, UrlFilters.SCOPE, UrlFilters.MINIMUM_APPEARANCES
         ];
 
         paramMapping.forEach((key) => {
@@ -179,6 +180,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                             <th>Rank</th>
                             <th className="player-name">Player</th>
                             <th className="column-to-hide">Clubs</th>
+                            {filterState.statScope === StatScope.SEASON && <th>Season</th>}
                             <th className="column-to-hide">Position</th>
                             <th className="table-header">Apps</th>
                             <th className="table-header">Mins</th>
@@ -195,7 +197,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                         </thead>
                         <tbody>
                         {data.map((player, index) => (
-                            <tr key={player.player_id}
+                            <tr key={player.player_id.toString() + player.season.toString()}
                                 ref={data.length === index + 1 ? lastPlayerElementRef : null}
                             >
                                 <td>
@@ -234,6 +236,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                                         );
                                     })}
                                 </td>
+                                {filterState.statScope === StatScope.SEASON && <td>{formatSeason(player.season)}</td>}
                                 <td className="column-to-hide">{player.sub_position}</td>
                                 <td><strong>{player.total_appearances}</strong>
                                     {!filterState.subsOnly && (<> ({player.substitute_appearances})</>)}</td>

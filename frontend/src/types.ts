@@ -53,6 +53,7 @@ export enum UrlFilters {
     LATEST_SUB_ON_TIME = 'latestsub',
     PENALTIES = "penalty",
     SORT_BY = "sort",
+    SCOPE = "scope",
     MINIMUM_APPEARANCES="ma"
 }
 
@@ -63,9 +64,9 @@ export enum PenaltyOptions {
 }
 
 export enum StatScope {
-    OVERALL = 'Overall',
-    SEASON = 'Season',
-    GAME = 'Game'
+    OVERALL = 'o',
+    SEASON = 's',
+    GAME = 'g'
 }
 
 export enum SortOptions {
@@ -136,7 +137,8 @@ export interface PlayerSearchResult {
     mins_per_assist: number,
     mins_per_goal_or_assist: number,
     mins_per_yellow: number,
-    mins_per_red: number
+    mins_per_red: number,
+    season: number
 }
 
 export interface PlayerWithSeasonStats {
