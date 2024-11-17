@@ -70,7 +70,7 @@ pub fn map_position_code_to_position(s: &str) -> &str {
         "CM" => "Central Midfield",
         "RM" => "Right Midfield",
         "LW" => "Left Winger",
-        "RW" => "Right winger",
+        "RW" => "Right Winger",
         "CAM" => "Attacking Midfield",
         "SS" => "Second Striker",
         "CF" => "Centre-Forward",

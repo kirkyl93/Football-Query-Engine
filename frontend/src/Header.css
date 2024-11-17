@@ -1,7 +1,7 @@
 .header {
-    background-color: #2e89a5;
+    background-color: #cfcfcf;
     padding: 10px;
-    color: white;
+    color: #9f2020;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -48,7 +48,7 @@
 }
 
 /* Style the suggestions dropdown */
-.suggestions-dropdown {
+.header-suggestions-dropdown {
     position: absolute;
     top: 100%; /* Ensure the dropdown starts directly below the input */
     left: 0;
@@ -64,12 +64,12 @@
 }
 
 /* Style each suggestion item */
-.suggestion-item {
+.header-suggestion-item {
     padding: 10px;
     cursor: pointer;
     border-bottom: 1px solid #eee;
 }
 
-.suggestion-item:hover {
+.header-suggestion-item:hover {
     background-color: #2e89a5;
 }

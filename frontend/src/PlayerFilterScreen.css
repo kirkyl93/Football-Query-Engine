@@ -1,20 +1,36 @@
-/* Main container for the player filter screen */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
 .player-filter-screen {
-    position: relative;
-    padding: 20px;
+    width: 100%;
 }
 
-/* Stylish Filter Button */
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.header-container {
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0 24px;
+}
+
+
+
 .filter-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    font-family: "Inter", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
     padding: 10px 20px;
     background-color: white;
     color: black;
     border: black solid 1px;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 15px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -23,106 +39,21 @@
     background-color: #0056b3;
 }
 
-/* Filter Drawer */
-.filter-drawer {
-    position: fixed;
-    top: 0;
-    right: -400px; /* Hidden off-screen initially */
-    width: 300px;
-    height: 100%;
-    background-color: white;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    transition: right 0.3s ease; /* Sliding animation */
-    z-index: 1000;
-}
-
-.filter-drawer.open {
-    right: 0; /* Slide in when open */
-}
-
-/* Drawer Header */
-.drawer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.drawer-header h2 {
-    margin: 0;
-    font-size: 18px;
-}
-
-.close-button {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-/* Dropdown section styling */
-.dropdown-section {
-    margin-bottom: 20px;
-}
-
-.dropdown-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-/* Checkbox group styling */
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.checkbox-group label {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-.checkbox-group input[type="checkbox"] {
-    margin-right: 10px;
-}
-
-/* Apply Filters Button */
-.apply-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.apply-button:hover {
-    background-color: #0056b3;
-}
-
-/* Make the table fill the remaining space and have proper spacing */
 .infinite-scroll-table {
-    margin-top: 80px; /* To make space for the filter button */
-    padding: 20px;
+    margin-top: 80px;
 }
 
-/* Loading state */
 .loading {
     text-align: center;
     font-size: 16px;
     color: #555;
 }
 
-/* Error state */
 .error {
     text-align: center;
     color: red;
     font-size: 16px;
     margin-top: 10px;
 }
-  
+
+

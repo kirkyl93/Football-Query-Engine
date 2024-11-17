@@ -1,8 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
-body {
-    font-family: 'Roboto', sans-serif;
-}
+
 
 .table-container {
     min-height: 400px;
@@ -14,6 +12,9 @@ body {
     border-collapse: collapse;
     padding: 0;
     position: relative;
+    font-family: "Inter", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
 }
 
 .generic-table {
@@ -28,7 +29,7 @@ body {
     width: fit-content;
     align-items: center;
     white-space: nowrap;
-    font-size: 14px;
+    font-size: 12px;
     min-width: 40px;
 }
 
@@ -47,10 +48,9 @@ body {
     width: fit-content;
 }
 
-/* Styling for images within the table */
 .generic-table img {
-    width: 40px;
-    height: 50px;
+    width: 32px;
+    height: 40px;
     vertical-align: middle;
 }
 
@@ -95,7 +95,7 @@ body {
 .dot {
     width: 15px;
     height: 15px;
-    background-color: #FF5C35;
+    background-color: #7e7b7b;
     border-radius: 50%;
     animation: bounce 1.5s infinite;
 }

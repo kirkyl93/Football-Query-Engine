@@ -171,9 +171,6 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
         <div className="table-container">
             {hasData && (
                 <>
-                    <PlayerSearchTitle
-                        filterState={filterState}
-                    />
                     <table className="generic-table">
                         <thead>
                         <tr>
@@ -230,7 +227,7 @@ const InfiniteScrollTable: React.FC<InfiniteScrollTableProps> = (
                                                 key={trimmedClubId}
                                                 src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(trimmedClubId)}.png`}
                                                 alt={`Club ${trimmedClubId}`}
-                                                width="30"
+                                                width="20px"
                                                 style={{marginRight: '5px'}}
                                             />
                                         );

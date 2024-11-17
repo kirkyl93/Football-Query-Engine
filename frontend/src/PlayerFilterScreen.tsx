@@ -3,7 +3,8 @@ import InfiniteScrollTable from "./InfiniteScrollTable";
 import FilterSortDrawer from "./FilterSortDrawer";
 import './PlayerFilterScreen.css';
 import {useNavigate, useLocation} from "react-router-dom";
-import {FilterState, PenaltyOptions, SortOptions, StatScope, UrlFilters} from "./types";
+import {FilterState, minuteBasedSortOptions, PenaltyOptions, SortOptions, StatScope, UrlFilters} from "./types";
+import PlayerSearchTitle from "./PlayerSearchTitle";
 
 const PlayerFilterScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -84,7 +85,9 @@ const PlayerFilterScreen: React.FC = () => {
         addParam(UrlFilters.PENALTIES, filterState.penalties);
         addParam(UrlFilters.SORT_BY, filterState.sortBy);
         addParam(UrlFilters.SCOPE, filterState.statScope);
-        addParam(UrlFilters.MINIMUM_APPEARANCES, filterState.minimumAppearances);
+        if (minuteBasedSortOptions.includes(filterState.sortBy)) {
+            addParam(UrlFilters.MINIMUM_APPEARANCES, filterState.minimumAppearances);
+        }
 
         navigate({
             pathname: location.pathname,
@@ -109,9 +112,20 @@ const PlayerFilterScreen: React.FC = () => {
 
     return (
         <div className="player-filter-screen">
-            <button className="filter-button" onClick={toggleDrawer}>
-                Filter & Sort
-            </button>
+            <div className="content-wrapper">
+                <div className="header-container">
+                    <PlayerSearchTitle
+                        filterState={filterState}
+                    />
+                    <button className="filter-button" onClick={toggleDrawer}>
+                        Filter & Sort
+                    </button>
+                </div>
+
+                <InfiniteScrollTable
+                    filterState={filterState}
+                />
+            </div>
 
             <FilterSortDrawer
                 isOpen={isDrawerOpen}
@@ -119,12 +133,8 @@ const PlayerFilterScreen: React.FC = () => {
                 onFilterChange={handleFilterChange}
                 onClose={toggleDrawer}
             />
-
-            <InfiniteScrollTable
-                filterState={filterState}
-            />
         </div>
     );
-};
+}
 
 export default PlayerFilterScreen;

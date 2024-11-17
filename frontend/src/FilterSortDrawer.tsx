@@ -41,7 +41,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     const penaltyOptions = [
         {name: "Include penalties", id: PenaltyOptions.INCLUDE_PENALTIES},
         {name: "Exclude penalties", id: PenaltyOptions.EXCLUDE_PENALTIES},
-        {name: "Include only penalties", id: PenaltyOptions.ONLY_PENALTIES}
+        {name: "Only penalties", id: PenaltyOptions.ONLY_PENALTIES}
     ];
 
     const sortTypes = [
@@ -376,28 +376,32 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
     return (
         <div className={`filter-drawer ${isOpen ? 'open' : ''}`}>
-            <div className="drawer-header">
-                <h2>Filter & Sort</h2>
-                <button onClick={resetFilters}>Reset</button>
-                <button className="close-button" onClick={onClose}>X</button>
+            <div className="filter-header">
+                <div className="filter-title"><h2>Filter & Sort</h2></div>
+                <div className="filter-actions">
+                    <button className="reset-button" onClick={resetFilters}>Reset</button>
+                    <button className="close-button" onClick={onClose}>&#10006;</button>
+                </div>
             </div>
 
             <div className="filter-drawer-content">
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsSeasonsOpen(!isSeasonsOpen)}>
-                        Seasons {isSeasonsOpen ? '▲' : '▼'}
+                        <span className="title-text">SEASONS</span>
+                        <span className="arrow-icon">{isSeasonsOpen ? '▲' : '▼'}</span>
                     </div>
                     {isSeasonsOpen && (
                         <div className="season-group">
                             {seasons.map(season => (
-                                <label key={season}>
+                                <label className="season-checkbox-label" key={season}>
                                     <input
                                         type="checkbox"
                                         value={season}
                                         checked={localFilterState.seasons.includes(season)}
                                         onChange={handleSeasonChange}
+                                        className="season-checkbox-input"
                                     />
-                                    {formatSeason(season)}
+                                    <span>{formatSeason(season)}</span>
                                 </label>
                             ))}
                         </div>
@@ -406,17 +410,19 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsCompetitionsOpen(!isCompetitionsOpen)}>
-                        Competitions {isCompetitionsOpen ? '▲' : '▼'}
+                        <span className="title-text">COMPETITIONS</span>
+                        <span className="arrow-icon">{isCompetitionsOpen ? '▲' : '▼'}</span>
                     </div>
                     {isCompetitionsOpen && (
                         <div>
                             <div className="sub-dropdown-title" onClick={() => setIsLeaguesOpen(!isLeaguesOpen)}>
-                                Leagues {isLeaguesOpen ? '▲' : '▼'}
+                                <span className="title-text">DOMESTIC</span>
+                                <span className="arrow-icon">{isLeaguesOpen ? '▲' : '▼'}</span>
                             </div>
                             {isLeaguesOpen && (
                                 <div className="checkbox-group">
                                     {competitions.leagues.map(league => (
-                                        <label key={league.competitionId}>
+                                        <label className="competition-label" key={league.competitionId}>
                                             <input
                                                 type="checkbox"
                                                 value={league.competitionId}
@@ -436,12 +442,13 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                             <div className="sub-dropdown-title"
                                  onClick={() => setIsEuropeanCompetitionsOpen(!isEuropeanCompetitionsOpen)}>
-                                European Competitions {isEuropeanCompetitionsOpen ? '▲' : '▼'}
+                                <span className="title-text">EUROPE</span>
+                                <span className="arrow-icon">{isEuropeanCompetitionsOpen ? '▲' : '▼'}</span>
                             </div>
                             {isEuropeanCompetitionsOpen && (
                                 <div className="checkbox-group">
                                     {competitions.europeanCompetitions.map(competition => (
-                                        <label key={competition.competitionId}>
+                                        <label className="competition-label" key={competition.competitionId}>
                                             <input
                                                 type='checkbox'
                                                 value={competition.competitionId}
@@ -465,17 +472,19 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsPositionsOpen(!isPositionsOpen)}>
-                        Positions {isPositionsOpen ? '▲' : '▼'}
+                        <span className="title-text">POSITIONS</span>
+                        <span className="arrow-icon">{isPositionsOpen ? '▲' : '▼'}</span>
                     </div>
                     {isPositionsOpen && (
                         <div className="position-group">
                             {positions.map(position => (
-                                <label key={position}>
+                                <label className="position-checkbox-label" key={position}>
                                     <input
                                         type="checkbox"
                                         value={position}
                                         checked={localFilterState.positions.includes(position)}
                                         onChange={handlePositionChange}
+                                        className="position-checkbox-input"
                                     />
                                     {position}
                                 </label>
@@ -486,18 +495,18 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsMinutesOpen(!isMinutesOpen)}>
-                        Minutes {isMinutesOpen ? '▲' : '▼'}
+                        <span className="title-text">MINUTES</span>
+                        <span className="arrow-icon">{isMinutesOpen ? '▲' : '▼'}</span>
                     </div>
                     {isMinutesOpen && (
-                        <div className="dropdown-group">
+                        <div className="minute-and-age-and-sub-dropdown-group">
                             <label>Played from:</label>
-                            <select value={localFilterState.minuteFrom ?? ''} onChange={handleMinuteFromChange}>
-                                <option value="">Any</option>
-                                {minutes.map(minute => (
-                                    <option key={minute} value={minute}>{minute}</option>
-                                ))}
-                            </select>
-
+                                <select value={localFilterState.minuteFrom ?? ''} onChange={handleMinuteFromChange}>
+                                    <option value="">Any</option>
+                                    {minutes.map(minute => (
+                                        <option key={minute} value={minute}>{minute}</option>
+                                    ))}
+                                </select>
                             <label>Played to:</label>
                             <select value={localFilterState.minuteTo ?? ''} onChange={handleMinuteToChange}>
                                 <option value="">Any</option>
@@ -511,10 +520,11 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsAgeOpen(!isAgeOpen)}>
-                        Age {isAgeOpen ? '▲' : '▼'}
+                        <span className="title-text">AGE</span>
+                        <span className="arrow-icon">{isAgeOpen ? '▲' : '▼'}</span>
                     </div>
                     {isAgeOpen && (
-                        <div className="dropdown-group">
+                        <div className="minute-and-age-and-sub-dropdown-group">
                             <label>Min age:</label>
                             <select value={localFilterState.minAge ?? ''} onChange={handleMinAgeChange}>
                                 <option value="">Any</option>
@@ -536,18 +546,19 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsPlayerNameOpen(!isPlayerNameOpen)}>
-                        Player names {isPlayerNameOpen ? '▲' : '▼'}
+                        <span className="title-text">PLAYER NAMES</span>
+                        <span className="arrow-icon">{isPlayerNameOpen ? '▲' : '▼'}</span>
                     </div>
                     {isPlayerNameOpen && (
-                        <div className="dropdown-content">
+                        <div className="player-name-and-club-dropdown-content">
                             <input
                                 type="text"
-                                placeholder="Enter player name and press Enter"
+                                placeholder="Enter player name"
                                 value={newPlayerName}
                                 onChange={handlePlayerNameChange}
                                 onKeyDown={handleKeyDown}
                             />
-                            <div className="player-names-list">
+                            <div className="player-names-and-clubs-list">
                                 {localFilterState.playerNames.map((name, index) => (
                                     <span key={index} className="player-name-item">
                                         {name}
@@ -561,10 +572,11 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsClubsOpen(!isClubsOpen)}>
-                        Clubs {isClubsOpen ? '▲' : '▼'}
+                        <span className="title-text">CLUBS</span>
+                        <span className="arrow-icon">{isClubsOpen ? '▲' : '▼'}</span>
                     </div>
                     {isClubsOpen && (
-                        <div className="dropdown-content">
+                        <div className="player-name-and-club-dropdown-content">
                             <input
                                 type="text"
                                 placeholder="Clubs played for"
@@ -579,7 +591,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                             onClick={() => handleClubPlayedForSuggestionClick(suggestion)}
                                         >
                                             <img
-                                                style={{width: 20, fontSize: 15}}
+                                                style={{width: 30, fontSize: 15}}
                                                 alt="Badge of football team selected"
                                                 src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion)}.png`}
                                             />
@@ -588,7 +600,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                     ))}
                                 </ul>
                             )}
-                            <div className="club-names-list">
+                            <div className="player-names-and-clubs-list">
                                 {(localFilterState.clubsPlayedFor || []).map((club, index) => (
                                     <span key={index} className="club-name-item">
                                             <img
@@ -603,9 +615,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                         </div>
                     )}
                     {isClubsOpen && (
-                        <div className="dropdown-content">
+                        <div className="player-name-and-club-dropdown-content">
                             <input
-                                style={{marginTop: 10}}
                                 type="text"
                                 placeholder="Clubs played against"
                                 value={newClubPlayedAgainst}
@@ -619,7 +630,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                             onClick={() => handleClubPlayedAgainstSuggestionClick(suggestion)}
                                         >
                                             <img
-                                                style={{width: 20, fontSize: 15}}
+                                                style={{width: 30, fontSize: 15}}
                                                 alt="Badge of football team selected"
                                                 src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion)}.png`}
                                             />
@@ -646,7 +657,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsSubstitutesOpen(!isSubstitutesOpen)}>
-                        Substitutes {isSubstitutesOpen ? '▲' : '▼'}
+                        <span className="title-text">SUBSTITUTES</span>
+                        <span className="arrow-icon">{isSubstitutesOpen ? '▲' : '▼'}</span>
                     </div>
                     {isSubstitutesOpen && (
                         <div className="checkbox-group">
@@ -662,7 +674,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                         </div>
                     )}
                     {isSubstitutesOpen && localFilterState.subsOnly && (
-                        <div className="dropdown-group">
+                        <div className="minute-and-age-and-sub-dropdown-group">
                             <label>Earliest minute:</label>
                             <select value={localFilterState.earliestSubOnTime ?? ''}
                                     onChange={handleEarliestSubOnTimeChange}>
@@ -688,7 +700,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className='dropdown-section'>
                     <div className="dropdown-title" onClick={() => setIsPenaltiesOpen(!isPenaltiesOpen)}>
-                        Penalties {isPenaltiesOpen ? '▲' : '▼'}
+                        <span className="title-text">PENALTIES</span>
+                        <span className="arrow-icon">{isPenaltiesOpen ? '▲' : '▼'}</span>
                     </div>
                     {isPenaltiesOpen && (
                         <div className='radio-group'>
@@ -709,7 +722,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsSortByOpen(!isSortByOpen)}>
-                        Sort By {isSortByOpen ? '▲' : '▼'}
+                        <span className="title-text">SORT BY</span>
+                        <span className="arrow-icon">{isSortByOpen ? '▲' : '▼'}</span>
                     </div>
                     {isSortByOpen && (
                         <div className="radio-group">
@@ -727,7 +741,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                         </div>
                     )}
                     {isSortByOpen && (
-                        <div className="radio-group">
+                        <div className="radio-group-vertical">
                             {sortTypes
                                 .filter(sort => localFilterState.statScope !== StatScope.GAME || gameOnlySortOptions.includes(sort.id))
                                 .map(sort => (
@@ -745,7 +759,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                     )}
 
                     {isSortByOpen && minuteBasedSortOptions.includes(localFilterState.sortBy as SortOptions) && (
-                        <div className="appearance-dropdown">
+                        <div className="minute-and-age-and-sub-dropdown-group">
                             <label>Minimum Appearances: </label>
                             <select value={localFilterState.minimumAppearances ?? ''}
                                     onChange={handleMinimumAppearanceChange}>
@@ -758,7 +772,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                     )}
                 </div>
 
-                <button className="apply-button" onClick={applyFilters}>Apply Filters</button>
+                <button className="apply-button" onClick={applyFilters}>APPLY</button>
             </div>
         </div>
     );

@@ -123,7 +123,7 @@ struct SearchParams {
     #[serde(rename = "minage")]
     minimum_age: Option<i32>,
     names: Option<String>,
-    #[serde(rename = "clubpf")]
+    #[serde(rename = "clubspf")]
     clubs_played_for: Option<String>,
     #[serde(rename = "clubspa")]
     clubs_played_against: Option<String>,
@@ -145,8 +145,6 @@ struct SearchParams {
 #[get("/search")]
 pub async fn search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -> HttpResponse {
     let mut query = construct_search_query_from_params(&params);
-
-    println!("{}", query.sql());
 
     match query.build_query_as::<PlayerSearchResult>()
         .fetch_all(pool.get_ref())
@@ -705,17 +703,17 @@ fn add_order_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goal
                 "SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) DESC"
             }),
         MINUTES_PER_GOAL => format!(
-            "SUM(a.minutes_played) / NULLIF({}, 0), {} DESC, a.player_name, season",
+            "SUM(a.minutes_played) / NULLIF({}, 0), {} DESC, a.player_name",
             goals_calculation, goals_calculation
         ),
-        MINUTES_PER_ASSIST => "SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0), SUM(a.assists) DESC, a.player_name, season".to_string(),
+        MINUTES_PER_ASSIST => "SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0), SUM(a.assists) DESC, a.player_name".to_string(),
         MINUTES_PER_GOAL_OR_ASSIST => format!(
-            "SUM(a.minutes_played) / NULLIF({} + SUM(a.assists), 0), a.player_name, season",
+            "SUM(a.minutes_played) / NULLIF({} + SUM(a.assists), 0), a.player_name",
             goals_calculation
         ),
-        MINUTES_PER_YELLOW => "SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0), SUM(a.yellow_cards) DESC, a.player_name, season".to_string(),
+        MINUTES_PER_YELLOW => "SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0), SUM(a.yellow_cards) DESC, a.player_name".to_string(),
         MINUTES_PER_RED => if from_events_table {
-            "SUM(a.minutes_played) / NULLIF(SUM(a.red_cards), 0), SUM(a.red_cards) DESC, a.player_name, season".to_string()
+            "SUM(a.minutes_played) / NULLIF(SUM(a.red_cards), 0), SUM(a.red_cards) DESC, a.player_name".to_string()
         } else {
             "SUM(a.minutes_played) / NULLIF((SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END)), 0),
             SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) DESC, a.player_name".to_string()

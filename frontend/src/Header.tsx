@@ -76,10 +76,6 @@ const Header: React.FC = () => {
     return (
         <header className="header">
             <nav className="nav">
-                <Link to="/?seasons=2024&comps=GB1" className="nav-link">
-                    <img src="/icons8-home.svg" alt="Home" className="home_icon"/>
-                </Link>
-
                 <form ref={dropdownRef} className="search-form">
                     <input
                         type="text"
@@ -88,14 +84,13 @@ const Header: React.FC = () => {
                         onChange={handleSearchChange}
                         className="search-input"
                     />
-                    <button type="submit" className="search-button">Search</button>
 
                     {isDropdownVisible && suggestions.length > 0 && (
-                        <ul className="suggestions-dropdown">
+                        <ul className="header-suggestions-dropdown">
                             {suggestions.map((suggestion, index) => (
                                 <li
                                     key={index}
-                                    className="suggestion-item"
+                                    className="header-suggestion-item"
                                     onClick={() => handleSuggestionClick(suggestion.last_name)}
                                 >
                                     <Link to={`/player/${suggestion.player_id}`} style={{
@@ -131,8 +126,6 @@ const Header: React.FC = () => {
                         </ul>
                     )}
                 </form>
-
-                <Link to="/player-stats" className="nav-link">Player Stats</Link>
             </nav>
         </header>
     );
