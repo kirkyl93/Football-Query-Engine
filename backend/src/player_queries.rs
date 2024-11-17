@@ -310,7 +310,7 @@ fn build_query_from_events<'a>(page: i32, limit: i32, minimum_appearances: i32,
 
     add_group_by_to_query(&mut query, stat_scope == SEASON);
     add_minimum_appearances_to_query(&mut query, minimum_appearances);
-    add_order_by_to_query(&mut query, sort_by, goals_calculation, true);
+    add_order_by_to_query(&mut query, sort_by, goals_calculation, true, stat_scope == SEASON);
     add_limit_and_offset_to_query(&mut query, limit, page);
 
     return query;
@@ -372,7 +372,7 @@ fn build_query_from_appearances<'a>(page: i32, limit: i32, minimum_appearances: 
 
     add_group_by_to_query(&mut query, stat_scope == SEASON);
     add_minimum_appearances_to_query(&mut query, minimum_appearances);
-    add_order_by_to_query(&mut query, sort_by, goals_calculation, false);
+    add_order_by_to_query(&mut query, sort_by, goals_calculation, false, stat_scope == SEASON);
     add_limit_and_offset_to_query(&mut query, limit, page);
 
     return query;
@@ -667,7 +667,7 @@ fn add_minimum_appearances_to_query(query: &mut QueryBuilder<Postgres>, minimum_
     }
 }
 
-fn add_order_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_calculation: &str, from_events_table: bool) {
+fn add_order_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goals_calculation: &str, from_events_table: bool, season_scope: bool) {
     query.push("
     ORDER BY ");
 
@@ -725,6 +725,10 @@ fn add_order_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &str, goal
     };
 
     query.push(sort_clause);
+
+    if season_scope {
+        query.push(", season");
+    }
 }
 
 pub fn add_limit_and_offset_to_query(query: &mut QueryBuilder<Postgres>, limit: i32, page: i32) {
