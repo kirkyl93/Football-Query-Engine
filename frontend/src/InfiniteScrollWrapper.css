@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
-
-
 .table-container {
     min-height: 400px;
     overflow: inherit;
@@ -37,7 +35,6 @@
     min-width: 140px;
 }
 
-/* Sticky table header styling */
 .generic-table thead th {
     background-color: white;
     border-bottom: 2px solid #ddd;
@@ -66,57 +63,4 @@
 
 .table-header {
     min-width: 50px;
-}
-
-.filter-button {
-    position: relative;
-    z-index: 10; /* Ensure buttons are above the checkboxes */
-    background-color: white;
-    color: black;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-right: 10px;
-}
-
-.loader-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 70vh;
-}
-
-.bouncing-dots {
-    display: flex;
-    justify-content: space-between;
-    width: 60px;
-}
-
-.dot {
-    width: 15px;
-    height: 15px;
-    background-color: #7e7b7b;
-    border-radius: 50%;
-    animation: bounce 1.5s infinite;
-}
-
-.dot:nth-child(1) {
-    animation-delay: 0s;
-}
-
-.dot:nth-child(2) {
-    animation-delay: 0.3s;
-}
-
-.dot:nth-child(3) {
-    animation-delay: 0.6s;
-}
-
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-20px);
-    }
 }

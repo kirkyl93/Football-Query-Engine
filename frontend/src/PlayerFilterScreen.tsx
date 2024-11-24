@@ -1,10 +1,11 @@
 import React, {useMemo, useState} from "react";
-import InfiniteScrollTable from "./InfiniteScrollTable";
 import FilterSortDrawer from "./FilterSortDrawer";
 import './PlayerFilterScreen.css';
-import {useNavigate, useLocation} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import {FilterState, minuteBasedSortOptions, PenaltyOptions, SortOptions, StatScope, UrlFilters} from "./types";
 import PlayerSearchTitle from "./PlayerSearchTitle";
+import {PlayerCombinedStatsTable} from "./PlayerCombinedStatsTable";
+import {PlayerGameStatsTable} from "./PlayerGameStatsTable";
 
 const PlayerFilterScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -122,9 +123,17 @@ const PlayerFilterScreen: React.FC = () => {
                     </button>
                 </div>
 
-                <InfiniteScrollTable
-                    filterState={filterState}
-                />
+                {selectedScope !== StatScope.GAME &&
+                    <PlayerCombinedStatsTable
+                        filterState={filterState}
+                    />
+                }
+
+                {selectedScope === StatScope.GAME &&
+                    <PlayerGameStatsTable
+                        filterState={filterState}
+                    />
+                }
             </div>
 
             <FilterSortDrawer

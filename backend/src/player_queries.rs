@@ -224,7 +224,6 @@ pub async fn search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -
     match params.to_processed() {
         Ok(search_params) => {
             let mut query = construct_search_query_from_params(search_params);
-            println!("{}", query.sql());
             match query.build_query_as::<PlayerSearchResult>()
                 .fetch_all(pool.get_ref())
                 .await
@@ -250,7 +249,6 @@ pub async fn game_search(pool: web::Data<PgPool>, params: web::Query<SearchParam
     match params.to_processed() {
         Ok(game_search_params) => {
             let mut query = construct_game_search_query_from_params(game_search_params);
-            println!("{}", query.sql());
             match query.build_query_as::<PlayerGameSearchResult>()
                 .fetch_all(pool.get_ref())
                 .await
@@ -819,7 +817,7 @@ fn add_game_order_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: Strin
             goals_calculation
         ),
         GOALS_AND_ASSISTS => format!(
-            "SUM(a.assists) + {} DESC, a.player_name, season",
+            "a.assists + {} DESC, a.player_name, season",
             goals_calculation
         ),
         _ => format!(

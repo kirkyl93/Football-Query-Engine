@@ -1,0 +1,62 @@
+import {FetchParams} from "./InfiniteScrollWrapper";
+import {PlayerGameSearchResult, PlayerSearchResult, StatScope, UrlFilters} from "./types";
+
+export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams }: FetchParams): string => {
+    let url = `${baseUrl}?page=${page}&limit=${limit}`;
+
+    const paramMapping = [
+        UrlFilters.SEASONS, UrlFilters.COMPETITIONS, UrlFilters.POSITIONS, UrlFilters.MINUTE_FROM, UrlFilters.MINUTE_TO,
+        UrlFilters.MINIMUM_AGE, UrlFilters.MAXIMUM_AGE, UrlFilters.PLAYER_NAMES, UrlFilters.CLUBS_PLAYED_FOR,
+        UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.SORT_BY, UrlFilters.MINIMUM_APPEARANCES
+    ];
+
+    const params = new URLSearchParams(location.search);
+    let statScope = params.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL;
+
+    paramMapping.forEach((key) => {
+        const value = params.get(key);
+        if (value) {
+            url += `&${key}=${value}`;
+        }
+    });
+
+    if (statScope != StatScope.GAME) {
+        url += `&${UrlFilters.SCOPE}=${params.get(UrlFilters.SCOPE)}`;
+    }
+
+    if (params.has(UrlFilters.SUBS_ONLY)) {
+        url += `&${UrlFilters.SUBS_ONLY}=1`;
+
+        const earliestSub = params.get(UrlFilters.EARLIEST_SUB_ON_TIME);
+        const latestSub = params.get(UrlFilters.LATEST_SUB_ON_TIME);
+
+        if (earliestSub) {
+            url += `&${UrlFilters.EARLIEST_SUB_ON_TIME}=${earliestSub}`;
+        }
+
+        if (latestSub) {
+            url += `&${UrlFilters.LATEST_SUB_ON_TIME}=${latestSub}`;
+        }
+    }
+    return url;
+};
+
+export const fetchPlayerOverallOrSeasonData = async (params: FetchParams): Promise<PlayerSearchResult[]> => {
+    let url = constructSearchUrl('http://localhost:8080/search', params);
+
+    const response = await fetch(url, { signal: params.signal });
+    if (!response.ok) {
+        throw new Error('Failed to fetch player stats');
+    }
+    return response.json();
+}
+
+export const fetchPlayerGameData = async (params: FetchParams): Promise<PlayerGameSearchResult[]> => {
+    let url = constructSearchUrl('http://localhost:8080/search/game', params);
+
+    const response = await fetch(url, { signal: params.signal });
+    if (!response.ok) {
+        throw new Error('Failed to fetch player game data');
+    }
+    return response.json();
+}

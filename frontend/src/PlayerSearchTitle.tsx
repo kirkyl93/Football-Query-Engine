@@ -1,7 +1,7 @@
 import {FilterState, minuteBasedSortOptions, SortOptions, StatScope} from "./types";
 import React, {useMemo} from "react";
 import {competitions} from "./competitions";
-import {formatSeason} from "./utils";
+import {formatSeason} from "./dateUtils";
 import './PlayerSearchTitle.css'
 
 interface PlayerSearchTitleProps {
@@ -63,6 +63,10 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
 
         if (filterState.statScope === StatScope.SEASON) {
             sortByTitle += "· SEASON SCOPE "
+        }
+
+        if (filterState.statScope === StatScope.GAME) {
+            sortByTitle += "· INDIVIDUAL GAME "
         }
 
         return sortByTitle;

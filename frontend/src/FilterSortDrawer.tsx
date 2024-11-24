@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import './FilterSortDrawer.css';
 import {competitions} from "./competitions";
-import {formatSeason} from "./utils";
+import {formatSeason} from "./dateUtils";
 import {
     Club,
     FilterState,

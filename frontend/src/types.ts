@@ -151,20 +151,17 @@ export interface PlayerGameSearchResult {
     image_url: string,
     club_id: number,
     competition_id: number,
-    date: Date,
+    season: number,
+    date: string,
     home_club_id: number,
     home_club_name: string,
     home_club_goals: number,
     away_club_id: number,
     away_club_name: string,
     away_club_goals: number,
+    minutes_played: number,
     goals: number,
     assists: number,
-    total_yellow_cards: number,
-    total_red_cards: number,
-    total_minutes_played: number,
-    clubs_played_for: string,
-    season: number
 }
 
 export interface PlayerWithSeasonStats {
