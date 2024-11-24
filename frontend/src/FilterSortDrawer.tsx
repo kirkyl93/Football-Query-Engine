@@ -68,10 +68,10 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     const [localFilterState, setLocalFilterState] = useState<FilterState>(filterState);
     const [newPlayerName, setNewPlayerName] = useState<string>("");
     const [newClubPlayedFor, setNewClubPlayedFor] = useState<string>("");
-    const [newClubsPlayedForSuggestions, setNewClubsPlayedForSuggestions] = useState<number[]>([]);
+    const [newClubsPlayedForSuggestions, setNewClubsPlayedForSuggestions] = useState<Club[]>([]);
     const [isClubsPlayedForDropdownVisible, setIsClubsPlayedForDropdownVisible] = useState<boolean>(false);
     const [newClubPlayedAgainst, setNewClubPlayedAgainst] = useState<string>("");
-    const [newClubsPlayedAgainstSuggestions, setNewClubsPlayedAgainstSuggestions] = useState<number[]>([]);
+    const [newClubsPlayedAgainstSuggestions, setNewClubsPlayedAgainstSuggestions] = useState<Club[]>([]);
     const [isClubsPlayedAgainstDropdownVisible, setIsClubsPlayedAgainstDropdownVisible] = useState<boolean>(false);
 
     const [isSeasonsOpen, setIsSeasonsOpen] = useState(false);
@@ -120,7 +120,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
             }
             const response = await fetch(`http://localhost:8080/clubs?search_name=${newClub}&page=0&limit=10`);
             const data: Club[] = await response.json();
-            playedFor ? setNewClubsPlayedForSuggestions(data.map(club => club.club_id)) : setNewClubsPlayedAgainstSuggestions(data.map(club => club.club_id));
+            playedFor ? setNewClubsPlayedForSuggestions(data) : setNewClubsPlayedAgainstSuggestions(data);
             playedFor ? setIsClubsPlayedForDropdownVisible(true) : setIsClubsPlayedAgainstDropdownVisible(true);
         } catch (error) {
             console.error(`Error fetching suggestions: `, error);
@@ -588,14 +588,14 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                     {newClubsPlayedForSuggestions.map((suggestion, index) => (
                                         <li key={index}
                                             className="suggestion-item"
-                                            onClick={() => handleClubPlayedForSuggestionClick(suggestion)}
+                                            onClick={() => handleClubPlayedForSuggestionClick(suggestion.club_id)}
                                         >
                                             <img
                                                 style={{width: 30, fontSize: 15}}
                                                 alt="Badge of football team selected"
-                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion)}.png`}
+                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion.club_id)}.png`}
                                             />
-
+                                            {suggestion.name}
                                         </li>
                                     ))}
                                 </ul>
@@ -627,14 +627,14 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                     {newClubsPlayedAgainstSuggestions.map((suggestion, index) => (
                                         <li key={index}
                                             className="suggestion-item"
-                                            onClick={() => handleClubPlayedAgainstSuggestionClick(suggestion)}
+                                            onClick={() => handleClubPlayedAgainstSuggestionClick(suggestion.club_id)}
                                         >
                                             <img
                                                 style={{width: 30, fontSize: 15}}
                                                 alt="Badge of football team selected"
-                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion)}.png`}
+                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion.club_id)}.png`}
                                             />
-
+                                            {suggestion.name}
                                         </li>
                                     ))}
                                 </ul>

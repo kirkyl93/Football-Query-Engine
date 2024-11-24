@@ -4,7 +4,7 @@ use actix_web::{
 use serde::{Deserialize, Serialize};
 use sqlx::{query, PgPool, Postgres, QueryBuilder};
 
-use crate::player::{map_position_code_to_position, Player, PlayerSearchResult, PlayerSeasonByCompAndTeam};
+use crate::player::{map_position_code_to_position, Player, PlayerGameSearchResult, PlayerSearchResult, PlayerSeasonByCompAndTeam};
 
 // Penalty Options
 pub const INCLUDE_PENALTIES: &str = "ip";
@@ -106,7 +106,6 @@ pub async fn fetch_player_stats_by_season(pool: web::Data<PgPool>, path: Path<i3
         Err(_) => HttpResponse::NotFound().json("Can't find data"),
     }
 }
-
 
 #[derive(Serialize, Deserialize)]
 struct SearchParams {
@@ -225,6 +224,7 @@ pub async fn search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -
     match params.to_processed() {
         Ok(search_params) => {
             let mut query = construct_search_query_from_params(search_params);
+            println!("{}", query.sql());
             match query.build_query_as::<PlayerSearchResult>()
                 .fetch_all(pool.get_ref())
                 .await
@@ -245,28 +245,29 @@ pub async fn search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -
 
 }
 
-// #[get("/search/game")]
-// pub async fn game_search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -> HttpResponse {
-//     match params.to_processed() {
-//         Ok(game_search_params) => {
-//             let mut query = construct_game_search_query_from_params(game_search_params);
-//             match query.build_query_as::<GameSearchResult>()
-//                 .fetch_all(pool.get_ref())
-//                 .await
-//             {
-//                 Ok(game_search_results) => HttpResponse::Ok().json(game_search_results),
-//                 Err(err) => {
-//                     println!("{:?}", err.as_database_error());
-//                     HttpResponse::InternalServerError().json(err.to_string())
-//                 }
-//             }
-//         }
-//         Err(e) => {
-//             eprintln!("Error processing search parameters: {}", e);
-//             HttpResponse::BadRequest().body(e)
-//         }
-//     }
-// }
+#[get("/search/game")]
+pub async fn game_search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -> HttpResponse {
+    match params.to_processed() {
+        Ok(game_search_params) => {
+            let mut query = construct_game_search_query_from_params(game_search_params);
+            println!("{}", query.sql());
+            match query.build_query_as::<PlayerGameSearchResult>()
+                .fetch_all(pool.get_ref())
+                .await
+            {
+                Ok(game_search_results) => HttpResponse::Ok().json(game_search_results),
+                Err(err) => {
+                    println!("{:?}", err.as_database_error());
+                    HttpResponse::InternalServerError().json(err.to_string())
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("Error processing search parameters: {}", e);
+            HttpResponse::BadRequest().body(e)
+        }
+    }
+}
 
 fn construct_search_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
     // These are the defaults when no values are passed in the URL. We can
@@ -277,21 +278,50 @@ fn construct_search_query_from_params<'a>(params: ProcessedSearchParams) -> Quer
     return build_query_from_events(params);
 }
 
-// fn construct_game_search_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
-//     // These are the defaults when no values are passed in the URL. We can
-//     if params.minute_played_from == 0 && params.minute_played_to == 120 {
-//         return build_game_query_from_appearances(params);
-//     }
-//
-//     return build_game_query_from_events(params);
-// }
+fn construct_game_search_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+    // These are the defaults when no values are passed in the URL. We can
+    if params.minute_played_from == 0 && params.minute_played_to == 120 {
+        return build_game_query_from_appearances(params);
+    }
+
+    return build_game_query_from_events(params);
+}
+
+fn build_game_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+    let mut query = QueryBuilder::new("");
+
+    construct_appearances_table_from_game_events(&mut query, &params);
+
+    let goals_calculation = goals_query_string(params.penalties, true);
+
+    query.push("
+    SELECT ");
+
+    add_game_rank_to_query(&mut query, &params.sort, &goals_calculation);
+
+    query.push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, club_id,
+    competition_id, date, season, home_club_id, home_club_name, home_club_goals, away_club_id, away_club_name,
+    away_club_goals, minutes_played, goals, assists");
+
+    query.push("
+    FROM
+        games_minute_appearance_filter a
+    JOIN
+        games ON a.game_id = games.game_id"
+    );
+
+    add_game_order_by_to_query(&mut query, params.sort, goals_calculation);
+    add_limit_and_offset_to_query(&mut query, params.limit, params.page);
+
+    return query;
+}
 
 fn build_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
     let mut query = QueryBuilder::new("");
 
     construct_appearances_table_from_game_events(&mut query, &params);
 
-    let goals_calculation = goals_query_string(params.penalties);
+    let goals_calculation = goals_query_string(params.penalties, false);
 
     query.push("
     SELECT ");
@@ -331,8 +361,43 @@ fn build_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a
     return query;
 }
 
+fn build_game_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+    let goals_calculation = goals_query_string(params.penalties, true);
+
+    let mut query = QueryBuilder::new("SELECT ");
+
+    add_game_rank_to_query(&mut query, &params.sort, &goals_calculation);
+
+    query.push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, player_club_id AS club_id,
+    a.competition_id, a.date, season, home_club_id, home_club_name, home_club_goals, away_club_id, away_club_name,
+    away_club_goals, minutes_played, goals, assists");
+
+    query.push("
+    FROM
+        appearances_enhanced a
+    JOIN
+        games g ON a.game_id = g.game_id
+    JOIN
+        players p ON a.player_id = p.player_id
+    WHERE 1 = 1");
+
+    add_seasons_to_query(&mut query, params.seasons);
+    add_competitions_to_query(&mut query, params.competitions);
+    add_positions_to_query(&mut query, params.positions);
+    add_ages_to_query(&mut query, params.minimum_age, params.maximum_age);
+    add_player_names_to_query(&mut query, params.names);
+    add_clubs_played_for_to_query(&mut query, params.clubs_played_for);
+    add_clubs_played_against_to_query(&mut query, params.clubs_played_against);
+    add_sub_info_to_query(&mut query, params.subs_only, params.earliest_sub_on_time, params.latest_sub_on_time);
+
+    add_game_order_by_to_query(&mut query, params.sort, goals_calculation);
+    add_limit_and_offset_to_query(&mut query, params.limit, params.page);
+
+    return query;
+}
+
 fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
-    let goals_calculation = goals_query_string(params.penalties);
+    let goals_calculation = goals_query_string(params.penalties, false);
 
     let mut query = QueryBuilder::new("SELECT ");
 
@@ -388,11 +453,19 @@ fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuild
 }
 
 
-fn goals_query_string(penalties: String) -> String {
-    match penalties.as_str() {
-        EXCLUDE_PENALTIES => "SUM(a.goals) - SUM(a.penalty_goals)".into(),
-        ONLY_PENALTIES => "SUM(a.penalty_goals)".into(),
-        _ => "SUM(a.goals)".into()
+fn goals_query_string(penalties: String, game_query: bool) -> String {
+    if game_query {
+        match penalties.as_str() {
+            EXCLUDE_PENALTIES => "goals - penalty_goals".into(),
+            ONLY_PENALTIES => "penalty_goals".into(),
+            _ => "goals".into()
+        }
+    } else {
+        match penalties.as_str() {
+            EXCLUDE_PENALTIES => "SUM(a.goals) - SUM(a.penalty_goals)".into(),
+            ONLY_PENALTIES => "SUM(a.penalty_goals)".into(),
+            _ => "SUM(a.goals)".into()
+        }
     }
 }
 
@@ -400,7 +473,7 @@ fn goals_query_string(penalties: String) -> String {
 fn construct_appearances_table_from_game_events(query: &mut QueryBuilder<Postgres>, params: &ProcessedSearchParams) {
     query.push("
     WITH games_minute_appearance_filter AS
-    (SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, c.club_id,");
+    (SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, c.club_id, g.game_id,");
 
     if params.scope == SEASON {
         query.push(" g.season AS season,");
@@ -508,6 +581,21 @@ fn add_reds_minute_filter_to_query(query: &mut QueryBuilder<Postgres>, minute_fr
 fn add_minutes_played_minute_filter_to_query(query: &mut QueryBuilder<Postgres>, minute_from: i32, minute_to: i32) {
     query.push("
     MIN(LEAST(").push_bind(minute_to).push(", subbed_off_minute, played_from_minute + minutes_played) - GREATEST(").push_bind(minute_from).push(", played_from_minute)) + 1 AS minutes_played");
+}
+
+fn add_game_rank_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &String, goals_calculation: &String) {
+    query.push("RANK() OVER (ORDER BY ");
+    let rank_order = match sort_by.as_str() {
+        GOALS => format!("{} DESC", goals_calculation),
+        ASSISTS => "assists DESC".into(),
+        GOALS_AND_ASSISTS => format!(
+            "assists + {} DESC",
+            goals_calculation
+        ),
+        _ => format!("{} DESC", goals_calculation)
+    };
+
+    query.push(rank_order).push("), ");
 }
 
 fn add_rank_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &String, goals_calculation: &String, from_events_table: bool) {
@@ -715,6 +803,32 @@ fn add_minimum_appearances_to_query(query: &mut QueryBuilder<Postgres>, minimum_
         query.push("
     HAVING COUNT(*) >= ").push_bind(minimum_appearances);
     }
+}
+
+fn add_game_order_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: String, goals_calculation: String) {
+    query.push("
+    ORDER BY ");
+
+    let sort_clause = match sort_by.as_str() {
+        GOALS => format!(
+            "{} DESC, assists DESC, minutes_played ASC, red_cards ASC, yellow_cards ASC, player_name, season",
+            goals_calculation
+        ),
+        ASSISTS => format!(
+            "assists DESC, {} DESC, a.player_name, season",
+            goals_calculation
+        ),
+        GOALS_AND_ASSISTS => format!(
+            "SUM(a.assists) + {} DESC, a.player_name, season",
+            goals_calculation
+        ),
+        _ => format!(
+            "{} DESC, assists DESC, minutes_played ASC, red_cards ASC, yellow_cards ASC, player_name, season",
+            goals_calculation
+        )
+    };
+
+    query.push(sort_clause);
 }
 
 fn add_order_by_to_query(query: &mut QueryBuilder<Postgres>, sort_by: String, goals_calculation: String, from_events_table: bool, season_scope: bool) {

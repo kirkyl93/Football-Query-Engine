@@ -141,6 +141,32 @@ export interface PlayerSearchResult {
     season: number
 }
 
+export interface PlayerGameSearchResult {
+    rank: number,
+    player_id: number,
+    player_name: string,
+    country_of_citizenship: string,
+    country_code: string,
+    sub_position: string,
+    image_url: string,
+    club_id: number,
+    competition_id: number,
+    date: Date,
+    home_club_id: number,
+    home_club_name: string,
+    home_club_goals: number,
+    away_club_id: number,
+    away_club_name: string,
+    away_club_goals: number,
+    goals: number,
+    assists: number,
+    total_yellow_cards: number,
+    total_red_cards: number,
+    total_minutes_played: number,
+    clubs_played_for: string,
+    season: number
+}
+
 export interface PlayerWithSeasonStats {
     player_id: number,
     first_name: string,

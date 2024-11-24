@@ -166,6 +166,30 @@ pub struct PlayerSearchResult {
     season: i32
 }
 
+#[derive(Debug, Serialize, Clone)]
+pub struct PlayerGameSearchResult {
+    rank: i64,
+    player_id: i32,
+    player_name: String,
+    country_of_citizenship: Country,
+    country_code: String,
+    sub_position: PlayerSubPosition,
+    image_url: String,
+    club_id: i32,
+    competition_id: String,
+    date: NaiveDate,
+    season: i32,
+    home_club_id: i32,
+    home_club_name: String,
+    home_club_goals: i32,
+    away_club_id: i32,
+    away_club_name: String,
+    away_club_goals: i32,
+    minutes_played: i32,
+    goals: i32,
+    assists: i32
+}
+
 
 #[derive(Debug, Serialize, Clone)]
 pub struct PlayerSeasonByCompAndTeam {
@@ -245,7 +269,7 @@ impl<'r> FromRow<'r, PgRow> for Player {
                 Country::from_str(country_of_birth)
             },
             city_of_birth: row.try_get("city_of_birth").unwrap_or_default(),
-            country_of_citizenship: country_of_citizenship,
+            country_of_citizenship,
             country_code: country_of_citizenship.code().to_string(),
             date_of_birth,
             age: calculate_age(date_of_birth),
@@ -329,7 +353,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerWithSeason {
                 Country::from_str(country_of_birth)
             },
             city_of_birth: row.try_get("city_of_birth").unwrap_or_default(),
-            country_of_citizenship: country_of_citizenship,
+            country_of_citizenship,
             country_code: country_of_citizenship.code().to_string(),
             date_of_birth,
             age: calculate_age(date_of_birth),
@@ -392,7 +416,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
             rank: row.try_get("rank").unwrap_or_default(),
             player_id: row.try_get("player_id").unwrap_or_default(),
             player_name: row.try_get("player_name").unwrap_or_default(),
-            country_of_citizenship: country_of_citizenship,
+            country_of_citizenship,
             country_code: country_of_citizenship.code().to_string(),
             sub_position: {
                 let sub_position_string: &str = row.try_get("sub_position").unwrap_or_default();
@@ -417,6 +441,37 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
     }
 }
 
+impl<'r> FromRow<'r, PgRow> for PlayerGameSearchResult {
+    fn from_row(row: &'r PgRow) -> Result<Self, Error> {
+        let country_of_citizenship_str = row.try_get("country_of_citizenship").unwrap_or_default();
+        let country_of_citizenship = Country::from_str(country_of_citizenship_str);
+        Ok(Self {
+            rank: row.try_get("rank").unwrap_or_default(),
+            player_id: row.try_get("player_id").unwrap_or_default(),
+            player_name: row.try_get("player_name").unwrap_or_default(),
+            country_of_citizenship,
+            country_code: country_of_citizenship.code().to_string(),
+            sub_position: {
+                let sub_position_string: &str = row.try_get("sub_position").unwrap_or_default();
+                PlayerSubPosition::from_str(sub_position_string)
+            },
+            image_url: row.try_get("image_url").unwrap_or_default(),
+            club_id: row.try_get("club_id").unwrap_or_default(),
+            competition_id: row.try_get("competition_id").unwrap_or_default(),
+            date: row.try_get("date").unwrap_or_default(),
+            season: row.try_get("season").unwrap_or_default(),
+            home_club_id: row.try_get("home_club_id").unwrap_or_default(),
+            home_club_name: row.try_get("home_club_name").unwrap_or_default(),
+            home_club_goals: row.try_get("home_club_goals").unwrap_or_default(),
+            away_club_id: row.try_get("away_club_id").unwrap_or_default(),
+            away_club_name: row.try_get("away_club_name").unwrap_or_default(),
+            away_club_goals: row.try_get("away_club_goals").unwrap_or_default(),
+            minutes_played: row.try_get("minutes_played").unwrap_or_default(),
+            goals: row.try_get("goals").unwrap_or_default(),
+            assists: row.try_get("assists").unwrap_or_default(),
+        })
+    }
+}
 
 fn calculate_age(date_of_birth: NaiveDate) -> u32 {
     let today = Utc::now().naive_utc().date();
