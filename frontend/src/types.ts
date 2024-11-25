@@ -45,6 +45,8 @@ export enum UrlFilters {
     MINUTE_TO = 'minto',
     MINIMUM_AGE = 'minage',
     MAXIMUM_AGE = 'maxage',
+    MINIMUM_HEIGHT = 'minheight',
+    MAXIMUM_HEIGHT = 'maxheight',
     PLAYER_NAMES = 'names',
     CLUBS_PLAYED_FOR = 'clubspf',
     CLUBS_PLAYED_AGAINST = 'clubspa',
@@ -52,6 +54,7 @@ export enum UrlFilters {
     EARLIEST_SUB_ON_TIME = 'earliestsub',
     LATEST_SUB_ON_TIME = 'latestsub',
     PENALTIES = "penalty",
+    HOME_OR_AWAY = "home",
     SORT_BY = "sort",
     SCOPE = "scope",
     MINIMUM_APPEARANCES="ma"
@@ -61,6 +64,12 @@ export enum PenaltyOptions {
     INCLUDE_PENALTIES = 'ip',
     EXCLUDE_PENALTIES = 'ep',
     ONLY_PENALTIES = 'op'
+}
+
+export enum HomeOrAwayOptions {
+    HOME = 'h',
+    AWAY = 'a',
+    EITHER = 'e'
 }
 
 export enum StatScope {
@@ -106,6 +115,8 @@ export interface FilterState {
     minuteTo?: number;
     minAge?: number;
     maxAge?: number;
+    minHeight?: number;
+    maxHeight?: number;
     playerNames: string[];
     clubsPlayedFor: number[];
     clubsPlayedAgainst: number[];
@@ -113,6 +124,7 @@ export interface FilterState {
     earliestSubOnTime?: number;
     latestSubOnTime?: number;
     penalties: PenaltyOptions;
+    homeOrAway: HomeOrAwayOptions;
     statScope: StatScope;
     sortBy: SortOptions;
     minimumAppearances?: number;
@@ -151,6 +163,8 @@ export interface PlayerGameSearchResult {
     image_url: string,
     club_id: number,
     competition_id: number,
+    competition_name: string,
+    competition_country_code: string,
     season: number,
     date: string,
     home_club_id: number,

@@ -6,6 +6,7 @@ import {
     Club,
     FilterState,
     gameOnlySortOptions,
+    HomeOrAwayOptions,
     minuteBasedSortOptions,
     PenaltyOptions,
     SortOptions,
@@ -36,6 +37,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
     const minutes = Array.from({length: 120}, (_, i) => i + 1);
 
+    const heights = Array.from({length: 120}, (_, i) => i + 120);
+
     const appearances = Array.from({length: 249}, (_, i) => i + 2);
 
     const penaltyOptions = [
@@ -43,6 +46,12 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         {name: "Exclude penalties", id: PenaltyOptions.EXCLUDE_PENALTIES},
         {name: "Only penalties", id: PenaltyOptions.ONLY_PENALTIES}
     ];
+
+    const homeOrAwayOptions = [
+        {name: "Either", id: HomeOrAwayOptions.EITHER},
+        {name: "Home", id: HomeOrAwayOptions.HOME},
+        {name: "Away", id: HomeOrAwayOptions.AWAY}
+    ]
 
     const sortTypes = [
         {name: "Goals", id: SortOptions.GOALS},
@@ -81,10 +90,12 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     const [isPositionsOpen, setIsPositionsOpen] = useState(false);
     const [isMinutesOpen, setIsMinutesOpen] = useState(false);
     const [isAgeOpen, setIsAgeOpen] = useState(false);
+    const [isHeightOpen, setIsHeightOpen] = useState(false);
     const [isPlayerNameOpen, setIsPlayerNameOpen] = useState(false);
     const [isClubsOpen, setIsClubsOpen] = useState(false);
     const [isSubstitutesOpen, setIsSubstitutesOpen] = useState(false);
     const [isPenaltiesOpen, setIsPenaltiesOpen] = useState(false);
+    const [isHomeOrAwayOpen, setIsHomeOrAwayOpen] = useState(false);
     const [isSortByOpen, setIsSortByOpen] = useState(false);
 
     const resetFilters = () => {
@@ -96,6 +107,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
             minuteTo: undefined,
             minAge: undefined,
             maxAge: undefined,
+            minHeight: undefined,
+            maxHeight: undefined,
             playerNames: [],
             clubsPlayedFor: [],
             clubsPlayedAgainst: [],
@@ -103,6 +116,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
             earliestSubOnTime: undefined,
             latestSubOnTime: undefined,
             penalties: PenaltyOptions.INCLUDE_PENALTIES,
+            homeOrAway: HomeOrAwayOptions.EITHER,
             statScope: StatScope.OVERALL,
             sortBy: SortOptions.GOALS,
             minimumAppearances: undefined
@@ -229,6 +243,20 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         }));
     }
 
+    const handleMinHeightChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            minHeight: e.target.value ? parseInt(e.target.value) : undefined
+        }));
+    }
+
+    const handleMaxHeightChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            maxHeight: e.target.value ? parseInt(e.target.value) : undefined
+        }));
+    }
+
     const handleMinAgeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setLocalFilterState(prevState => ({
             ...prevState,
@@ -320,6 +348,14 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         setLocalFilterState(prevState => ({
             ...prevState,
             penalties: penaltyOption
+        }));
+    }
+
+    const handleHomeOrAwayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const homeOrAwayOption = e.target.value as HomeOrAwayOptions;
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            homeOrAway: homeOrAwayOption
         }));
     }
 
@@ -501,12 +537,12 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                     {isMinutesOpen && (
                         <div className="minute-and-age-and-sub-dropdown-group">
                             <label>Played from:</label>
-                                <select value={localFilterState.minuteFrom ?? ''} onChange={handleMinuteFromChange}>
-                                    <option value="">Any</option>
-                                    {minutes.map(minute => (
-                                        <option key={minute} value={minute}>{minute}</option>
-                                    ))}
-                                </select>
+                            <select value={localFilterState.minuteFrom ?? ''} onChange={handleMinuteFromChange}>
+                                <option value="">Any</option>
+                                {minutes.map(minute => (
+                                    <option key={minute} value={minute}>{minute}</option>
+                                ))}
+                            </select>
                             <label>Played to:</label>
                             <select value={localFilterState.minuteTo ?? ''} onChange={handleMinuteToChange}>
                                 <option value="">Any</option>
@@ -538,6 +574,32 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                 <option value="">Any</option>
                                 {ages.map(age => (
                                     <option key={age} value={age}>{age}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                </div>
+
+                <div className="dropdown-section">
+                    <div className="dropdown-title" onClick={() => setIsHeightOpen(!isHeightOpen)}>
+                        <span className="title-text">HEIGHT</span>
+                        <span className="arrow-icon">{isHeightOpen ? '▲' : '▼'}</span>
+                    </div>
+                    {isHeightOpen && (
+                        <div className="minute-and-age-and-sub-dropdown-group">
+                            <label>Min height (cms):</label>
+                            <select value={localFilterState.minHeight ?? ''} onChange={handleMinHeightChange}>
+                                <option value="">Any</option>
+                                {heights.map(height => (
+                                    <option key={height} value={height}>{height}</option>
+                                ))}
+                            </select>
+
+                            <label>Max height (cms):</label>
+                            <select value={localFilterState.maxHeight ?? ''} onChange={handleMaxHeightChange}>
+                                <option value="">Any</option>
+                                {heights.map(height => (
+                                    <option key={height} value={height}>{height}</option>
                                 ))}
                             </select>
                         </div>
@@ -720,6 +782,28 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                     )}
                 </div>
 
+                <div className='dropdown-section'>
+                    <div className="dropdown-title" onClick={() => setIsHomeOrAwayOpen(!isHomeOrAwayOpen)}>
+                        <span className="title-text">HOME OR AWAY</span>
+                        <span className="arrow-icon">{isHomeOrAwayOpen ? '▲' : '▼'}</span>
+                    </div>
+                    {isHomeOrAwayOpen && (
+                        <div className='radio-group'>
+                            {homeOrAwayOptions.map(option => (
+                                <label key={option.id}>
+                                    <input
+                                        type="radio"
+                                        value={option.id}
+                                        checked={localFilterState.homeOrAway === option.id}
+                                        onChange={handleHomeOrAwayChange}
+                                    />
+                                    {option.name}
+                                </label>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsSortByOpen(!isSortByOpen)}>
                         <span className="title-text">SORT BY</span>
@@ -745,16 +829,16 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                             {sortTypes
                                 .filter(sort => localFilterState.statScope !== StatScope.GAME || gameOnlySortOptions.includes(sort.id))
                                 .map(sort => (
-                                <label key={sort.id}>
-                                    <input
-                                        type="radio"
-                                        value={sort.id}
-                                        checked={localFilterState.sortBy === sort.id}
-                                        onChange={handleSortByChange}
-                                    />
-                                    {sort.name}
-                                </label>
-                            ))}
+                                    <label key={sort.id}>
+                                        <input
+                                            type="radio"
+                                            value={sort.id}
+                                            checked={localFilterState.sortBy === sort.id}
+                                            onChange={handleSortByChange}
+                                        />
+                                        {sort.name}
+                                    </label>
+                                ))}
                         </div>
                     )}
 

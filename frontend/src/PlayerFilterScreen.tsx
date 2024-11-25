@@ -2,7 +2,15 @@ import React, {useMemo, useState} from "react";
 import FilterSortDrawer from "./FilterSortDrawer";
 import './PlayerFilterScreen.css';
 import {useLocation, useNavigate} from "react-router-dom";
-import {FilterState, minuteBasedSortOptions, PenaltyOptions, SortOptions, StatScope, UrlFilters} from "./types";
+import {
+    FilterState,
+    HomeOrAwayOptions,
+    minuteBasedSortOptions,
+    PenaltyOptions,
+    SortOptions,
+    StatScope,
+    UrlFilters
+} from "./types";
 import PlayerSearchTitle from "./PlayerSearchTitle";
 import {PlayerCombinedStatsTable} from "./PlayerCombinedStatsTable";
 import {PlayerGameStatsTable} from "./PlayerGameStatsTable";
@@ -20,6 +28,8 @@ const PlayerFilterScreen: React.FC = () => {
         selectedMinuteTo,
         selectedMinAge,
         selectedMaxAge,
+        selectedMinHeight,
+        selectedMaxHeight,
         selectedPlayerNames,
         selectedClubsPlayedFor,
         selectedClubsPlayedAgainst,
@@ -27,6 +37,7 @@ const PlayerFilterScreen: React.FC = () => {
         selectedEarliestSubOnTime,
         selectedLatestSubOnTime,
         selectedPenaltyOption,
+        selectedHomeOrAwayOption,
         selectedScope,
         selectedSortBy,
         selectedMinimumAppearances
@@ -44,6 +55,10 @@ const PlayerFilterScreen: React.FC = () => {
                 parseInt(params.get(UrlFilters.MINIMUM_AGE)!, 10) : undefined,
             selectedMaxAge: params.get(UrlFilters.MAXIMUM_AGE) ?
                 parseInt(params.get(UrlFilters.MAXIMUM_AGE)!, 10) : undefined,
+            selectedMinHeight: params.get(UrlFilters.MINIMUM_HEIGHT) ?
+                parseInt(params.get(UrlFilters.MINIMUM_HEIGHT)!, 10) : undefined,
+            selectedMaxHeight: params.get(UrlFilters.MAXIMUM_HEIGHT) ?
+                parseInt(params.get(UrlFilters.MAXIMUM_HEIGHT)!, 10) : undefined,
             selectedPlayerNames: params.get(UrlFilters.PLAYER_NAMES)?.split(',').map(name => name.trim()) || [],
             selectedClubsPlayedFor: params.get(UrlFilters.CLUBS_PLAYED_FOR)?.split(',').map(Number) || [],
             selectedClubsPlayedAgainst: params.get(UrlFilters.CLUBS_PLAYED_AGAINST)?.split(',').map(Number) || [],
@@ -53,6 +68,7 @@ const PlayerFilterScreen: React.FC = () => {
             selectedLatestSubOnTime: params.get(UrlFilters.LATEST_SUB_ON_TIME) ?
                 parseInt(params.get(UrlFilters.LATEST_SUB_ON_TIME)!, 10) : undefined,
             selectedPenaltyOption: params.get(UrlFilters.PENALTIES) as PenaltyOptions || PenaltyOptions.INCLUDE_PENALTIES,
+            selectedHomeOrAwayOption: params.get(UrlFilters.HOME_OR_AWAY) as HomeOrAwayOptions || HomeOrAwayOptions.EITHER,
             selectedSortBy: params.get(UrlFilters.SORT_BY) as SortOptions || SortOptions.GOALS,
             selectedScope: params.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL,
             selectedMinimumAppearances: params.get(UrlFilters.MINIMUM_APPEARANCES) ?
@@ -75,6 +91,8 @@ const PlayerFilterScreen: React.FC = () => {
         addParam(UrlFilters.MINUTE_TO, filterState.minuteTo);
         addParam(UrlFilters.MINIMUM_AGE, filterState.minAge);
         addParam(UrlFilters.MAXIMUM_AGE, filterState.maxAge);
+        addParam(UrlFilters.MINIMUM_HEIGHT, filterState.minHeight);
+        addParam(UrlFilters.MAXIMUM_HEIGHT, filterState.maxHeight);
         addParam(UrlFilters.PLAYER_NAMES, filterState.playerNames);
         addParam(UrlFilters.CLUBS_PLAYED_FOR, filterState.clubsPlayedFor);
         addParam(UrlFilters.CLUBS_PLAYED_AGAINST, filterState.clubsPlayedAgainst);
@@ -84,6 +102,7 @@ const PlayerFilterScreen: React.FC = () => {
             addParam(UrlFilters.LATEST_SUB_ON_TIME, filterState.latestSubOnTime);
         }
         addParam(UrlFilters.PENALTIES, filterState.penalties);
+        addParam(UrlFilters.HOME_OR_AWAY, filterState.homeOrAway);
         addParam(UrlFilters.SORT_BY, filterState.sortBy);
         addParam(UrlFilters.SCOPE, filterState.statScope);
         if (minuteBasedSortOptions.includes(filterState.sortBy)) {
@@ -104,11 +123,12 @@ const PlayerFilterScreen: React.FC = () => {
         seasons: selectedSeasons, competitions: selectedCompetitions, positions: selectedPositions,
         minuteFrom: selectedMinuteFrom, minuteTo: selectedMinuteTo,
         minAge: selectedMinAge, maxAge: selectedMaxAge,
+        minHeight: selectedMinHeight, maxHeight: selectedMaxHeight,
         playerNames: selectedPlayerNames, clubsPlayedFor: selectedClubsPlayedFor,
         clubsPlayedAgainst: selectedClubsPlayedAgainst, subsOnly: selectedSubsOnly,
         earliestSubOnTime: selectedEarliestSubOnTime, latestSubOnTime: selectedLatestSubOnTime,
-        penalties: selectedPenaltyOption, statScope: selectedScope, sortBy: selectedSortBy,
-        minimumAppearances: selectedMinimumAppearances
+        penalties: selectedPenaltyOption, homeOrAway: selectedHomeOrAwayOption, statScope: selectedScope,
+        sortBy: selectedSortBy, minimumAppearances: selectedMinimumAppearances
     };
 
     return (

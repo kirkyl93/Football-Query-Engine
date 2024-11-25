@@ -3,13 +3,19 @@ use actix_web::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{query, PgPool, Postgres, QueryBuilder};
-
+use sqlx::query::Query;
 use crate::player::{map_position_code_to_position, Player, PlayerGameSearchResult, PlayerSearchResult, PlayerSeasonByCompAndTeam};
 
 // Penalty Options
 pub const INCLUDE_PENALTIES: &str = "ip";
 pub const EXCLUDE_PENALTIES: &str = "ep";
 pub const ONLY_PENALTIES: &str = "op";
+
+// Home or away Options
+
+pub const HOME: &str = "h";
+pub const AWAY: &str = "a";
+pub const EITHER: &str = "e";
 
 // Sort Options
 pub const GOALS: &str = "g";
@@ -123,6 +129,10 @@ struct SearchParams {
     minimum_age: Option<i32>,
     #[serde(rename = "maxage")]
     maximum_age: Option<i32>,
+    #[serde(rename = "minheight")]
+    minimum_height: Option<i32>,
+    #[serde(rename = "maxheight")]
+    maximum_height: Option<i32>,
     names: Option<String>,
     #[serde(rename = "clubspf")]
     clubs_played_for: Option<String>,
@@ -135,6 +145,8 @@ struct SearchParams {
     #[serde(rename = "latestsub")]
     latest_sub_on_time: Option<i32>,
     penalty: Option<String>,
+    #[serde(rename = "home")]
+    home_or_away: Option<String>,
     scope: Option<String>,
     sort: Option<String>,
     #[serde(rename = "ma")]
@@ -183,6 +195,8 @@ impl SearchParams {
             minute_played_to: self.minute_played_to.unwrap_or(120).max(0),
             minimum_age: self.minimum_age.unwrap_or(0),
             maximum_age: self.maximum_age.unwrap_or(0),
+            minimum_height: self.minimum_height.unwrap_or(0),
+            maximum_height: self.maximum_height.unwrap_or(0),
             names,
             clubs_played_for,
             clubs_played_against,
@@ -190,6 +204,7 @@ impl SearchParams {
             earliest_sub_on_time: self.earliest_sub_on_time.unwrap_or(0),
             latest_sub_on_time: self.latest_sub_on_time.unwrap_or(0),
             penalties: self.penalty.clone().unwrap_or_else(|| INCLUDE_PENALTIES.into()),
+            home_or_away: self.home_or_away.clone().unwrap_or_else(|| EITHER.into()),
             scope: self.scope.clone().unwrap_or_else(|| OVERALL.into()),
             sort: self.sort.clone().unwrap_or_else(|| GOALS.into()),
             minimum_appearances: self.minimum_appearances.unwrap_or(0)
@@ -207,6 +222,8 @@ struct ProcessedSearchParams {
     minute_played_to: i32,
     minimum_age: i32,
     maximum_age: i32,
+    minimum_height: i32,
+    maximum_height: i32,
     names: Vec<String>,
     clubs_played_for: Vec<i32>,
     clubs_played_against: Vec<i32>,
@@ -214,6 +231,7 @@ struct ProcessedSearchParams {
     earliest_sub_on_time: i32,
     latest_sub_on_time: i32,
     penalties: String,
+    home_or_away: String,
     scope: String,
     sort: String,
     minimum_appearances: i32
@@ -224,6 +242,7 @@ pub async fn search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -
     match params.to_processed() {
         Ok(search_params) => {
             let mut query = construct_search_query_from_params(search_params);
+            println!("{}", query.sql());
             match query.build_query_as::<PlayerSearchResult>()
                 .fetch_all(pool.get_ref())
                 .await
@@ -298,14 +317,16 @@ fn build_game_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuild
     add_game_rank_to_query(&mut query, &params.sort, &goals_calculation);
 
     query.push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, club_id,
-    competition_id, date, season, home_club_id, home_club_name, home_club_goals, away_club_id, away_club_name,
-    away_club_goals, minutes_played, goals, assists");
+    c.competition_id, c.name AS competition_name, c.country_name AS competition_country, date, season, home_club_id, home_club_name,
+    home_club_goals, away_club_id, away_club_name, away_club_goals, minutes_played, goals, assists");
 
     query.push("
     FROM
         games_minute_appearance_filter a
     JOIN
-        games ON a.game_id = games.game_id"
+        games ON a.game_id = games.game_id
+    JOIN
+        competitions c ON c.competition_id = games.competition_id"
     );
 
     add_game_order_by_to_query(&mut query, params.sort, goals_calculation);
@@ -367,7 +388,7 @@ fn build_game_query_from_appearances<'a>(params: ProcessedSearchParams) -> Query
     add_game_rank_to_query(&mut query, &params.sort, &goals_calculation);
 
     query.push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, player_club_id AS club_id,
-    a.competition_id, a.date, season, home_club_id, home_club_name, home_club_goals, away_club_id, away_club_name,
+    a.competition_id, c.name AS competition_name, c.country_name AS competition_country, a.date, season, home_club_id, home_club_name, home_club_goals, away_club_id, away_club_name,
     away_club_goals, minutes_played, goals, assists");
 
     query.push("
@@ -377,12 +398,16 @@ fn build_game_query_from_appearances<'a>(params: ProcessedSearchParams) -> Query
         games g ON a.game_id = g.game_id
     JOIN
         players p ON a.player_id = p.player_id
+    JOIN
+        competitions c ON a.competition_id = c.competition_id
     WHERE 1 = 1");
 
     add_seasons_to_query(&mut query, params.seasons);
     add_competitions_to_query(&mut query, params.competitions);
     add_positions_to_query(&mut query, params.positions);
     add_ages_to_query(&mut query, params.minimum_age, params.maximum_age);
+    add_height_to_query(&mut query, params.minimum_height, params.maximum_height);
+    add_home_away_to_query(&mut query, params.home_or_away);
     add_player_names_to_query(&mut query, params.names);
     add_clubs_played_for_to_query(&mut query, params.clubs_played_for);
     add_clubs_played_against_to_query(&mut query, params.clubs_played_against);
@@ -437,6 +462,8 @@ fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuild
     add_competitions_to_query(&mut query, params.competitions);
     add_positions_to_query(&mut query, params.positions);
     add_ages_to_query(&mut query, params.minimum_age, params.maximum_age);
+    add_height_to_query(&mut query, params.minimum_height, params.maximum_height);
+    add_home_away_to_query(&mut query, params.home_or_away);
     add_player_names_to_query(&mut query, params.names);
     add_clubs_played_for_to_query(&mut query, params.clubs_played_for);
     add_clubs_played_against_to_query(&mut query, params.clubs_played_against);
@@ -504,6 +531,8 @@ fn construct_appearances_table_from_game_events(query: &mut QueryBuilder<Postgre
     add_competitions_to_query(query, params.competitions.clone());
     add_positions_to_query(query, params.positions.clone());
     add_ages_to_query(query, params.minimum_age, params.maximum_age);
+    add_height_to_query(query, params.minimum_height, params.maximum_height);
+    add_home_away_to_query(query, params.home_or_away.clone());
     add_player_names_to_query(query, params.names.clone());
     add_clubs_played_for_to_query(query, params.clubs_played_for.clone());
     add_clubs_played_against_to_query(query, params.clubs_played_against.clone());
@@ -677,6 +706,32 @@ fn add_positions_to_query(query: &mut QueryBuilder<Postgres>, positions: Vec<Str
             query.push_bind(position);
         }
         query.push(")");
+    }
+}
+
+fn add_home_away_to_query(query: &mut QueryBuilder<Postgres>, home_or_away: String) {
+    let home_or_away = match home_or_away.as_str() {
+        HOME => "
+        AND player_club_id = home_club_id",
+        AWAY => "
+        AND player_club_id = away_club_id",
+        _ => ""
+    };
+
+    if !home_or_away.is_empty() {
+        query.push(home_or_away);
+    }
+}
+
+fn add_height_to_query(query: &mut QueryBuilder<Postgres>, min_height: i32, max_height: i32) {
+    if min_height > 0 {
+        query.push("
+        AND height_in_cm >= ").push_bind(min_height);
+    }
+
+    if max_height > 0 {
+        query.push("
+        AND height_in_cm <= ").push_bind(max_height);
     }
 }
 

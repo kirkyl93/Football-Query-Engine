@@ -177,6 +177,8 @@ pub struct PlayerGameSearchResult {
     image_url: String,
     club_id: i32,
     competition_id: String,
+    competition_name: Competition,
+    competition_country_code: String,
     date: NaiveDate,
     season: i32,
     home_club_id: i32,
@@ -445,6 +447,8 @@ impl<'r> FromRow<'r, PgRow> for PlayerGameSearchResult {
     fn from_row(row: &'r PgRow) -> Result<Self, Error> {
         let country_of_citizenship_str = row.try_get("country_of_citizenship").unwrap_or_default();
         let country_of_citizenship = Country::from_str(country_of_citizenship_str);
+        let competition_country: &str = row.try_get("competition_country").unwrap_or("Europe");
+        let country = Country::from_str(competition_country);
         Ok(Self {
             rank: row.try_get("rank").unwrap_or_default(),
             player_id: row.try_get("player_id").unwrap_or_default(),
@@ -458,6 +462,11 @@ impl<'r> FromRow<'r, PgRow> for PlayerGameSearchResult {
             image_url: row.try_get("image_url").unwrap_or_default(),
             club_id: row.try_get("club_id").unwrap_or_default(),
             competition_id: row.try_get("competition_id").unwrap_or_default(),
+            competition_name: {
+                let competition_name = row.try_get("competition_name").unwrap_or_default();
+                Competition::from_str(competition_name)
+            },
+            competition_country_code: String::from(country.code()),
             date: row.try_get("date").unwrap_or_default(),
             season: row.try_get("season").unwrap_or_default(),
             home_club_id: row.try_get("home_club_id").unwrap_or_default(),

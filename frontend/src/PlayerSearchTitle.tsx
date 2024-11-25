@@ -1,4 +1,4 @@
-import {FilterState, minuteBasedSortOptions, SortOptions, StatScope} from "./types";
+import {FilterState, HomeOrAwayOptions, minuteBasedSortOptions, PenaltyOptions, SortOptions, StatScope} from "./types";
 import React, {useMemo} from "react";
 import {competitions} from "./competitions";
 import {formatSeason} from "./dateUtils";
@@ -148,6 +148,18 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
         return ageString;
     }
 
+    const heightTitle = (): string => {
+        let heightString = "";
+        if (filterState.minHeight !== undefined && filterState.minHeight > 0) {
+            heightString += " · MIN HEIGHT: " + filterState.minHeight + "CMs";
+        }
+
+        if (filterState.maxHeight !== undefined && filterState.maxHeight > 0) {
+            heightString += " · MAX HEIGHT: " + filterState.maxHeight + "CMs";
+        }
+        return heightString;
+    }
+
     const namesTitle = (): string => {
         if (filterState.playerNames.length === 0) {
             return "";
@@ -175,12 +187,24 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
     }
 
     const pensTitle = (): string => {
-        if (filterState.penalties === "ep") {
+        if (filterState.penalties === PenaltyOptions.EXCLUDE_PENALTIES) {
             return " · EXCLUDE PENALTIES";
         }
 
-        if (filterState.penalties === "op") {
+        if (filterState.penalties === PenaltyOptions.ONLY_PENALTIES) {
             return " · ONLY PENALTIES";
+        }
+
+        return "";
+    }
+
+    const homeOrAwayTitle = (): string => {
+        if (filterState.homeOrAway === HomeOrAwayOptions.HOME) {
+            return " · AT HOME";
+        }
+
+        if (filterState.homeOrAway === HomeOrAwayOptions.AWAY) {
+            return " · AWAY FROM HOME";
         }
 
         return "";
@@ -193,9 +217,11 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
         title += positionTitle();
         title += minsTitle();
         title += ageTitle();
+        title += heightTitle();
         title += namesTitle();
         title += subsTitle();
         title += pensTitle();
+        title += homeOrAwayTitle();
 
         return title;
     }, [filterState]);
