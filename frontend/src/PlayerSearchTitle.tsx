@@ -1,4 +1,12 @@
-import {FilterState, HomeOrAwayOptions, minuteBasedSortOptions, PenaltyOptions, SortOptions, StatScope} from "./types";
+import {
+    FilterState,
+    HomeOrAwayOptions,
+    minuteBasedSortOptions,
+    numberOfGamesOrSeasonsSortOptions,
+    PenaltyOptions,
+    SortOptions,
+    StatScope
+} from "./types";
 import React, {useMemo} from "react";
 import {competitions} from "./competitions";
 import {formatSeason} from "./dateUtils";
@@ -52,14 +60,61 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             case SortOptions.MINUTES_PER_RED:
                 sortByTitle += "FEWEST MINS PER RED ";
                 break;
+            case SortOptions.NUMBER_OF_GAMES_WITH:
+                sortByTitle += "MOST GAMES WITH ";
+                break;
+            case SortOptions.NUMBER_OF_SEASONS_WITH:
+                sortByTitle += "MOST SEASONS WITH "
+                break;
             default:
                 sortByTitle += "TOP SCORERS ";
         }
 
         if (minuteBasedSortOptions.includes(filterState.sortBy as SortOptions) &&
-            filterState.minimumAppearances !== undefined && filterState.minimumAppearances > 0) {
-            sortByTitle += "(AT LEAST " + filterState.minimumAppearances + " APPS) ";
+            (filterState.minimumAppearances ?? 0) > 0) {
+            sortByTitle += `(AT LEAST " ${filterState.minimumAppearances} " APPS) `;
         }
+
+        if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy as SortOptions)) {
+            const minimumGoals = filterState.minimumGoals ?? 0;
+            const maximumGoals = filterState.maximumGoals ?? 0;
+            const minimumAssists = filterState.minimumAssists ?? 0;
+            const maximumAssists = filterState.maximumAssists ?? 0;
+
+            if (minimumGoals > 0 || minimumAssists > 0) {
+                sortByTitle += "AT LEAST ";
+
+                if (minimumGoals > 0) {
+                    sortByTitle += `${minimumGoals} GOAL${minimumGoals > 1 ? "S" : ""} `;
+                }
+
+                if (minimumAssists > 0) {
+                    if (minimumGoals > 0) {
+                        sortByTitle += "AND ";
+                    }
+                    sortByTitle += `${minimumAssists} ASSIST${minimumAssists > 1 ? "S" : ""} `;
+                }
+            }
+
+            if (maximumGoals > 0 || maximumAssists > 0) {
+                if (minimumGoals > 0 || maximumGoals > 0) {
+                    sortByTitle += "AND ";
+                }
+                sortByTitle += "AT MOST ";
+
+                if (maximumGoals > 0) {
+                    sortByTitle += `${maximumGoals} GOAL${maximumGoals > 1 ? "S" : ""} `;
+                }
+
+                if (maximumAssists > 0) {
+                    if (maximumGoals > 0) {
+                        sortByTitle += "AND ";
+                    }
+                    sortByTitle += `${minimumAssists} ASSIST${minimumAssists > 1 ? "S" : ""} `;
+                }
+            }
+        }
+
 
         if (filterState.statScope === StatScope.SEASON) {
             sortByTitle += "· SEASON SCOPE "
@@ -126,36 +181,36 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
 
     const minsTitle = (): string => {
         let minuteString = "";
-        if (filterState.minuteFrom !== undefined && filterState.minuteFrom > 0) {
-            minuteString += " · FROM MINUTE " + filterState.minuteFrom;
+        if ((filterState.minuteFrom ?? 0) > 0) {
+            minuteString += ` · FROM MINUTE ${filterState.minuteFrom}`;
         }
 
-        if (filterState.minuteTo !== undefined && filterState.minuteTo > 0) {
-            minuteString += " · UP UNTIL MINUTE " + filterState.minuteTo;
+        if ((filterState.minuteTo ?? 0) > 0) {
+            minuteString += ` · UP UNTIL MINUTE ${filterState.minuteTo}`;
         }
         return minuteString;
     }
 
     const ageTitle = (): string => {
         let ageString = "";
-        if (filterState.minAge !== undefined && filterState.minAge > 0) {
-            ageString += " · MIN AGE: " + filterState.minAge;
+        if ((filterState.minAge ?? 0) > 0) {
+            ageString += ` · MIN AGE: ${filterState.minAge}`;
         }
 
-        if (filterState.maxAge !== undefined && filterState.maxAge > 0) {
-            ageString += " · MAX AGE: " + filterState.maxAge;
+        if ((filterState.maxAge ?? 0) > 0) {
+            ageString += ` · MAX AGE: ${filterState.maxAge}`;
         }
         return ageString;
     }
 
     const heightTitle = (): string => {
         let heightString = "";
-        if (filterState.minHeight !== undefined && filterState.minHeight > 0) {
-            heightString += " · MIN HEIGHT: " + filterState.minHeight + "CMs";
+        if ((filterState.minHeight ?? 0) > 0) {
+            heightString += ` · MIN HEIGHT: ${filterState.minHeight}CMs`;
         }
 
-        if (filterState.maxHeight !== undefined && filterState.maxHeight > 0) {
-            heightString += " · MAX HEIGHT: " + filterState.maxHeight + "CMs";
+        if ((filterState.maxHeight ?? 0) > 0) {
+            heightString += ` · MAX HEIGHT: ${filterState.maxHeight}CMs`;
         }
         return heightString;
     }
@@ -165,7 +220,7 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             return "";
         }
 
-        return " · " + filterState.playerNames.map(name => name.toUpperCase()).join(" OR ");
+        return ` · ${filterState.playerNames.map(name => name.toUpperCase()).join(" OR ")}`;
     }
 
     const subsTitle = (): string => {
@@ -176,12 +231,12 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
 
         subString += " · SUBS ONLY";
 
-        if (filterState.earliestSubOnTime !== undefined && filterState.earliestSubOnTime > 0) {
-            subString += " · EARLIEST SUB ON TIME: " + filterState.earliestSubOnTime;
+        if ((filterState.earliestSubOnTime ?? 0) > 0) {
+            subString += ` · EARLIEST SUB ON TIME: ${filterState.earliestSubOnTime}`;
         }
 
-        if (filterState.latestSubOnTime !== undefined && filterState.latestSubOnTime > 0) {
-            subString += " · LATEST SUB ON TIME: " + filterState.latestSubOnTime;
+        if ((filterState.latestSubOnTime ?? 0) > 0) {
+            subString += ` · LATEST SUB ON TIME: " + ${filterState.latestSubOnTime}`;
         }
         return subString;
     }

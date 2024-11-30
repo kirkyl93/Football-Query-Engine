@@ -57,7 +57,11 @@ export enum UrlFilters {
     HOME_OR_AWAY = "home",
     SORT_BY = "sort",
     SCOPE = "scope",
-    MINIMUM_APPEARANCES="ma"
+    MINIMUM_APPEARANCES = "ma",
+    MINIMUM_GOALS = "ming",
+    MAXIMUM_GOALS = "maxg",
+    MINIMUM_ASSISTS = "mina",
+    MAXIMUM_ASSISTS = "maxa"
 }
 
 export enum PenaltyOptions {
@@ -90,7 +94,9 @@ export enum SortOptions {
     MINUTES_PER_ASSIST = 'mpa',
     MINUTES_PER_GOAL_OR_ASSIST = 'mpga',
     MINUTES_PER_YELLOW = 'mpy',
-    MINUTES_PER_RED = 'mpr'
+    MINUTES_PER_RED = 'mpr',
+    NUMBER_OF_GAMES_WITH = 'gw',
+    NUMBER_OF_SEASONS_WITH = 'sw'
 }
 
 export const minuteBasedSortOptions = [
@@ -101,10 +107,19 @@ export const minuteBasedSortOptions = [
     SortOptions.MINUTES_PER_RED
 ]
 
+export const numberOfGamesOrSeasonsSortOptions = [
+    SortOptions.NUMBER_OF_GAMES_WITH,
+    SortOptions.NUMBER_OF_SEASONS_WITH
+]
+
 export const gameOnlySortOptions = [
     SortOptions.GOALS,
     SortOptions.ASSISTS,
     SortOptions.GOALS_AND_ASSISTS
+]
+
+export const overallOnlySortOptions = [
+    SortOptions.NUMBER_OF_SEASONS_WITH
 ]
 
 export interface FilterState {
@@ -128,6 +143,12 @@ export interface FilterState {
     statScope: StatScope;
     sortBy: SortOptions;
     minimumAppearances?: number;
+    minimumGoals?: number;
+    maximumGoals?: number;
+    minimumAssists?: number;
+    maximumAssists?: number;
+    minimumYellows?: number;
+    minimumReds?: number;
 }
 
 export interface PlayerSearchResult {
@@ -176,6 +197,18 @@ export interface PlayerGameSearchResult {
     minutes_played: number,
     goals: number,
     assists: number,
+}
+
+export interface PlayerNumberOfGamesOrSeasonsResult {
+    rank: number,
+    player_id: number,
+    player_name: string,
+    country_code: string,
+    sub_position: string,
+    image_url: string,
+    clubs_played_for: string,
+    number_of_games: number,
+    number_of_seasons: number
 }
 
 export interface PlayerWithSeasonStats {

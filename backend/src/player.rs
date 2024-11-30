@@ -192,6 +192,21 @@ pub struct PlayerGameSearchResult {
     assists: i32
 }
 
+#[derive(Debug, Serialize, Clone)]
+pub struct PlayerNumberOfGamesOrSeasonsResult {
+    rank: i64,
+    player_id: i32,
+    player_name: String,
+    country_of_citizenship: Country,
+    country_code: String,
+    sub_position: PlayerSubPosition,
+    image_url: String,
+    clubs_played_for: String,
+    number_of_games: i64,
+    number_of_seasons: i64
+}
+
+
 
 #[derive(Debug, Serialize, Clone)]
 pub struct PlayerSeasonByCompAndTeam {
@@ -478,6 +493,30 @@ impl<'r> FromRow<'r, PgRow> for PlayerGameSearchResult {
             minutes_played: row.try_get("minutes_played").unwrap_or_default(),
             goals: row.try_get("goals").unwrap_or_default(),
             assists: row.try_get("assists").unwrap_or_default(),
+        })
+    }
+}
+
+impl<'r> FromRow<'r, PgRow> for PlayerNumberOfGamesOrSeasonsResult {
+    fn from_row(row: &'r PgRow) -> Result<Self, Error> {
+        let country_of_citizenship_str = row.try_get("country_of_citizenship").unwrap_or_default();
+        let country_of_citizenship = Country::from_str(country_of_citizenship_str);
+        let competition_country: &str = row.try_get("competition_country").unwrap_or("Europe");
+        let country = Country::from_str(competition_country);
+        Ok(Self {
+            rank: row.try_get("rank").unwrap_or_default(),
+            player_id: row.try_get("player_id").unwrap_or_default(),
+            player_name: row.try_get("player_name").unwrap_or_default(),
+            country_of_citizenship,
+            country_code: country_of_citizenship.code().to_string(),
+            sub_position: {
+                let sub_position_string: &str = row.try_get("sub_position").unwrap_or_default();
+                PlayerSubPosition::from_str(sub_position_string)
+            },
+            image_url: row.try_get("image_url").unwrap_or_default(),
+            clubs_played_for: row.try_get("clubs_played_for").unwrap_or_default(),
+            number_of_games: row.try_get("number_of_games").unwrap_or_default(),
+            number_of_seasons: row.try_get("number_of_seasons").unwrap_or_default()
         })
     }
 }

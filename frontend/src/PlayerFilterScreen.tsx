@@ -6,6 +6,7 @@ import {
     FilterState,
     HomeOrAwayOptions,
     minuteBasedSortOptions,
+    numberOfGamesOrSeasonsSortOptions,
     PenaltyOptions,
     SortOptions,
     StatScope,
@@ -14,6 +15,7 @@ import {
 import PlayerSearchTitle from "./PlayerSearchTitle";
 import {PlayerCombinedStatsTable} from "./PlayerCombinedStatsTable";
 import {PlayerGameStatsTable} from "./PlayerGameStatsTable";
+import {NumberOfGamesOrSeasonsTable} from "./NumberOfGamesOrSeasonsTable";
 
 const PlayerFilterScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -40,7 +42,11 @@ const PlayerFilterScreen: React.FC = () => {
         selectedHomeOrAwayOption,
         selectedScope,
         selectedSortBy,
-        selectedMinimumAppearances
+        selectedMinimumAppearances,
+        selectedMinimumGoals,
+        selectedMaximumGoals,
+        selectedMinimumAssists,
+        selectedMaximumAssists
     } = useMemo(() => {
         const params = new URLSearchParams(location.search);
         return {
@@ -72,7 +78,15 @@ const PlayerFilterScreen: React.FC = () => {
             selectedSortBy: params.get(UrlFilters.SORT_BY) as SortOptions || SortOptions.GOALS,
             selectedScope: params.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL,
             selectedMinimumAppearances: params.get(UrlFilters.MINIMUM_APPEARANCES) ?
-                parseInt(params.get(UrlFilters.MINIMUM_APPEARANCES)!, 10) : undefined
+                parseInt(params.get(UrlFilters.MINIMUM_APPEARANCES)!, 10) : undefined,
+            selectedMinimumGoals: params.get(UrlFilters.MINIMUM_GOALS) ?
+                parseInt(params.get(UrlFilters.MINIMUM_GOALS)!, 10) : undefined,
+            selectedMaximumGoals: params.get(UrlFilters.MAXIMUM_GOALS) ?
+                parseInt(params.get(UrlFilters.MAXIMUM_GOALS)!, 10) : undefined,
+            selectedMinimumAssists: params.get(UrlFilters.MINIMUM_ASSISTS) ?
+                parseInt(params.get(UrlFilters.MINIMUM_ASSISTS)!, 10) : undefined,
+            selectedMaximumAssists: params.get(UrlFilters.MAXIMUM_ASSISTS) ?
+                parseInt(params.get(UrlFilters.MAXIMUM_ASSISTS)!, 10) : undefined
         };
     }, [location.search]);
 
@@ -108,6 +122,12 @@ const PlayerFilterScreen: React.FC = () => {
         if (minuteBasedSortOptions.includes(filterState.sortBy)) {
             addParam(UrlFilters.MINIMUM_APPEARANCES, filterState.minimumAppearances);
         }
+        if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy)) {
+            addParam(UrlFilters.MINIMUM_GOALS, filterState.minimumGoals);
+            addParam(UrlFilters.MAXIMUM_GOALS, filterState.maximumGoals);
+            addParam(UrlFilters.MINIMUM_ASSISTS, filterState.minimumAssists);
+            addParam(UrlFilters.MAXIMUM_ASSISTS, filterState.maximumAssists);
+        }
 
         navigate({
             pathname: location.pathname,
@@ -128,7 +148,10 @@ const PlayerFilterScreen: React.FC = () => {
         clubsPlayedAgainst: selectedClubsPlayedAgainst, subsOnly: selectedSubsOnly,
         earliestSubOnTime: selectedEarliestSubOnTime, latestSubOnTime: selectedLatestSubOnTime,
         penalties: selectedPenaltyOption, homeOrAway: selectedHomeOrAwayOption, statScope: selectedScope,
-        sortBy: selectedSortBy, minimumAppearances: selectedMinimumAppearances
+        sortBy: selectedSortBy, minimumAppearances: selectedMinimumAppearances,
+        minimumGoals: selectedMinimumGoals, maximumGoals: selectedMaximumGoals,
+        minimumAssists: selectedMinimumAssists, maximumAssists: selectedMaximumAssists
+
     };
 
     return (
@@ -144,7 +167,15 @@ const PlayerFilterScreen: React.FC = () => {
                 </div>
 
                 {selectedScope !== StatScope.GAME &&
+                    !numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
                     <PlayerCombinedStatsTable
+                        filterState={filterState}
+                    />
+                }
+
+                {selectedScope !== StatScope.GAME &&
+                    numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
+                    <NumberOfGamesOrSeasonsTable
                         filterState={filterState}
                     />
                 }

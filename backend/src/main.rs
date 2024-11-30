@@ -11,7 +11,7 @@ use dotenv::dotenv;
 use player_queries::{get_players, fetch_player, fetch_player_stats_by_season, search};
 use sqlx::postgres::PgPoolOptions;
 use club_queries::{get_clubs};
-use crate::player_queries::game_search;
+use crate::player_queries::{game_search, number_of_games_or_seasons_search};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -37,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .service(search)
             .service(game_search)
             .service(get_clubs)
+            .service(number_of_games_or_seasons_search)
     })
         .bind(("127.0.0.1", 8080))?
         .run()

@@ -1,5 +1,11 @@
 import {FetchParams} from "./InfiniteScrollWrapper";
-import {PlayerGameSearchResult, PlayerSearchResult, StatScope, UrlFilters} from "./types";
+import {
+    PlayerGameSearchResult,
+    PlayerNumberOfGamesOrSeasonsResult,
+    PlayerSearchResult,
+    StatScope,
+    UrlFilters
+} from "./types";
 
 export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams }: FetchParams): string => {
     let url = `${baseUrl}?page=${page}&limit=${limit}`;
@@ -8,7 +14,8 @@ export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams 
         UrlFilters.SEASONS, UrlFilters.COMPETITIONS, UrlFilters.POSITIONS, UrlFilters.MINUTE_FROM, UrlFilters.MINUTE_TO,
         UrlFilters.MINIMUM_AGE, UrlFilters.MAXIMUM_AGE, UrlFilters.MINIMUM_HEIGHT, UrlFilters.MAXIMUM_HEIGHT, UrlFilters.PLAYER_NAMES,
         UrlFilters.CLUBS_PLAYED_FOR, UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.HOME_OR_AWAY,
-        UrlFilters.SORT_BY, UrlFilters.MINIMUM_APPEARANCES
+        UrlFilters.SORT_BY, UrlFilters.MINIMUM_APPEARANCES, UrlFilters.MINIMUM_GOALS, UrlFilters.MAXIMUM_GOALS, UrlFilters.MINIMUM_ASSISTS,
+        UrlFilters.MAXIMUM_ASSISTS
     ];
 
     const params = new URLSearchParams(location.search);
@@ -41,6 +48,16 @@ export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams 
     }
     return url;
 };
+
+export const fetchNumberOfGamesOrSeasonsResult = async (params: FetchParams): Promise<PlayerNumberOfGamesOrSeasonsResult[]> => {
+    let url = constructSearchUrl('http://localhost:8080/search/occurrences', params);
+
+    const response = await fetch(url, { signal: params.signal });
+    if (!response.ok) {
+        throw new Error('Failed to fetch player stats');
+    }
+    return response.json();
+}
 
 export const fetchPlayerOverallOrSeasonData = async (params: FetchParams): Promise<PlayerSearchResult[]> => {
     let url = constructSearchUrl('http://localhost:8080/search', params);

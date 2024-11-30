@@ -4,7 +4,7 @@ use actix_web::{
 use serde::{Deserialize, Serialize};
 use sqlx::{query, PgPool, Postgres, QueryBuilder};
 use sqlx::query::Query;
-use crate::player::{map_position_code_to_position, Player, PlayerGameSearchResult, PlayerSearchResult, PlayerSeasonByCompAndTeam};
+use crate::player::{map_position_code_to_position, Player, PlayerGameSearchResult, PlayerNumberOfGamesOrSeasonsResult, PlayerSearchResult, PlayerSeasonByCompAndTeam};
 
 // Penalty Options
 pub const INCLUDE_PENALTIES: &str = "ip";
@@ -30,7 +30,8 @@ pub const MINUTES_PER_ASSIST: &str = "mpa";
 pub const MINUTES_PER_GOAL_OR_ASSIST: &str = "mpga";
 pub const MINUTES_PER_YELLOW: &str = "mpy";
 pub const MINUTES_PER_RED: &str = "mpr";
-
+pub const NUMBER_OF_GAMES_WITH: &str = "gw";
+pub const NUMBER_OF_SEASONS_WITH: &str = "sw";
 // Stat Scope
 pub const OVERALL: &str = "o";
 pub const SEASON: &str = "s";
@@ -151,6 +152,14 @@ struct SearchParams {
     sort: Option<String>,
     #[serde(rename = "ma")]
     minimum_appearances: Option<i32>,
+    #[serde(rename = "ming")]
+    minimum_goals: Option<i32>,
+    #[serde(rename = "maxg")]
+    maximum_goals: Option<i32>,
+    #[serde(rename = "mina")]
+    minimum_assists: Option<i32>,
+    #[serde(rename = "maxa")]
+    maximum_assists: Option<i32>
 }
 
 impl SearchParams {
@@ -207,7 +216,11 @@ impl SearchParams {
             home_or_away: self.home_or_away.clone().unwrap_or_else(|| EITHER.into()),
             scope: self.scope.clone().unwrap_or_else(|| OVERALL.into()),
             sort: self.sort.clone().unwrap_or_else(|| GOALS.into()),
-            minimum_appearances: self.minimum_appearances.unwrap_or(0)
+            minimum_appearances: self.minimum_appearances.unwrap_or(0),
+            minimum_goals: self.minimum_goals.unwrap_or(0),
+            maximum_goals: self.maximum_goals.unwrap_or(0),
+            minimum_assists: self.minimum_assists.unwrap_or(0),
+            maximum_assists: self.maximum_assists.unwrap_or(0)
         })
     }
 }
@@ -234,7 +247,11 @@ struct ProcessedSearchParams {
     home_or_away: String,
     scope: String,
     sort: String,
-    minimum_appearances: i32
+    minimum_appearances: i32,
+    minimum_goals: i32,
+    maximum_goals: i32,
+    minimum_assists: i32,
+    maximum_assists: i32
 }
 
 #[get("/search")]
@@ -286,8 +303,33 @@ pub async fn game_search(pool: web::Data<PgPool>, params: web::Query<SearchParam
     }
 }
 
+#[get("/search/occurrences")]
+pub async fn number_of_games_or_seasons_search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -> HttpResponse {
+    match params.to_processed() {
+        Ok(games_or_seasons_search_params) => {
+            let mut query = construct_number_of_games_or_seasons_query_from_params(games_or_seasons_search_params);
+            println!("{}", query.sql());
+            match query.build_query_as::<PlayerNumberOfGamesOrSeasonsResult>()
+                .fetch_all(pool.get_ref())
+                .await
+            {
+                Ok(games_or_seasons_results) => HttpResponse::Ok().json(games_or_seasons_results),
+                Err(err) => {
+                    println!("{:?}", err.as_database_error());
+                    HttpResponse::InternalServerError().json(err.to_string())
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("Error processing search parameters: {}", e);
+            HttpResponse::BadRequest().body(e)
+        }
+    }
+}
+
+
+
 fn construct_search_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
-    // These are the defaults when no values are passed in the URL. We can
     if params.minute_played_from == 0 && params.minute_played_to == 120 {
         return build_query_from_appearances(params);
     }
@@ -295,8 +337,23 @@ fn construct_search_query_from_params<'a>(params: ProcessedSearchParams) -> Quer
     return build_query_from_events(params);
 }
 
+fn construct_number_of_games_or_seasons_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+    if params.minute_played_from == 0 && params.minute_played_to == 120 {
+        if params.sort == NUMBER_OF_SEASONS_WITH {
+            return build_number_of_seasons_query_from_appearances(params);
+        }
+    }
+    return build_number_of_seasons_query_from_events(params);
+
+
+    // if params.sort == NUMBER_OF_SEASONS_WITH {
+    //     return build_number_of_games_query_from_appearances(params);
+    // }
+    //
+    // return build_number_of_games_query_from_events(params);
+}
+
 fn construct_game_search_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
-    // These are the defaults when no values are passed in the URL. We can
     if params.minute_played_from == 0 && params.minute_played_to == 120 {
         return build_game_query_from_appearances(params);
     }
@@ -333,6 +390,69 @@ fn build_game_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuild
     add_limit_and_offset_to_query(&mut query, params.limit, params.page);
 
     return query;
+}
+
+fn build_number_of_seasons_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+    let mut query = QueryBuilder::new("");
+
+    construct_appearances_table_from_game_events(&mut query, &params);
+
+    let goals_calculation = goals_query_string(params.penalties, false);
+
+    query.push(",
+
+player_season_goals AS (
+    SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, ARRAY_AGG(DISTINCT c.club_id) AS unique_clubs_played_for,
+    g.season, ");
+
+    query.push(goals_calculation).push(" AS total_goals, SUM(a.assists) AS total_assists
+    FROM
+        games_minute_appearance_filter a
+    JOIN
+        clubs c ON c.club_id = a.club_id
+    JOIN
+        players p ON p.player_id = a.player_id
+    JOIN
+        games g ON g.game_id = a.game_id
+    WHERE appearances > 0");
+
+    query.push("
+    GROUP BY a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, g.season
+)
+    ");
+
+    query.push("
+    SELECT
+        RANK() OVER (ORDER BY COUNT(DISTINCT ps.season) DESC) AS rank,
+        ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position,
+        STRING_AGG(DISTINCT club_id::TEXT, ', ') AS clubs_played_for,
+        COUNT(DISTINCT ps.season) AS number_of_seasons
+    FROM
+        player_season_goals ps,
+        LATERAL UNNEST(ps.unique_clubs_played_for) AS club_id
+    WHERE
+        1 = 1");
+
+    add_minimum_season_goals_to_query(&mut query, params.minimum_goals);
+    add_maximum_season_goals_to_query(&mut query, params.maximum_goals);
+    add_minimum_season_assists_to_query(&mut query, params.minimum_assists);
+    add_maximum_season_assists_to_query(&mut query, params.maximum_assists);
+
+    query.push("
+    GROUP BY
+        ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position
+    ORDER BY
+        number_of_seasons DESC, ps.player_name");
+
+    add_limit_and_offset_to_query(&mut query, params.limit, params.page);
+
+    return query;
+
+
+
+
+
+
 }
 
 fn build_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
@@ -414,6 +534,71 @@ fn build_game_query_from_appearances<'a>(params: ProcessedSearchParams) -> Query
     add_sub_info_to_query(&mut query, params.subs_only, params.earliest_sub_on_time, params.latest_sub_on_time);
 
     add_game_order_by_to_query(&mut query, params.sort, goals_calculation);
+    add_limit_and_offset_to_query(&mut query, params.limit, params.page);
+
+    return query;
+}
+
+
+
+fn build_number_of_seasons_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+    let goals_calculation = goals_query_string(params.penalties, false);
+
+    let mut query = QueryBuilder::new("
+WITH player_season_goals AS (
+    SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, ARRAY_AGG(DISTINCT c.club_id) AS unique_clubs_played_for,
+    g.season, ");
+
+    query.push(goals_calculation).push(" AS total_goals, SUM(a.assists) AS total_assists
+    FROM
+        appearances_enhanced a
+    JOIN
+        clubs c ON c.club_id = a.player_club_id
+    JOIN
+        players p on p.player_id = a.player_id
+    JOIN
+        games g ON g.game_id = a.game_id
+    WHERE 1 = 1");
+
+    add_seasons_to_query(&mut query, params.seasons);
+    add_competitions_to_query(&mut query, params.competitions);
+    add_positions_to_query(&mut query, params.positions);
+    add_ages_to_query(&mut query, params.minimum_age, params.maximum_age);
+    add_height_to_query(&mut query, params.minimum_height, params.maximum_height);
+    add_home_away_to_query(&mut query, params.home_or_away);
+    add_player_names_to_query(&mut query, params.names);
+    add_clubs_played_for_to_query(&mut query, params.clubs_played_for);
+    add_clubs_played_against_to_query(&mut query, params.clubs_played_against);
+    add_sub_info_to_query(&mut query, params.subs_only, params.earliest_sub_on_time, params.latest_sub_on_time);
+
+    query.push("
+    GROUP BY a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, g.season
+)
+    ");
+
+    query.push("
+    SELECT
+        RANK() OVER (ORDER BY COUNT(DISTINCT ps.season) DESC) AS rank,
+        ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position,
+        STRING_AGG(DISTINCT club_id::TEXT, ', ') AS clubs_played_for,
+        COUNT(DISTINCT ps.season) AS number_of_seasons
+    FROM
+        player_season_goals ps,
+        LATERAL UNNEST(ps.unique_clubs_played_for) AS club_id
+    WHERE
+        1 = 1");
+
+    add_minimum_season_goals_to_query(&mut query, params.minimum_goals);
+    add_maximum_season_goals_to_query(&mut query, params.maximum_goals);
+    add_minimum_season_assists_to_query(&mut query, params.minimum_assists);
+    add_maximum_season_assists_to_query(&mut query, params.maximum_assists);
+
+    query.push("
+    GROUP BY
+        ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position
+    ORDER BY
+        number_of_seasons DESC, ps.player_name");
+
     add_limit_and_offset_to_query(&mut query, params.limit, params.page);
 
     return query;
@@ -609,6 +794,8 @@ fn add_minutes_played_minute_filter_to_query(query: &mut QueryBuilder<Postgres>,
     query.push("
     MIN(LEAST(").push_bind(minute_to).push(", subbed_off_minute, played_from_minute + minutes_played) - GREATEST(").push_bind(minute_from).push(", played_from_minute)) + 1 AS minutes_played");
 }
+
+
 
 fn add_game_rank_to_query(query: &mut QueryBuilder<Postgres>, sort_by: &String, goals_calculation: &String) {
     query.push("RANK() OVER (ORDER BY ");
@@ -855,6 +1042,34 @@ fn add_minimum_appearances_to_query(query: &mut QueryBuilder<Postgres>, minimum_
     if minimum_appearances > 1 {
         query.push("
     HAVING COUNT(*) >= ").push_bind(minimum_appearances);
+    }
+}
+
+fn add_minimum_season_goals_to_query(query: &mut QueryBuilder<Postgres>, minimum_goals: i32) {
+    if minimum_goals > 0 {
+        query.push("
+    AND total_goals >= ").push(minimum_goals);
+    }
+}
+
+fn add_maximum_season_goals_to_query(query: &mut QueryBuilder<Postgres>, maximum_goals: i32) {
+    if maximum_goals > 0 {
+        query.push("
+    AND total_goals <= ").push(maximum_goals);
+    }
+}
+
+fn add_minimum_season_assists_to_query(query: &mut QueryBuilder<Postgres>, minimum_assists: i32) {
+    if minimum_assists > 0 {
+        query.push("
+    AND total_assists >= ").push(minimum_assists);
+    }
+}
+
+fn add_maximum_season_assists_to_query(query: &mut QueryBuilder<Postgres>, maximum_assists: i32) {
+    if maximum_assists > 0 {
+        query.push("
+    AND total_assists <= ").push(maximum_assists);
     }
 }
 

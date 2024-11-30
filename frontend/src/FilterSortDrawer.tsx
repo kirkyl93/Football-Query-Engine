@@ -8,6 +8,8 @@ import {
     gameOnlySortOptions,
     HomeOrAwayOptions,
     minuteBasedSortOptions,
+    numberOfGamesOrSeasonsSortOptions,
+    overallOnlySortOptions,
     PenaltyOptions,
     SortOptions,
     StatScope
@@ -41,6 +43,10 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
     const appearances = Array.from({length: 249}, (_, i) => i + 2);
 
+    const season_goals_or_assists = Array.from({length: 50}, (_, i) => i + 1);
+
+    const game_goals_or_assists = Array.from({length: 8}, (_, i) => i + 1);
+
     const penaltyOptions = [
         {name: "Include penalties", id: PenaltyOptions.INCLUDE_PENALTIES},
         {name: "Exclude penalties", id: PenaltyOptions.EXCLUDE_PENALTIES},
@@ -65,7 +71,9 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         {name: "Minutes per assist", id: SortOptions.MINUTES_PER_ASSIST},
         {name: "Minutes per goal or assist", id: SortOptions.MINUTES_PER_GOAL_OR_ASSIST},
         {name: "Minutes per yellow card", id: SortOptions.MINUTES_PER_YELLOW},
-        {name: "Minutes per red card", id: SortOptions.MINUTES_PER_RED}
+        {name: "Minutes per red card", id: SortOptions.MINUTES_PER_RED},
+        {name: "Number of games with", id: SortOptions.NUMBER_OF_GAMES_WITH},
+        {name: "Number of seasons with", id: SortOptions.NUMBER_OF_SEASONS_WITH}
     ];
 
     const statScopes = [
@@ -119,7 +127,11 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
             homeOrAway: HomeOrAwayOptions.EITHER,
             statScope: StatScope.OVERALL,
             sortBy: SortOptions.GOALS,
-            minimumAppearances: undefined
+            minimumAppearances: undefined,
+            minimumGoals: undefined,
+            maximumGoals: undefined,
+            minimumAssists: undefined,
+            maximumAssists: undefined,
         });
         setNewPlayerName("");
         setNewClubPlayedFor("");
@@ -240,6 +252,34 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         setLocalFilterState(prevState => ({
             ...prevState,
             minimumAppearances: e.target.value ? parseInt(e.target.value) : undefined
+        }));
+    }
+
+    const handleMinimumGoalsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            minimumGoals: e.target.value ? parseInt(e.target.value) : undefined
+        }));
+    }
+
+    const handleMaximumGoalsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            maximumGoals: e.target.value ? parseInt(e.target.value) : undefined
+        }));
+    }
+
+    const handleMinimumAssistsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            minimumAssists: e.target.value ? parseInt(e.target.value) : undefined
+        }));
+    }
+
+    const handleMaximumAssistsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            maximumAssists: e.target.value ? parseInt(e.target.value) : undefined
         }));
     }
 
@@ -827,7 +867,8 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                     {isSortByOpen && (
                         <div className="radio-group-vertical">
                             {sortTypes
-                                .filter(sort => localFilterState.statScope !== StatScope.GAME || gameOnlySortOptions.includes(sort.id))
+                                .filter(sort => localFilterState.statScope === StatScope.OVERALL ||
+                                    (localFilterState.statScope === StatScope.SEASON && !overallOnlySortOptions.includes(sort.id)) || gameOnlySortOptions.includes(sort.id))
                                 .map(sort => (
                                     <label key={sort.id}>
                                         <input
@@ -853,6 +894,56 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                 ))}
                             </select>
                         </div>
+                    )}
+
+                    {isSortByOpen && numberOfGamesOrSeasonsSortOptions.includes(localFilterState.sortBy as SortOptions) && (
+                        <>
+                            <div className="minute-and-age-and-sub-dropdown-group">
+                                <label>Minimum Goals: </label>
+                                <select value={localFilterState.minimumGoals ?? ''}
+                                        onChange={handleMinimumGoalsChange}>
+                                    <option value="">Any</option>
+                                    {localFilterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH ? game_goals_or_assists.map(goal => (
+                                        <option key={goal} value={goal}>{goal}</option>
+                                    )) : season_goals_or_assists.map(goal => (
+                                        <option key={goal} value={goal}>{goal}</option>))}
+                                </select>
+                            </div>
+                            <div className="minute-and-age-and-sub-dropdown-group">
+                                <label>Maximum Goals: </label>
+                                <select value={localFilterState.maximumGoals ?? ''}
+                                        onChange={handleMaximumGoalsChange}>
+                                    <option value="">Any</option>
+                                    {localFilterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH ? game_goals_or_assists.map(goal => (
+                                        <option key={goal} value={goal}>{goal}</option>
+                                    )) : season_goals_or_assists.map(goal => (
+                                        <option key={goal} value={goal}>{goal}</option>))}
+                                </select>
+                            </div>
+                            <div className="minute-and-age-and-sub-dropdown-group">
+                                <label>Minimum Assists: </label>
+                                <select value={localFilterState.minimumAssists ?? ''}
+                                        onChange={handleMinimumAssistsChange}>
+                                    <option value="">Any</option>
+                                    {localFilterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH ? game_goals_or_assists.map(goal => (
+                                        <option key={goal} value={goal}>{goal}</option>
+                                    )) : season_goals_or_assists.map(goal => (
+                                        <option key={goal} value={goal}>{goal}</option>))}
+                                </select>
+                            </div>
+
+                            <div className="minute-and-age-and-sub-dropdown-group">
+                                <label>Maximum Assists: </label>
+                                <select value={localFilterState.maximumAssists ?? ''}
+                                        onChange={handleMaximumAssistsChange}>
+                                    <option value="">Any</option>
+                                    {localFilterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH ? game_goals_or_assists.map(goal => (
+                                        <option key={goal} value={goal}>{goal}</option>
+                                    )) : season_goals_or_assists.map(goal => (
+                                        <option key={goal} value={goal}>{goal}</option>))}
+                                </select>
+                            </div>
+                        </>
                     )}
                 </div>
 
