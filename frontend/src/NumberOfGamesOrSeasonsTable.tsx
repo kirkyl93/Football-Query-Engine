@@ -1,9 +1,10 @@
-import {FilterState, PlayerNumberOfGamesOrSeasonsResult, SortOptions} from "./types";
+import {FilterState, PlayerNumberOfGamesOrSeasonsResult, SortOptions, StatScope} from "./types";
 import {useInfiniteScroll} from "./InfiniteScrollWrapper";
 import './InfiniteScrollWrapper.css';
 import {fetchNumberOfGamesOrSeasonsResult} from "./searchUrlUtils";
 import {Link} from "react-router-dom";
 import React from "react";
+import {formatSeason} from "./dateUtils";
 
 
 interface NumberOfGamesOrSeasonsTableProps {
@@ -25,13 +26,14 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                             <th className="player-name">Player</th>
                             <th>Clubs</th>
                             <th>Position</th>
+                            {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Season</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th>Number of seasons</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Number of games</th>}
                         </tr>
                         </thead>
                         <tbody>
                         {data.map((player, index) => (
-                            <tr key={player.player_id}
+                            <tr key={player.player_id.toString() + player.season.toString()}
                                 ref={data.length === index + 1 ? lastElementRef : null}
                             >
                                 <td>
@@ -71,6 +73,7 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                                     })}
                                 </td>
                                 <td>{player.sub_position}</td>
+                                {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{formatSeason(player.season)}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td>{player.number_of_seasons}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{player.number_of_games}</td>}
                             </tr>

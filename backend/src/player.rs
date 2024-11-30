@@ -202,6 +202,7 @@ pub struct PlayerNumberOfGamesOrSeasonsResult {
     sub_position: PlayerSubPosition,
     image_url: String,
     clubs_played_for: String,
+    season: i32,
     number_of_games: i64,
     number_of_seasons: i64
 }
@@ -515,6 +516,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerNumberOfGamesOrSeasonsResult {
             },
             image_url: row.try_get("image_url").unwrap_or_default(),
             clubs_played_for: row.try_get("clubs_played_for").unwrap_or_default(),
+            season: row.try_get("season").unwrap_or_default(),
             number_of_games: row.try_get("number_of_games").unwrap_or_default(),
             number_of_seasons: row.try_get("number_of_seasons").unwrap_or_default()
         })

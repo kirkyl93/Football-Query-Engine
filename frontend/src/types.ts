@@ -207,6 +207,7 @@ export interface PlayerNumberOfGamesOrSeasonsResult {
     sub_position: string,
     image_url: string,
     clubs_played_for: string,
+    season: number,
     number_of_games: number,
     number_of_seasons: number
 }

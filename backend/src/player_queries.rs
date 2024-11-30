@@ -543,8 +543,7 @@ fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParam
         COUNT(DISTINCT a.game_id) AS number_of_games");
 
     if params.scope == SEASON {
-        query.push("
-    g.season AS season,");
+        query.push(", g.season AS season");
     }
 
     query.push("
@@ -607,8 +606,7 @@ fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) ->
         COUNT(DISTINCT a.game_id) AS number_of_games");
 
     if params.scope == SEASON {
-        query.push("
-    g.season AS season,");
+        query.push(", g.season AS season");
     }
 
     query.push("
