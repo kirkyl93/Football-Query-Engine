@@ -342,15 +342,14 @@ fn construct_number_of_games_or_seasons_query_from_params<'a>(params: ProcessedS
         if params.sort == NUMBER_OF_SEASONS_WITH {
             return build_number_of_seasons_query_from_appearances(params);
         }
+        return build_number_of_games_query_from_appearances(params);
+
+    } else {
+        if params.sort == NUMBER_OF_SEASONS_WITH {
+            return build_number_of_seasons_query_from_events(params);
+        }
+        return build_number_of_games_query_from_events(params);
     }
-    return build_number_of_seasons_query_from_events(params);
-
-
-    // if params.sort == NUMBER_OF_SEASONS_WITH {
-    //     return build_number_of_games_query_from_appearances(params);
-    // }
-    //
-    // return build_number_of_games_query_from_events(params);
 }
 
 fn construct_game_search_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
@@ -447,12 +446,6 @@ player_season_goals AS (
     add_limit_and_offset_to_query(&mut query, params.limit, params.page);
 
     return query;
-
-
-
-
-
-
 }
 
 fn build_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
@@ -539,7 +532,117 @@ fn build_game_query_from_appearances<'a>(params: ProcessedSearchParams) -> Query
     return query;
 }
 
+fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+    let goals_calculation = goals_query_string(params.penalties, true);
 
+    let mut query = QueryBuilder::new("
+    SELECT
+        RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) DESC) AS rank,
+        a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
+        STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
+        COUNT(DISTINCT a.game_id) AS number_of_games");
+
+    if params.scope == SEASON {
+        query.push("
+    g.season AS season,");
+    }
+
+    query.push("
+    FROM
+        appearances_enhanced a
+    JOIN
+        clubs c ON c.club_id = a.player_club_id
+    JOIN
+        players p on p.player_id = a.player_id
+    JOIN
+        games g ON g.game_id = a.game_id
+    WHERE 1 = 1");
+
+    add_minimum_game_goals_to_query(&mut query, goals_calculation.clone(), params.minimum_goals);
+    add_maximum_game_goals_to_query(&mut query, goals_calculation.clone(), params.maximum_goals);
+    add_minimum_game_assists_to_query(&mut query, params.minimum_assists);
+    add_maximum_game_assists_to_query(&mut query, params.maximum_assists);
+
+    add_seasons_to_query(&mut query, params.seasons);
+    add_competitions_to_query(&mut query, params.competitions);
+    add_positions_to_query(&mut query, params.positions);
+    add_ages_to_query(&mut query, params.minimum_age, params.maximum_age);
+    add_height_to_query(&mut query, params.minimum_height, params.maximum_height);
+    add_home_away_to_query(&mut query, params.home_or_away);
+    add_player_names_to_query(&mut query, params.names);
+    add_clubs_played_for_to_query(&mut query, params.clubs_played_for);
+    add_clubs_played_against_to_query(&mut query, params.clubs_played_against);
+    add_sub_info_to_query(&mut query, params.subs_only, params.earliest_sub_on_time, params.latest_sub_on_time);
+
+    query.push("
+    GROUP BY
+        a.player_id, player_name, image_url, country_of_citizenship, sub_position");
+
+    if params.scope == SEASON {
+        query.push(", g.season");
+    }
+
+    query.push("
+    ORDER BY
+        number_of_games DESC, player_name");
+
+    add_limit_and_offset_to_query(&mut query, params.limit, params.page);
+
+    return query;
+}
+
+fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+    let mut query = QueryBuilder::new("");
+
+    construct_appearances_table_from_game_events(&mut query, &params);
+
+    let goals_calculation = goals_query_string(params.penalties, true);
+
+    query.push("
+
+    SELECT
+        RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) DESC) AS rank,
+        a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
+        STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
+        COUNT(DISTINCT a.game_id) AS number_of_games");
+
+    if params.scope == SEASON {
+        query.push("
+    g.season AS season,");
+    }
+
+    query.push("
+    FROM
+        games_minute_appearance_filter a
+    JOIN
+        clubs c ON c.club_id = a.club_id
+    JOIN
+        players p on p.player_id = a.player_id
+    JOIN
+        games g ON g.game_id = a.game_id
+    WHERE 1 = 1");
+
+    add_minimum_game_goals_to_query(&mut query, goals_calculation.clone(), params.minimum_goals);
+    add_maximum_game_goals_to_query(&mut query, goals_calculation.clone(), params.maximum_goals);
+    add_minimum_game_assists_to_query(&mut query, params.minimum_assists);
+    add_maximum_game_assists_to_query(&mut query, params.maximum_assists);
+
+    query.push("
+    GROUP BY
+        a.player_id, player_name, p.image_url, p.country_of_citizenship, p.sub_position");
+
+    if params.scope == SEASON {
+        query.push(", g.season");
+    }
+
+    query.push("
+    ORDER BY
+        number_of_games DESC, player_name");
+
+    add_limit_and_offset_to_query(&mut query, params.limit, params.page);
+
+    return query;
+}
 
 fn build_number_of_seasons_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
     let goals_calculation = goals_query_string(params.penalties, false);
@@ -1044,7 +1147,6 @@ fn add_minimum_appearances_to_query(query: &mut QueryBuilder<Postgres>, minimum_
     HAVING COUNT(*) >= ").push_bind(minimum_appearances);
     }
 }
-
 fn add_minimum_season_goals_to_query(query: &mut QueryBuilder<Postgres>, minimum_goals: i32) {
     if minimum_goals > 0 {
         query.push("
@@ -1070,6 +1172,34 @@ fn add_maximum_season_assists_to_query(query: &mut QueryBuilder<Postgres>, maxim
     if maximum_assists > 0 {
         query.push("
     AND total_assists <= ").push(maximum_assists);
+    }
+}
+
+fn add_minimum_game_goals_to_query(query: &mut QueryBuilder<Postgres>, goals_calculation: String, minimum_goals: i32) {
+    if minimum_goals > 0 {
+        query.push("
+    AND ").push(goals_calculation).push(" >= ").push(minimum_goals);
+    }
+}
+
+fn add_maximum_game_goals_to_query(query: &mut QueryBuilder<Postgres>, goals_calculation: String, maximum_goals: i32) {
+    if maximum_goals > 0 {
+        query.push("
+    AND ").push(goals_calculation).push(" <= ").push(maximum_goals);
+    }
+}
+
+fn add_minimum_game_assists_to_query(query: &mut QueryBuilder<Postgres>, minimum_assists: i32) {
+    if minimum_assists > 0 {
+        query.push("
+    AND assists >= ").push(minimum_assists);
+    }
+}
+
+fn add_maximum_game_assists_to_query(query: &mut QueryBuilder<Postgres>, maximum_assists: i32) {
+    if maximum_assists > 0 {
+        query.push("
+    AND assists <= ").push(maximum_assists);
     }
 }
 

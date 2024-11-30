@@ -26,6 +26,7 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                             <th>Clubs</th>
                             <th>Position</th>
                             {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th>Number of seasons</th>}
+                            {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Number of games</th>}
                         </tr>
                         </thead>
                         <tbody>
@@ -71,6 +72,7 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                                 </td>
                                 <td>{player.sub_position}</td>
                                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td>{player.number_of_seasons}</td>}
+                                {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{player.number_of_games}</td>}
                             </tr>
                         ))}
                         </tbody>
