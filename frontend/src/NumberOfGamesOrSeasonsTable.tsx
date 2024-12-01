@@ -5,6 +5,7 @@ import {fetchNumberOfGamesOrSeasonsResult} from "./searchUrlUtils";
 import {Link} from "react-router-dom";
 import React from "react";
 import {formatSeason} from "./dateUtils";
+import {LoadingBar} from "./LoadingBar";
 
 
 interface NumberOfGamesOrSeasonsTableProps {
@@ -82,6 +83,12 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                     </table>
                 </>
             )}
+            <LoadingBar
+                loading={loading}
+                hasData={hasData}
+                hasMore={hasMore}
+                error={error}
+            />
         </div>
     )
 }

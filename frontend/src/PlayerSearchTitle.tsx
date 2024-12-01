@@ -72,7 +72,7 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
 
         if (minuteBasedSortOptions.includes(filterState.sortBy as SortOptions) &&
             (filterState.minimumAppearances ?? 0) > 0) {
-            sortByTitle += `(AT LEAST " ${filterState.minimumAppearances} " APPS) `;
+            sortByTitle += `(AT LEAST ${filterState.minimumAppearances} APPS) `;
         }
 
         if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy as SortOptions)) {

@@ -1,7 +1,6 @@
 use actix_web::{get, web, HttpResponse};
 use serde::Deserialize;
 use sqlx::{PgPool, Postgres, QueryBuilder};
-use crate::player_queries::add_limit_and_offset_to_query;
 use crate::club::Club;
 
 #[derive(Deserialize)]
@@ -52,4 +51,12 @@ fn add_club_name_to_query(query: &mut QueryBuilder<Postgres>, club_name: &str) {
             }
         }
     }
+}
+
+pub fn add_limit_and_offset_to_query(query: &mut QueryBuilder<Postgres>, limit: i32, page: i32) {
+    query.push("
+    LIMIT ").push_bind(limit);
+
+    query.push("
+    OFFSET ").push_bind(page * limit);
 }
