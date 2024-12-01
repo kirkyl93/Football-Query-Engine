@@ -81,37 +81,32 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             const minimumAssists = filterState.minimumAssists ?? 0;
             const maximumAssists = filterState.maximumAssists ?? 0;
 
-            if (minimumGoals > 0 || minimumAssists > 0) {
-                sortByTitle += "AT LEAST ";
-
-                if (minimumGoals > 0) {
-                    sortByTitle += `${minimumGoals} GOAL${minimumGoals > 1 ? "S" : ""} `;
+            if (minimumGoals > 0 && maximumGoals > 0) {
+                if (minimumGoals === maximumGoals) {
+                    sortByTitle += `EXACTLY ${maximumGoals} GOAL${maximumGoals > 1 ? 'S' : ''} `
+                } else {
+                    sortByTitle += `BETWEEN ${minimumGoals} AND ${maximumGoals} GOALS `
                 }
-
-                if (minimumAssists > 0) {
-                    if (minimumGoals > 0) {
-                        sortByTitle += "AND ";
-                    }
-                    sortByTitle += `${minimumAssists} ASSIST${minimumAssists > 1 ? "S" : ""} `;
-                }
+            } else if (minimumGoals > 0) {
+                sortByTitle += `AT LEAST ${minimumGoals} GOAL${minimumGoals > 1 ? 'S' : ''} `
+            } else if (maximumGoals > 0) {
+                sortByTitle += `AT MOST ${maximumGoals} GOAL${maximumGoals > 1 ? 'S' : ''} `
             }
 
-            if (maximumGoals > 0 || maximumAssists > 0) {
-                if (minimumGoals > 0 || maximumGoals > 0) {
-                    sortByTitle += "AND ";
-                }
-                sortByTitle += "AT MOST ";
+            if ((minimumGoals > 0 || maximumGoals > 0) && (minimumAssists > 0 || maximumAssists > 0)) {
+                sortByTitle += `AND `
+            }
 
-                if (maximumGoals > 0) {
-                    sortByTitle += `${maximumGoals} GOAL${maximumGoals > 1 ? "S" : ""} `;
+            if (minimumAssists > 0 && maximumAssists > 0) {
+                if (minimumAssists === maximumAssists) {
+                    sortByTitle += `EXACTLY ${maximumAssists} ASSIST${maximumAssists > 1 ? `S` : ''} `
+                } else {
+                    sortByTitle += `BETWEEN ${minimumAssists} AND ${maximumAssists} ASSISTS `
                 }
-
-                if (maximumAssists > 0) {
-                    if (maximumGoals > 0) {
-                        sortByTitle += "AND ";
-                    }
-                    sortByTitle += `${minimumAssists} ASSIST${minimumAssists > 1 ? "S" : ""} `;
-                }
+            } else if (minimumAssists > 0) {
+                sortByTitle += `AT LEAST ${minimumAssists} ASSIST${minimumAssists > 1 ? 'S' : ''} `
+            } else if (maximumAssists > 0) {
+                sortByTitle += `AT MOST ${maximumAssists} ASSIST${maximumAssists > 1 ? 'S' : ''} `
             }
         }
 
