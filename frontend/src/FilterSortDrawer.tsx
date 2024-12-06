@@ -999,7 +999,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
                     {isSortByOpen && numberOfGamesOrSeasonsSortOptions.includes(localFilterState.sortBy as SortOptions) && (
                         <>
-                            <div className="minute-and-age-and-sub-dropdown-group">
+                            <div className="games_or_seasons-dropdown-group">
                                 <label>Minimum Goals: </label>
                                 <select value={localFilterState.minimumGoals ?? ''}
                                         onChange={handleMinimumGoalsChange}>
@@ -1010,7 +1010,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                         <option key={goal} value={goal}>{goal}</option>))}
                                 </select>
                             </div>
-                            <div className="minute-and-age-and-sub-dropdown-group">
+                            <div className="games_or_seasons-dropdown-group">
                                 <label>Maximum Goals: </label>
                                 <select value={localFilterState.maximumGoals ?? ''}
                                         onChange={handleMaximumGoalsChange}>
@@ -1021,7 +1021,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                         <option key={goal} value={goal}>{goal}</option>))}
                                 </select>
                             </div>
-                            <div className="minute-and-age-and-sub-dropdown-group">
+                            <div className="games_or_seasons-dropdown-group">
                                 <label>Minimum Assists: </label>
                                 <select value={localFilterState.minimumAssists ?? ''}
                                         onChange={handleMinimumAssistsChange}>
@@ -1033,7 +1033,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                 </select>
                             </div>
 
-                            <div className="minute-and-age-and-sub-dropdown-group">
+                            <div className="games_or_seasons-dropdown-group">
                                 <label>Maximum Assists: </label>
                                 <select value={localFilterState.maximumAssists ?? ''}
                                         onChange={handleMaximumAssistsChange}>
