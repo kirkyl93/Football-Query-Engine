@@ -1,3 +1,5 @@
+import {Country} from "./countryType";
+
 export interface Player {
     player_id: number,
     first_name: string,
@@ -48,6 +50,7 @@ export enum UrlFilters {
     MINIMUM_HEIGHT = 'minheight',
     MAXIMUM_HEIGHT = 'maxheight',
     PLAYER_NAMES = 'names',
+    PLAYER_COUNTRIES = 'c',
     CLUBS_PLAYED_FOR = 'clubspf',
     CLUBS_PLAYED_AGAINST = 'clubspa',
     SUBS_ONLY = 'subonly',
@@ -133,6 +136,7 @@ export interface FilterState {
     minHeight?: number;
     maxHeight?: number;
     playerNames: string[];
+    playerCountries: Country[];
     clubsPlayedFor: number[];
     clubsPlayedAgainst: number[];
     subsOnly: boolean;

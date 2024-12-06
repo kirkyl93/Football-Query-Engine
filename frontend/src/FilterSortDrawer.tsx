@@ -14,6 +14,7 @@ import {
     SortOptions,
     StatScope
 } from "./types";
+import {countries, Country} from "./countryType";
 
 interface FilterSortDrawerProps {
     isOpen: boolean;
@@ -82,7 +83,10 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
         {name: "Game", id: StatScope.GAME}
     ];
 
+
     const [localFilterState, setLocalFilterState] = useState<FilterState>(filterState);
+    const [newCountry, setNewCountry] = useState<string>("");
+    const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
     const [newPlayerName, setNewPlayerName] = useState<string>("");
     const [newClubPlayedFor, setNewClubPlayedFor] = useState<string>("");
     const [newClubsPlayedForSuggestions, setNewClubsPlayedForSuggestions] = useState<Club[]>([]);
@@ -100,6 +104,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     const [isAgeOpen, setIsAgeOpen] = useState(false);
     const [isHeightOpen, setIsHeightOpen] = useState(false);
     const [isPlayerNameOpen, setIsPlayerNameOpen] = useState(false);
+    const [isPlayerCountriesOpen, setIsPlayerCountriesOpen] = useState(false);
     const [isClubsOpen, setIsClubsOpen] = useState(false);
     const [isSubstitutesOpen, setIsSubstitutesOpen] = useState(false);
     const [isPenaltiesOpen, setIsPenaltiesOpen] = useState(false);
@@ -118,6 +123,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
             minHeight: undefined,
             maxHeight: undefined,
             playerNames: [],
+            playerCountries: [],
             clubsPlayedFor: [],
             clubsPlayedAgainst: [],
             subsOnly: false,
@@ -204,6 +210,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
 
     const handleClubPlayedAgainstSuggestionClick = (suggestion: number) => {
         setNewClubPlayedAgainst("");
+        setNewClubsPlayedAgainstSuggestions([]);
         setIsClubsPlayedAgainstDropdownVisible(false);
         if (localFilterState.clubsPlayedFor !== undefined && !localFilterState.clubsPlayedFor.includes(suggestion)) {
             setLocalFilterState(prevState => ({
@@ -314,6 +321,43 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     const handlePlayerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewPlayerName(e.target.value);
     }
+
+    const handlePlayerCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setNewCountry(value);
+        if (value.length > 0) {
+            setFilteredCountries(
+                countries.filter((country) =>
+                    country.name.toLowerCase().startsWith(value.toLowerCase())
+                )
+            );
+        } else {
+            setFilteredCountries([]);
+        }
+    };
+
+    const handlePlayerCountryClick = (country: Country) => {
+        setNewCountry("");
+        setFilteredCountries([]);
+
+        if (!localFilterState.playerCountries?.some((n) => n.name === country.name)) {
+            setLocalFilterState((prevState) => ({
+                ...prevState,
+                playerCountries: [...(prevState.playerCountries || []), country],
+            }));
+        }
+    };
+
+
+    const handleRemovePlayerCountry = (countryName: string) => {
+        setLocalFilterState((prevState) => ({
+            ...prevState,
+            playerCountries: prevState.playerCountries.filter(
+                (n) => n.name !== countryName
+            ),
+        }));
+    };
+
 
     const handleClubPlayedForChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewClubPlayedFor(e.target.value);
@@ -671,6 +715,63 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                         </div>
                     )}
                 </div>
+
+                <div className="dropdown-section">
+                    <div
+                        className="dropdown-title"
+                        onClick={() => setIsPlayerCountriesOpen(!isPlayerCountriesOpen)}
+                    >
+                        <span className="title-text">PLAYER COUNTRIES</span>
+                        <span className="arrow-icon">{isPlayerCountriesOpen ? '▲' : '▼'}</span>
+                    </div>
+                    {isPlayerCountriesOpen && (
+                        <div className="player-name-and-club-dropdown-content">
+                            <input
+                                type="text"
+                                placeholder="Enter country"
+                                value={newCountry}
+                                onChange={handlePlayerCountryChange}
+                            />
+
+                            {filteredCountries.length > 0 && (
+                                <ul className="suggestions-dropdown">
+                                    {filteredCountries.map((country) => (
+                                        <li
+                                            key={country.code}
+                                            className="suggestion-item"
+                                            onClick={() => handlePlayerCountryClick(country)}
+                                        >
+                                            <img
+                                                src={`https://flagcdn.com/w20/${country.code}.png`}
+                                                alt={country.name}
+                                                className="flag-icon"
+                                            />
+                                            {country.name}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            <div className="player-names-and-clubs-list">
+                                {(localFilterState.playerCountries || []).map((country, index) => (
+                                    <span key={index} className="player-name-item">
+                                        <img
+                                            src={`https://flagcdn.com/w20/${country.code}.png`}
+                                            alt={country.name}
+                                            className="flag-icon"
+                                        />
+                                        {country.name}
+                                        <button
+                                            onClick={() => handleRemovePlayerCountry(country.name)}
+                                            className="remove-button"
+                                        >x</button>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
 
                 <div className="dropdown-section">
                     <div className="dropdown-title" onClick={() => setIsClubsOpen(!isClubsOpen)}>

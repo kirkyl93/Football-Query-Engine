@@ -108,6 +108,21 @@ pub fn add_player_names_to_query(query: &mut QueryBuilder<Postgres>, player_name
     }
 }
 
+pub fn add_player_countries_to_query(query: &mut QueryBuilder<Postgres>, player_countries: Vec<String>) {
+    if !player_countries.is_empty() {
+        query.push("
+        AND country_of_citizenship IN (");
+
+        for (i, country) in player_countries.into_iter().enumerate() {
+            if i > 0 {
+                query.push(", ");
+            }
+            query.push_bind(country);
+        }
+        query.push(")");
+    }
+}
+
 pub fn add_clubs_played_for_to_query(query: &mut QueryBuilder<Postgres>, clubs_played_for: Vec<i32>) {
     if !clubs_played_for.is_empty() {
         query.push("
@@ -225,6 +240,7 @@ pub fn construct_appearances_table_from_game_events(query: &mut QueryBuilder<Pos
     add_height_to_query(query, params.minimum_height(), params.maximum_height());
     add_home_away_to_query(query, params.home_or_away());
     add_player_names_to_query(query, params.names());
+    add_player_countries_to_query(query, params.countries().clone());
     add_clubs_played_for_to_query(query, params.clubs_played_for().clone());
     add_clubs_played_against_to_query(query, params.clubs_played_against().clone());
     add_sub_info_to_query(query, params.subs_only(), params.earliest_sub_on_time(), params.latest_sub_on_time());

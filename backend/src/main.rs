@@ -12,7 +12,7 @@ use club_queries::{get_clubs};
 use crate::player::queries::get_players::{fetch_player, fetch_player_stats_by_season, get_players};
 use crate::player::queries::overall_or_season_scope_search::overall_or_season_scope_search;
 use crate::player::queries::game_scope_search::game_search;
-use crate::player::queries::number_of_seasons_or_games::number_of_games_or_seasons_search;
+use crate::player::queries::number_of_seasons_or_games_search::number_of_games_or_seasons_search;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

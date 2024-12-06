@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import FilterSortDrawer from "./FilterSortDrawer";
 import './PlayerFilterScreen.css';
 import {useLocation, useNavigate} from "react-router-dom";
@@ -16,11 +16,29 @@ import PlayerSearchTitle from "./PlayerSearchTitle";
 import {PlayerCombinedStatsTable} from "./PlayerCombinedStatsTable";
 import {PlayerGameStatsTable} from "./PlayerGameStatsTable";
 import {NumberOfGamesOrSeasonsTable} from "./NumberOfGamesOrSeasonsTable";
+import {countries, Country} from "./countryType";
 
 const PlayerFilterScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const drawerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const location = useLocation();
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+                setIsDrawerOpen(false);
+            }
+        };
+
+        if (isDrawerOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDrawerOpen]);
 
     const {
         selectedSeasons,
@@ -33,6 +51,7 @@ const PlayerFilterScreen: React.FC = () => {
         selectedMinHeight,
         selectedMaxHeight,
         selectedPlayerNames,
+        selectedCountries,
         selectedClubsPlayedFor,
         selectedClubsPlayedAgainst,
         selectedSubsOnly,
@@ -49,6 +68,7 @@ const PlayerFilterScreen: React.FC = () => {
         selectedMaximumAssists
     } = useMemo(() => {
         const params = new URLSearchParams(location.search);
+        const selectedCountryCodes = params.get(UrlFilters.PLAYER_COUNTRIES)?.split(',').map(code => code.trim()) || [];
         return {
             selectedSeasons: params.get(UrlFilters.SEASONS)?.split(',').map(Number) || [],
             selectedCompetitions: params.get(UrlFilters.COMPETITIONS)?.split(',') || [],
@@ -66,6 +86,9 @@ const PlayerFilterScreen: React.FC = () => {
             selectedMaxHeight: params.get(UrlFilters.MAXIMUM_HEIGHT) ?
                 parseInt(params.get(UrlFilters.MAXIMUM_HEIGHT)!, 10) : undefined,
             selectedPlayerNames: params.get(UrlFilters.PLAYER_NAMES)?.split(',').map(name => name.trim()) || [],
+            selectedCountries: selectedCountryCodes.map(code =>
+                countries.find(country => country.code === code))
+                .filter((country): country is Country => country !== undefined),
             selectedClubsPlayedFor: params.get(UrlFilters.CLUBS_PLAYED_FOR)?.split(',').map(Number) || [],
             selectedClubsPlayedAgainst: params.get(UrlFilters.CLUBS_PLAYED_AGAINST)?.split(',').map(Number) || [],
             selectedSubsOnly: params.has(UrlFilters.SUBS_ONLY),
@@ -108,6 +131,7 @@ const PlayerFilterScreen: React.FC = () => {
         addParam(UrlFilters.MINIMUM_HEIGHT, filterState.minHeight);
         addParam(UrlFilters.MAXIMUM_HEIGHT, filterState.maxHeight);
         addParam(UrlFilters.PLAYER_NAMES, filterState.playerNames);
+        addParam(UrlFilters.PLAYER_COUNTRIES, filterState.playerCountries.map(country => country.code));
         addParam(UrlFilters.CLUBS_PLAYED_FOR, filterState.clubsPlayedFor);
         addParam(UrlFilters.CLUBS_PLAYED_AGAINST, filterState.clubsPlayedAgainst);
         if (filterState.subsOnly) {
@@ -144,9 +168,9 @@ const PlayerFilterScreen: React.FC = () => {
         minuteFrom: selectedMinuteFrom, minuteTo: selectedMinuteTo,
         minAge: selectedMinAge, maxAge: selectedMaxAge,
         minHeight: selectedMinHeight, maxHeight: selectedMaxHeight,
-        playerNames: selectedPlayerNames, clubsPlayedFor: selectedClubsPlayedFor,
-        clubsPlayedAgainst: selectedClubsPlayedAgainst, subsOnly: selectedSubsOnly,
-        earliestSubOnTime: selectedEarliestSubOnTime, latestSubOnTime: selectedLatestSubOnTime,
+        playerNames: selectedPlayerNames, playerCountries: selectedCountries,
+        clubsPlayedFor: selectedClubsPlayedFor, clubsPlayedAgainst: selectedClubsPlayedAgainst,
+        subsOnly: selectedSubsOnly, earliestSubOnTime: selectedEarliestSubOnTime, latestSubOnTime: selectedLatestSubOnTime,
         penalties: selectedPenaltyOption, homeOrAway: selectedHomeOrAwayOption, statScope: selectedScope,
         sortBy: selectedSortBy, minimumAppearances: selectedMinimumAppearances,
         minimumGoals: selectedMinimumGoals, maximumGoals: selectedMaximumGoals,
@@ -187,12 +211,14 @@ const PlayerFilterScreen: React.FC = () => {
                 }
             </div>
 
-            <FilterSortDrawer
-                isOpen={isDrawerOpen}
-                filterState={filterState}
-                onFilterChange={handleFilterChange}
-                onClose={toggleDrawer}
-            />
+            <div ref={drawerRef}>
+                <FilterSortDrawer
+                    isOpen={isDrawerOpen}
+                    filterState={filterState}
+                    onFilterChange={handleFilterChange}
+                    onClose={toggleDrawer}
+                />
+            </div>
         </div>
     );
 }

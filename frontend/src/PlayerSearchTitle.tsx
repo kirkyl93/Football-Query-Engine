@@ -218,6 +218,14 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
         return ` · ${filterState.playerNames.map(name => name.toUpperCase()).join(" OR ")}`;
     }
 
+    const countriesTitle = (): string => {
+        if (filterState.playerCountries.length === 0) {
+            return "";
+        }
+
+        return ` · ${filterState.playerCountries.map(country => country.name.toUpperCase()).join(" OR ")}`;
+    }
+
     const subsTitle = (): string => {
         let subString = "";
         if (!filterState.subsOnly) {
@@ -269,6 +277,7 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
         title += ageTitle();
         title += heightTitle();
         title += namesTitle();
+        title += countriesTitle();
         title += subsTitle();
         title += pensTitle();
         title += homeOrAwayTitle();
@@ -281,7 +290,7 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             {constructTitle}
             {filterState.clubsPlayedFor.length > 0 && (
                 <>
-                    <span> · PLAYED FOR:</span>
+                    <span> · PLAYING FOR:</span>
                     {filterState.clubsPlayedFor.length > 10 ? (
                         <span style={{marginLeft: '5px'}}>{filterState.clubsPlayedFor.length} CLUBS SELECTED</span>
                     ) : (
@@ -297,7 +306,7 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             )}
             {filterState.clubsPlayedAgainst.length > 0 && (
                 <>
-                    <span>· PLAYED AGAINST:</span>
+                    <span>· PLAYING AGAINST:</span>
                     {filterState.clubsPlayedAgainst.length > 10 ? (
                         <span style={{marginLeft: '5px'}}>{filterState.clubsPlayedAgainst.length} CLUBS SELECTED</span>
                     ) : (

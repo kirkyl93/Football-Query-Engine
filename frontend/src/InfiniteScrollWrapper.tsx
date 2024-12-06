@@ -55,7 +55,6 @@ export function useInfiniteScroll<T>(
 
     const fetchData = async (): Promise<void> => {
         if (currentPage >= 5) {
-            setHasMore(false);
             return;
         }
 

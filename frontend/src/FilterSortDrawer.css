@@ -110,9 +110,8 @@
     margin-left: auto;
 }
 
-/* Apply button fixed at the bottom of the drawer */
 .apply-button {
-    width: 100%; /* Full width minus padding */
+    width: 100%;
     padding: 10px;
     background-color: #121212;
     color: white;

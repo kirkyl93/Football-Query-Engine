@@ -13,7 +13,7 @@ export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams 
     const paramMapping = [
         UrlFilters.SEASONS, UrlFilters.COMPETITIONS, UrlFilters.POSITIONS, UrlFilters.MINUTE_FROM, UrlFilters.MINUTE_TO,
         UrlFilters.MINIMUM_AGE, UrlFilters.MAXIMUM_AGE, UrlFilters.MINIMUM_HEIGHT, UrlFilters.MAXIMUM_HEIGHT, UrlFilters.PLAYER_NAMES,
-        UrlFilters.CLUBS_PLAYED_FOR, UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.HOME_OR_AWAY,
+        UrlFilters.PLAYER_COUNTRIES, UrlFilters.CLUBS_PLAYED_FOR, UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.HOME_OR_AWAY,
         UrlFilters.SORT_BY, UrlFilters.MINIMUM_APPEARANCES, UrlFilters.MINIMUM_GOALS, UrlFilters.MAXIMUM_GOALS, UrlFilters.MINIMUM_ASSISTS,
         UrlFilters.MAXIMUM_ASSISTS
     ];

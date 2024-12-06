@@ -1,7 +1,6 @@
 use actix_web::{get, web, HttpResponse};
 use sqlx::{PgPool, Postgres, QueryBuilder};
-use crate::player::queries::shared_sql_helper::{add_ages_to_query, add_clubs_played_against_to_query, add_clubs_played_for_to_query, add_competitions_to_query, add_height_to_query, add_home_away_to_query, add_limit_and_offset_to_query,
-                                                add_player_names_to_query, add_positions_to_query, add_seasons_to_query, add_sub_info_to_query, construct_appearances_table_from_game_events, goals_query_string};
+use crate::player::queries::shared_sql_helper::{add_ages_to_query, add_clubs_played_against_to_query, add_clubs_played_for_to_query, add_competitions_to_query, add_height_to_query, add_home_away_to_query, add_limit_and_offset_to_query, add_player_countries_to_query, add_player_names_to_query, add_positions_to_query, add_seasons_to_query, add_sub_info_to_query, construct_appearances_table_from_game_events, goals_query_string};
 use crate::player::search_models::{ProcessedSearchParams, SearchParams, StatScope};
 use crate::player::search_models::SortOption::NumberOfSeasonsWith;
 use crate::player::sql_models::PlayerNumberOfGamesOrSeasonsResult;
@@ -139,6 +138,7 @@ fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParam
     add_height_to_query(&mut query, params.minimum_height(), params.maximum_height());
     add_home_away_to_query(&mut query, params.home_or_away());
     add_player_names_to_query(&mut query, params.names());
+    add_player_countries_to_query(&mut query, params.countries().clone());
     add_clubs_played_for_to_query(&mut query, params.clubs_played_for().clone());
     add_clubs_played_against_to_query(&mut query, params.clubs_played_against().clone());
     add_sub_info_to_query(&mut query, params.subs_only(), params.earliest_sub_on_time(), params.latest_sub_on_time());
@@ -238,6 +238,7 @@ WITH player_season_goals AS (
     add_height_to_query(&mut query, params.minimum_height(), params.maximum_height());
     add_home_away_to_query(&mut query, params.home_or_away());
     add_player_names_to_query(&mut query, params.names());
+    add_player_countries_to_query(&mut query, params.countries().clone());
     add_clubs_played_for_to_query(&mut query, params.clubs_played_for().clone());
     add_clubs_played_against_to_query(&mut query, params.clubs_played_against().clone());
     add_sub_info_to_query(&mut query, params.subs_only(), params.earliest_sub_on_time(), params.latest_sub_on_time());

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::countries::Country;
 use crate::player::player_enums::map_sub_position_code_to_position;
 #[derive(Deserialize)]
 pub struct ToolbarSearchParams {
@@ -42,6 +43,8 @@ pub struct SearchParams {
     #[serde(rename = "maxheight")]
     maximum_height: Option<i32>,
     names: Option<String>,
+    #[serde(rename = "c")]
+    countries: Option<String>,
     #[serde(rename = "clubspf")]
     clubs_played_for: Option<String>,
     #[serde(rename = "clubspa")]
@@ -91,6 +94,16 @@ impl SearchParams {
             .map(|p| p.split(',').map(String::from).collect())
             .unwrap_or_else(Vec::new);
 
+        let countries: Vec<String> = self.countries
+            .as_ref()
+            .map(|p| {
+                p.split(',')
+                    .map(|code| Country::from_code(code))
+                    .map(|country| country.as_str().to_string())
+                    .collect()
+            })
+            .unwrap_or_else(Vec::new);
+
         let clubs_played_for: Vec<i32> = self.clubs_played_for
             .as_ref()
             .map(|s| s.split(',').filter_map(|s| s.parse().ok()).collect())
@@ -114,6 +127,7 @@ impl SearchParams {
             minimum_height: self.minimum_height.unwrap_or(0),
             maximum_height: self.maximum_height.unwrap_or(0),
             names,
+            countries,
             clubs_played_for,
             clubs_played_against,
             subs_only: self.subs_only.unwrap_or(0),
@@ -145,6 +159,7 @@ pub struct ProcessedSearchParams {
     minimum_height: i32,
     maximum_height: i32,
     names: Vec<String>,
+    countries: Vec<String>,
     clubs_played_for: Vec<i32>,
     clubs_played_against: Vec<i32>,
     subs_only: i32,
@@ -208,6 +223,10 @@ impl ProcessedSearchParams {
 
     pub fn names(&self) -> &Vec<String> {
         &self.names
+    }
+
+    pub fn countries(&self) -> &Vec<String> {
+        &self.countries
     }
 
     pub fn clubs_played_for(&self) -> &Vec<i32> {
