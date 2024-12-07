@@ -11,7 +11,6 @@ export interface Player {
     date_of_birth: string,
     age: number,
     sub_position: string,
-    position: string,
     foot: string,
     height_in_cm: number,
     image_url: string

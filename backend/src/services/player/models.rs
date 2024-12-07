@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use crate::countries::Country;
-use crate::player::player_enums::map_sub_position_code_to_position;
+use crate::services::player::player_enums::map_sub_position_code_to_position;
+
 #[derive(Deserialize)]
 pub struct ToolbarSearchParams {
     page: Option<i32>,
@@ -302,14 +303,6 @@ impl PenaltyOption {
             _ => Some(Self::IncludePenalties)
         }
     }
-
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::IncludePenalties => "ip",
-            Self::ExcludePenalties => "ep",
-            Self::OnlyPenalties => "op",
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -326,14 +319,6 @@ impl HomeAwayOption {
             "a" => Some(Self::Away),
             "e" => Some(Self::Either),
             _ => Some(Self::Either)
-        }
-    }
-
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Home => "h",
-            Self::Away => "a",
-            Self::Either => "e",
         }
     }
 }
@@ -376,25 +361,6 @@ impl SortOption {
             _ => Some(Self::Goals),
         }
     }
-
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Goals => "g",
-            Self::Assists => "a",
-            Self::GoalsAndAssists => "ga",
-            Self::Appearances => "ap",
-            Self::MinutesPlayed => "m",
-            Self::YellowCards => "y",
-            Self::RedCards => "r",
-            Self::MinutesPerGoal => "mpg",
-            Self::MinutesPerAssist => "mpa",
-            Self::MinutesPerGoalOrAssist => "mpga",
-            Self::MinutesPerYellow => "mpy",
-            Self::MinutesPerRed => "mpr",
-            Self::NumberOfGamesWith => "gw",
-            Self::NumberOfSeasonsWith => "sw",
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -411,14 +377,6 @@ impl StatScope {
             "s" => Some(Self::Season),
             "g" => Some(Self::Game),
             _ => Some(Self::Overall)
-        }
-    }
-
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Overall => "o",
-            Self::Season => "s",
-            Self::Game => "g",
         }
     }
 }

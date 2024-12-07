@@ -1,5 +1,5 @@
 use sqlx::{Postgres, QueryBuilder};
-use crate::player::search_models::{HomeAwayOption, PenaltyOption, ProcessedSearchParams, StatScope};
+use crate::services::player::models::{HomeAwayOption, PenaltyOption, ProcessedSearchParams, StatScope};
 
 pub fn add_seasons_to_query(query: &mut QueryBuilder<Postgres>, seasons: Vec<i32>) {
     if !seasons.is_empty() {

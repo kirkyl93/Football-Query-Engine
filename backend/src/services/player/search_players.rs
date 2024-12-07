@@ -1,9 +1,9 @@
 use actix_web::{get, web, HttpResponse};
 use actix_web::web::Path;
 use sqlx::{PgPool, Postgres, QueryBuilder};
-use crate::player::sql_models::{Player, PlayerSeasonByCompAndTeam};
-use crate::player::queries::shared_sql_helper::{add_limit_and_offset_to_query};
-use crate::player::search_models::ToolbarSearchParams;
+use crate::services::player::models::ToolbarSearchParams;
+use crate::services::player::shared_sql_helper::add_limit_and_offset_to_query;
+use crate::services::player::sql_models::{Player, PlayerSeasonByCompAndTeam};
 
 #[get("/players")]
 pub async fn get_players(pool: web::Data<PgPool>, params: web::Query<ToolbarSearchParams>) -> HttpResponse {

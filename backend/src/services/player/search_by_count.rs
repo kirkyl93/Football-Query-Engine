@@ -1,12 +1,12 @@
 use actix_web::{get, web, HttpResponse};
 use sqlx::{PgPool, Postgres, QueryBuilder};
-use crate::player::queries::shared_sql_helper::{add_ages_to_query, add_clubs_played_against_to_query, add_clubs_played_for_to_query, add_competitions_to_query, add_height_to_query, add_home_away_to_query, add_limit_and_offset_to_query, add_player_countries_to_query, add_player_names_to_query, add_positions_to_query, add_seasons_to_query, add_sub_info_to_query, construct_appearances_table_from_game_events, goals_query_string};
-use crate::player::search_models::{ProcessedSearchParams, SearchParams, StatScope};
-use crate::player::search_models::SortOption::NumberOfSeasonsWith;
-use crate::player::sql_models::PlayerNumberOfGamesOrSeasonsResult;
+use crate::services::player::models::{ProcessedSearchParams, SearchParams, StatScope};
+use crate::services::player::models::SortOption::NumberOfSeasonsWith;
+use crate::services::player::shared_sql_helper::{add_ages_to_query, add_clubs_played_against_to_query, add_clubs_played_for_to_query, add_competitions_to_query, add_height_to_query, add_home_away_to_query, add_limit_and_offset_to_query, add_player_countries_to_query, add_player_names_to_query, add_positions_to_query, add_seasons_to_query, add_sub_info_to_query, construct_appearances_table_from_game_events, goals_query_string};
+use crate::services::player::sql_models::PlayerNumberOfGamesOrSeasonsResult;
 
 #[get("/search/occurrences")]
-pub async fn number_of_games_or_seasons_search(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -> HttpResponse {
+pub async fn search_by_count(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -> HttpResponse {
     match params.to_processed() {
         Ok(games_or_seasons_search_params) => {
             let mut query = construct_number_of_games_or_seasons_query_from_params(games_or_seasons_search_params);

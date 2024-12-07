@@ -2,9 +2,10 @@ use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{Error, FromRow, Row};
 use sqlx::postgres::PgRow;
+use crate::club::Club;
 use crate::competitions::{Competition, CompetitionType};
 use crate::countries::Country;
-use crate::player::player_enums::{Foot, PlayerPosition, PlayerSubPosition};
+use crate::services::player::player_enums::{Foot, PlayerPosition, PlayerSubPosition};
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct Player {
@@ -19,7 +20,6 @@ pub struct Player {
     date_of_birth: NaiveDate,
     age: u32,
     sub_position: PlayerSubPosition,
-    position: PlayerPosition,
     foot: Foot,
     height_in_cm: i32,
     image_url: String,
@@ -43,7 +43,6 @@ impl<'r> FromRow<'r, PgRow> for Player {
             date_of_birth,
             age: calculate_age(date_of_birth),
             sub_position: PlayerSubPosition::try_from(try_get_or_default::<&str>(row, "sub_position")).unwrap_or(PlayerSubPosition::Missing),
-            position: PlayerPosition::try_from(try_get_or_default::<&str>(row, "position")).unwrap_or(PlayerPosition::Missing),
             foot: Foot::try_from(try_get_or_default::<&str>(row, "foot")).unwrap_or(Foot::Missing),
             height_in_cm: try_get_or_default(row, "height_in_cm"),
             image_url: try_get_or_default(row, "image_url"),
@@ -107,7 +106,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
     }
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct PlayerGameSearchResult {
     rank: i64,
     player_id: i32,
@@ -132,6 +131,24 @@ pub struct PlayerGameSearchResult {
     goals: i32,
     assists: i32
 }
+
+impl PlayerGameSearchResult {
+    pub fn new(rank: i64, player_id: i32, player_name: String, country_of_citizenship: Country,
+               country_code: String, sub_position: PlayerSubPosition, image_url: String,
+               club_id: i32, competition_id: String, competition_name: Competition,
+               competition_country_code: String, date: NaiveDate, season: i32, home_club_id: i32,
+               home_club_name: String, home_club_goals: i32, away_club_id: i32, away_club_name: String,
+               away_club_goals: i32, minutes_played: i32, goals: i32, assists: i32) -> Self {
+
+        Self { rank, player_id, player_name, country_of_citizenship, country_code,
+            sub_position, image_url, club_id, competition_id, competition_name,
+            competition_country_code, date, season, home_club_id, home_club_name,
+            home_club_goals, away_club_id, away_club_name, away_club_goals, minutes_played,
+            goals, assists }
+    }
+}
+
+
 
 impl<'r> FromRow<'r, PgRow> for PlayerGameSearchResult {
     fn from_row(row: &'r PgRow) -> Result<Self, Error> {

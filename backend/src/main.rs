@@ -1,18 +1,18 @@
-mod club_queries;
+
 mod countries;
-mod player;
-mod competitions;
 mod club;
+mod competitions;
+mod services;
 
 use actix_cors::Cors;
 use actix_web::{web::{self}, App, HttpServer};
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
-use club_queries::{get_clubs};
-use crate::player::queries::get_players::{fetch_player, fetch_player_stats_by_season, get_players};
-use crate::player::queries::overall_or_season_scope_search::overall_or_season_scope_search;
-use crate::player::queries::game_scope_search::game_search;
-use crate::player::queries::number_of_seasons_or_games_search::number_of_games_or_seasons_search;
+use crate::services::club::search_clubs::get_clubs;
+use crate::services::player::search_by_count::search_by_count;
+use crate::services::player::search_by_game::search_by_game;
+use crate::services::player::search_by_season_or_across_seasons::search_by_season_or_across_seasons;
+use crate::services::player::search_players::{fetch_player, fetch_player_stats_by_season, get_players};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -35,10 +35,10 @@ async fn main() -> std::io::Result<()> {
             .service(get_players)
             .service(fetch_player)
             .service(fetch_player_stats_by_season)
-            .service(overall_or_season_scope_search)
-            .service(game_search)
+            .service(search_by_season_or_across_seasons)
+            .service(search_by_game)
             .service(get_clubs)
-            .service(number_of_games_or_seasons_search)
+            .service(search_by_count)
     })
         .bind(("127.0.0.1", 8080))?
         .run()
