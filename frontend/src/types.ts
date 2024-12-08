@@ -63,7 +63,9 @@ export enum UrlFilters {
     MINIMUM_GOALS = "ming",
     MAXIMUM_GOALS = "maxg",
     MINIMUM_ASSISTS = "mina",
-    MAXIMUM_ASSISTS = "maxa"
+    MAXIMUM_ASSISTS = "maxa",
+    MINIMUM_GOALS_AND_ASSISTS = "minga",
+    MAXIMUM_GOALS_AND_ASSISTS = "maxga",
 }
 
 export enum PenaltyOptions {
@@ -150,8 +152,8 @@ export interface FilterState {
     maximumGoals?: number;
     minimumAssists?: number;
     maximumAssists?: number;
-    minimumYellows?: number;
-    minimumReds?: number;
+    minimumGoalsAndAssists?: number;
+    maximumGoalsAndAssists?: number;
 }
 
 export interface PlayerSearchResult {

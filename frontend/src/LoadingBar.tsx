@@ -17,7 +17,7 @@ export const LoadingBar: React.FC<LoadingProps> = (
     }) => {
     return (
         <div>
-            {loading && !hasData && <div className="loader-container">
+            {loading && !hasData && error == null && <div className="loader-container">
                 <div className="bouncing-dots">
                     <div className="dot"></div>
                     <div className="dot"></div>

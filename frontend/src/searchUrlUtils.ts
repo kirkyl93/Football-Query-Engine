@@ -15,28 +15,27 @@ export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams 
         UrlFilters.MINIMUM_AGE, UrlFilters.MAXIMUM_AGE, UrlFilters.MINIMUM_HEIGHT, UrlFilters.MAXIMUM_HEIGHT, UrlFilters.PLAYER_NAMES,
         UrlFilters.PLAYER_COUNTRIES, UrlFilters.CLUBS_PLAYED_FOR, UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.HOME_OR_AWAY,
         UrlFilters.SORT_BY, UrlFilters.MINIMUM_APPEARANCES, UrlFilters.MINIMUM_GOALS, UrlFilters.MAXIMUM_GOALS, UrlFilters.MINIMUM_ASSISTS,
-        UrlFilters.MAXIMUM_ASSISTS
+        UrlFilters.MAXIMUM_ASSISTS, UrlFilters.MINIMUM_GOALS_AND_ASSISTS, UrlFilters.MAXIMUM_GOALS_AND_ASSISTS
     ];
 
-    const params = new URLSearchParams(location.search);
-    let statScope = params.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL;
+    let statScope = searchParams.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL;
 
     paramMapping.forEach((key) => {
-        const value = params.get(key);
+        const value = searchParams.get(key);
         if (value) {
             url += `&${key}=${value}`;
         }
     });
 
     if (statScope != StatScope.GAME) {
-        url += `&${UrlFilters.SCOPE}=${params.get(UrlFilters.SCOPE)}`;
+        url += `&${UrlFilters.SCOPE}=${searchParams.get(UrlFilters.SCOPE)}`;
     }
 
-    if (params.has(UrlFilters.SUBS_ONLY)) {
+    if (searchParams.has(UrlFilters.SUBS_ONLY)) {
         url += `&${UrlFilters.SUBS_ONLY}=1`;
 
-        const earliestSub = params.get(UrlFilters.EARLIEST_SUB_ON_TIME);
-        const latestSub = params.get(UrlFilters.LATEST_SUB_ON_TIME);
+        const earliestSub = searchParams.get(UrlFilters.EARLIEST_SUB_ON_TIME);
+        const latestSub = searchParams.get(UrlFilters.LATEST_SUB_ON_TIME);
 
         if (earliestSub) {
             url += `&${UrlFilters.EARLIEST_SUB_ON_TIME}=${earliestSub}`;

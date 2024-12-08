@@ -89,6 +89,8 @@ player_season_goals AS (
     add_maximum_season_goals_to_query(&mut query, params.maximum_goals());
     add_minimum_season_assists_to_query(&mut query, params.minimum_assists());
     add_maximum_season_assists_to_query(&mut query, params.maximum_assists());
+    add_minimum_season_goals_and_assists_to_query(&mut query, params.minimum_goals_and_assists());
+    add_maximum_season_goals_and_assists_to_query(&mut query, params.maximum_goals_and_assists());
 
     query.push("
     GROUP BY
@@ -130,6 +132,8 @@ fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParam
     add_maximum_game_goals_to_query(&mut query, goals_calculation.clone(), params.maximum_goals());
     add_minimum_game_assists_to_query(&mut query, params.minimum_assists());
     add_maximum_game_assists_to_query(&mut query, params.maximum_assists());
+    add_minimum_game_goals_and_assists_to_query(&mut query, goals_calculation.clone(), params.minimum_goals_and_assists());
+    add_maximum_game_goals_and_assists_to_query(&mut query, goals_calculation.clone(), params.maximum_goals_and_assists());
 
     add_seasons_to_query(&mut query, params.seasons().clone());
     add_competitions_to_query(&mut query, params.competitions().clone());
@@ -194,6 +198,8 @@ fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) ->
     add_maximum_game_goals_to_query(&mut query, goals_calculation.clone(), params.maximum_goals());
     add_minimum_game_assists_to_query(&mut query, params.minimum_assists());
     add_maximum_game_assists_to_query(&mut query, params.maximum_assists());
+    add_minimum_game_goals_and_assists_to_query(&mut query, goals_calculation.clone(), params.minimum_goals_and_assists());
+    add_maximum_game_goals_and_assists_to_query(&mut query, goals_calculation.clone(), params.maximum_goals_and_assists());
 
     query.push("
     GROUP BY
@@ -264,6 +270,8 @@ WITH player_season_goals AS (
     add_maximum_season_goals_to_query(&mut query, params.maximum_goals());
     add_minimum_season_assists_to_query(&mut query, params.minimum_assists());
     add_maximum_season_assists_to_query(&mut query, params.maximum_assists());
+    add_minimum_season_goals_and_assists_to_query(&mut query, params.minimum_goals_and_assists());
+    add_maximum_season_goals_and_assists_to_query(&mut query, params.maximum_goals_and_assists());
 
     query.push("
     GROUP BY
@@ -304,6 +312,20 @@ pub fn add_maximum_season_assists_to_query(query: &mut QueryBuilder<Postgres>, m
     }
 }
 
+pub fn add_minimum_season_goals_and_assists_to_query(query: &mut QueryBuilder<Postgres>, minimum_goals_and_assists: i32) {
+    if minimum_goals_and_assists > 0 {
+        query.push("
+    AND total_goals + total_assists >= ").push(minimum_goals_and_assists);
+    }
+}
+
+pub fn add_maximum_season_goals_and_assists_to_query(query: &mut QueryBuilder<Postgres>, maximum_goals_and_assists: i32) {
+    if maximum_goals_and_assists > 0 {
+        query.push("
+    AND total_goals + total_assists <= ").push(maximum_goals_and_assists);
+    }
+}
+
 pub fn add_minimum_game_goals_to_query(query: &mut QueryBuilder<Postgres>, goals_calculation: String, minimum_goals: i32) {
     if minimum_goals > 0 {
         query.push("
@@ -329,5 +351,19 @@ pub fn add_maximum_game_assists_to_query(query: &mut QueryBuilder<Postgres>, max
     if maximum_assists > 0 {
         query.push("
     AND assists <= ").push(maximum_assists);
+    }
+}
+
+pub fn add_minimum_game_goals_and_assists_to_query(query: &mut QueryBuilder<Postgres>, goals_calculation: String, minimum_goals_and_assists: i32) {
+    if minimum_goals_and_assists > 0 {
+        query.push("
+    AND ").push(goals_calculation).push(" + assists >= ").push(minimum_goals_and_assists);
+    }
+}
+
+pub fn add_maximum_game_goals_and_assists_to_query(query: &mut QueryBuilder<Postgres>, goals_calculation: String, maximum_goals_and_assists: i32) {
+    if maximum_goals_and_assists > 0 {
+        query.push("
+    AND ").push(goals_calculation).push(" + assists <= ").push(maximum_goals_and_assists);
     }
 }

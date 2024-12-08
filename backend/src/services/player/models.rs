@@ -70,7 +70,11 @@ pub struct SearchParams {
     #[serde(rename = "mina")]
     minimum_assists: Option<i32>,
     #[serde(rename = "maxa")]
-    maximum_assists: Option<i32>
+    maximum_assists: Option<i32>,
+    #[serde(rename = "minga")]
+    minimum_goals_and_assists: Option<i32>,
+    #[serde(rename = "maxga")]
+    maximum_goals_and_assists: Option<i32>
 }
 
 impl SearchParams {
@@ -142,7 +146,9 @@ impl SearchParams {
             minimum_goals: self.minimum_goals.unwrap_or(0),
             maximum_goals: self.maximum_goals.unwrap_or(0),
             minimum_assists: self.minimum_assists.unwrap_or(0),
-            maximum_assists: self.maximum_assists.unwrap_or(0)
+            maximum_assists: self.maximum_assists.unwrap_or(0),
+            minimum_goals_and_assists: self.minimum_goals_and_assists.unwrap_or(0),
+            maximum_goals_and_assists: self.maximum_goals_and_assists.unwrap_or(0)
         })
     }
 }
@@ -174,7 +180,9 @@ pub struct ProcessedSearchParams {
     minimum_goals: i32,
     maximum_goals: i32,
     minimum_assists: i32,
-    maximum_assists: i32
+    maximum_assists: i32,
+    minimum_goals_and_assists: i32,
+    maximum_goals_and_assists: i32
 }
 
 impl ProcessedSearchParams {
@@ -284,6 +292,14 @@ impl ProcessedSearchParams {
 
     pub fn maximum_assists(&self) -> i32 {
         self.maximum_assists
+    }
+
+    pub fn minimum_goals_and_assists(&self) -> i32 {
+        self.minimum_goals_and_assists
+    }
+
+    pub fn maximum_goals_and_assists(&self) -> i32 {
+        self.maximum_goals_and_assists
     }
 }
 

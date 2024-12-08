@@ -2,7 +2,6 @@ use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{Error, FromRow, Row};
 use sqlx::postgres::PgRow;
-use crate::club::Club;
 use crate::competitions::{Competition, CompetitionType};
 use crate::countries::Country;
 use crate::services::player::player_enums::{Foot, PlayerPosition, PlayerSubPosition};
@@ -52,7 +51,7 @@ impl<'r> FromRow<'r, PgRow> for Player {
     }
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct PlayerSearchResult {
     rank: i64,
     player_id: i32,
@@ -75,6 +74,21 @@ pub struct PlayerSearchResult {
     mins_per_yellow: i64,
     mins_per_red: i64,
     season: i32
+}
+
+impl PlayerSearchResult {
+    pub fn new(rank: i64, player_id: i32, player_name: String, country_of_citizenship: Country,
+               country_code: String, sub_position: PlayerSubPosition, image_url: String,
+               total_appearances: i64, substitute_appearances: i64, total_goals: i64, total_assists:
+               i64, total_yellow_cards: i64, total_red_cards: i64, total_minutes_played: i64,
+               clubs_played_for: String, mins_per_goal: i64, mins_per_assist: i64,
+               mins_per_goal_or_assist: i64, mins_per_yellow: i64, mins_per_red: i64, season: i32) -> Self {
+
+        Self { rank, player_id, player_name, country_of_citizenship, country_code, sub_position, image_url,
+            total_appearances, substitute_appearances, total_goals, total_assists, total_yellow_cards,
+            total_red_cards, total_minutes_played, clubs_played_for, mins_per_goal, mins_per_assist,
+            mins_per_goal_or_assist, mins_per_yellow, mins_per_red, season }
+    }
 }
 
 impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
@@ -182,7 +196,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerGameSearchResult {
     }
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PlayerNumberOfGamesOrSeasonsResult {
     rank: i64,
     player_id: i32,
@@ -195,6 +209,16 @@ pub struct PlayerNumberOfGamesOrSeasonsResult {
     season: i32,
     number_of_games: i64,
     number_of_seasons: i64
+}
+
+impl PlayerNumberOfGamesOrSeasonsResult {
+    pub fn new(rank: i64, player_id: i32, player_name: String, country_of_citizenship: Country,
+               country_code: String, sub_position: PlayerSubPosition, image_url: String,
+               clubs_played_for: String, season: i32, number_of_games: i64, number_of_seasons: i64) -> Self {
+
+        Self { rank, player_id, player_name, country_of_citizenship, country_code, sub_position,
+            image_url, clubs_played_for, season, number_of_games, number_of_seasons }
+    }
 }
 
 impl<'r> FromRow<'r, PgRow> for PlayerNumberOfGamesOrSeasonsResult {

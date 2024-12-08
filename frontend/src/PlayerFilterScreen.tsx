@@ -65,7 +65,9 @@ const PlayerFilterScreen: React.FC = () => {
         selectedMinimumGoals,
         selectedMaximumGoals,
         selectedMinimumAssists,
-        selectedMaximumAssists
+        selectedMaximumAssists,
+        selectedMinimumGoalsAndAssists,
+        selectedMaximumGoalsAndAssists
     } = useMemo(() => {
         const params = new URLSearchParams(location.search);
         const selectedCountryCodes = params.get(UrlFilters.PLAYER_COUNTRIES)?.split(',').map(code => code.trim()) || [];
@@ -109,7 +111,11 @@ const PlayerFilterScreen: React.FC = () => {
             selectedMinimumAssists: params.get(UrlFilters.MINIMUM_ASSISTS) ?
                 parseInt(params.get(UrlFilters.MINIMUM_ASSISTS)!, 10) : undefined,
             selectedMaximumAssists: params.get(UrlFilters.MAXIMUM_ASSISTS) ?
-                parseInt(params.get(UrlFilters.MAXIMUM_ASSISTS)!, 10) : undefined
+                parseInt(params.get(UrlFilters.MAXIMUM_ASSISTS)!, 10) : undefined,
+            selectedMinimumGoalsAndAssists: params.get(UrlFilters.MINIMUM_GOALS_AND_ASSISTS) ?
+                parseInt(params.get(UrlFilters.MINIMUM_GOALS_AND_ASSISTS)!, 10) : undefined,
+            selectedMaximumGoalsAndAssists: params.get(UrlFilters.MAXIMUM_GOALS_AND_ASSISTS) ?
+                parseInt(params.get(UrlFilters.MAXIMUM_GOALS_AND_ASSISTS)!, 10) : undefined
         };
     }, [location.search]);
 
@@ -151,6 +157,8 @@ const PlayerFilterScreen: React.FC = () => {
             addParam(UrlFilters.MAXIMUM_GOALS, filterState.maximumGoals);
             addParam(UrlFilters.MINIMUM_ASSISTS, filterState.minimumAssists);
             addParam(UrlFilters.MAXIMUM_ASSISTS, filterState.maximumAssists);
+            addParam(UrlFilters.MINIMUM_GOALS_AND_ASSISTS, filterState.minimumGoalsAndAssists);
+            addParam(UrlFilters.MAXIMUM_GOALS_AND_ASSISTS, filterState.maximumGoalsAndAssists);
         }
 
         navigate({
@@ -174,7 +182,8 @@ const PlayerFilterScreen: React.FC = () => {
         penalties: selectedPenaltyOption, homeOrAway: selectedHomeOrAwayOption, statScope: selectedScope,
         sortBy: selectedSortBy, minimumAppearances: selectedMinimumAppearances,
         minimumGoals: selectedMinimumGoals, maximumGoals: selectedMaximumGoals,
-        minimumAssists: selectedMinimumAssists, maximumAssists: selectedMaximumAssists
+        minimumAssists: selectedMinimumAssists, maximumAssists: selectedMaximumAssists,
+        minimumGoalsAndAssists: selectedMinimumGoalsAndAssists, maximumGoalsAndAssists: selectedMaximumGoalsAndAssists
 
     };
 
