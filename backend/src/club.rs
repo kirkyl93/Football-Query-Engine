@@ -8,6 +8,7 @@ pub struct Club {
 }
 
 impl Club {
+    #[allow(dead_code)]
     pub fn new(club_id: i32, name: String) -> Self {
         Self { club_id, name }
     }

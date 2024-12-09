@@ -77,6 +77,7 @@ pub struct PlayerSearchResult {
 }
 
 impl PlayerSearchResult {
+    #[allow(dead_code)]
     pub fn new(rank: i64, player_id: i32, player_name: String, country_of_citizenship: Country,
                country_code: String, sub_position: PlayerSubPosition, image_url: String,
                total_appearances: i64, substitute_appearances: i64, total_goals: i64, total_assists:
@@ -147,6 +148,7 @@ pub struct PlayerGameSearchResult {
 }
 
 impl PlayerGameSearchResult {
+    #[allow(dead_code)]
     pub fn new(rank: i64, player_id: i32, player_name: String, country_of_citizenship: Country,
                country_code: String, sub_position: PlayerSubPosition, image_url: String,
                club_id: i32, competition_id: String, competition_name: Competition,
@@ -212,6 +214,7 @@ pub struct PlayerNumberOfGamesOrSeasonsResult {
 }
 
 impl PlayerNumberOfGamesOrSeasonsResult {
+    #[allow(dead_code)]
     pub fn new(rank: i64, player_id: i32, player_name: String, country_of_citizenship: Country,
                country_code: String, sub_position: PlayerSubPosition, image_url: String,
                clubs_played_for: String, season: i32, number_of_games: i64, number_of_seasons: i64) -> Self {

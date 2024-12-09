@@ -1,8 +1,8 @@
 use actix_web::{get, web, HttpResponse};
 use actix_web::web::Path;
 use sqlx::{PgPool, Postgres, QueryBuilder};
+use crate::services::base_query_builder::BaseQueryMethods;
 use crate::services::player::models::ToolbarSearchParams;
-use crate::services::player::shared_sql_helper::add_limit_and_offset_to_query;
 use crate::services::player::sql_models::{Player, PlayerSeasonByCompAndTeam};
 
 #[get("/players")]
@@ -15,9 +15,9 @@ pub async fn get_players(pool: web::Data<PgPool>, params: web::Query<ToolbarSear
 
     add_player_name_to_query(&mut query, search_name);
 
-    query.push(" ORDER BY highest_market_value_in_eur DESC NULLS LAST, name");
+    query.push(" ORDER BY highest_market_value_in_eur DESC NULLS LAST, name")
+        .add_limit_and_offset(limit, page);
 
-    add_limit_and_offset_to_query(&mut query, limit, page);
 
     match query.build_query_as::<Player>()
         .fetch_all(pool.get_ref())
