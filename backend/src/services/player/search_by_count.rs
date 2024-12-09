@@ -93,8 +93,7 @@ fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParam
         a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
         STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
         COUNT(DISTINCT a.game_id) AS number_of_games")
-        .push(if *params.scope() == StatScope::Season {", g.season"} else {""})
-        .push("
+        .push(if *params.scope() == StatScope::Season {", g.season"} else {""}).push("
         FROM
             appearances_enhanced a
         JOIN
@@ -107,8 +106,7 @@ fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParam
         .add_game_filters(goals_calculation, &params)
         .add_player_filters(&params).push("
         GROUP BY a.player_id, player_name, image_url, country_of_citizenship, sub_position")
-        .push(if *params.scope() == StatScope::Season {", g.season"} else {""})
-        .push("
+        .push(if *params.scope() == StatScope::Season {", g.season"} else {""}).push("
         ORDER BY number_of_games DESC, player_name")
         .add_limit_and_offset(params.limit(), params.page());
 
@@ -125,8 +123,7 @@ fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) ->
             a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
             STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
             COUNT(DISTINCT a.game_id) AS number_of_games")
-        .push(if *params.scope() == StatScope::Season {", g.season"} else {""})
-        .push("
+        .push(if *params.scope() == StatScope::Season {", g.season"} else {""}).push("
             FROM
                 games_minute_appearance_filter a
             JOIN
@@ -138,8 +135,7 @@ fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) ->
             WHERE 1 = 1")
         .add_game_filters(goals_calculation, &params).push("
             GROUP BY a.player_id, player_name, p.image_url, p.country_of_citizenship, p.sub_position")
-        .push(if *params.scope() == StatScope::Season {", g.season"} else {""})
-        .push("
+        .push(if *params.scope() == StatScope::Season {", g.season"} else {""}).push("
         ORDER BY number_of_games DESC, player_name")
         .add_limit_and_offset(params.limit(), params.page());
 
@@ -164,8 +160,7 @@ fn build_number_of_seasons_query_from_appearances<'a>(params: ProcessedSearchPar
         JOIN
             games g ON g.game_id = a.game_id
         WHERE 1 = 1")
-        .add_player_filters(&params)
-        .push("
+        .add_player_filters(&params).push("
             GROUP BY a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, g.season
     )
 
@@ -178,8 +173,7 @@ fn build_number_of_seasons_query_from_appearances<'a>(params: ProcessedSearchPar
             player_season_goals ps,
             LATERAL UNNEST(ps.unique_clubs_played_for) AS club_id
         WHERE 1 = 1")
-        .add_season_filters(&params)
-        .push("
+        .add_season_filters(&params).push("
         GROUP BY ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position
         ORDER BY number_of_seasons DESC, ps.player_name")
         .add_limit_and_offset(params.limit(), params.page());

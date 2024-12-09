@@ -245,8 +245,7 @@ impl<'a> PlayerMinuteFilterMethods<'a> for QueryBuilder<'a, Postgres> {
         self.push("
         WITH games_minute_appearance_filter AS
         (SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, c.club_id, g.game_id,")
-            .push(if *params.scope() == StatScope::Season {"
-            g.season AS season,"} else {""})
+            .push(if *params.scope() == StatScope::Season {" g.season AS season,"} else {""})
             .add_all_minute_filters(params.minute_played_from(), params.minute_played_to())
             .push("
             MIN(CASE WHEN a.played_from_minute > 0 THEN 1 ELSE 0 END) AS substitute_appearances
