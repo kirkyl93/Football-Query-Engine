@@ -1,0 +1,11 @@
+@media (max-width: 850px) {
+    .first-gs-columns-to-hide {
+        display: none;
+    }
+}
+
+@media (max-width: 475px) {
+    .second-gs-columns-to-hide {
+        display: none;
+    }
+}

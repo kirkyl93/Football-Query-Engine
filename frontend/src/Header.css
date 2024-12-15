@@ -4,6 +4,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    overflow: hidden;
 }
 
 .nav {
@@ -18,12 +19,6 @@
     margin: 0 15px;
 }
 
-.home-icon {
-    width: 35px;
-    height: 35px;
-    margin-right: 8px;
-}
-
 .search-input {
     padding: 5px;
     border-radius: 4px;
@@ -31,19 +26,10 @@
     margin-right: 10px;
 }
 
-.search-button {
-    padding: 5px 10px;
-    background-color: #555;
-    border: none;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
 .search-form {
     position: relative;
     width: 100%;
-    max-width: 400px; /* Optional: Adjust based on the size of your search input */
+    max-width: 400px;
 }
 
 /* Style the suggestions dropdown */

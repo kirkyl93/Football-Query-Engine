@@ -1,0 +1,23 @@
+@media (max-width: 1300px) {
+    .first-columns-to-hide {
+        display: none;
+    }
+}
+
+@media (max-width: 875px) {
+    .second-columns-to-hide {
+        display: none;
+    }
+}
+
+@media (max-width: 800px) {
+    .third-columns-to-hide {
+        display: none;
+    }
+}
+
+@media (min-width: 800px) {
+    .small-screen-display {
+        display: none;
+    }
+}

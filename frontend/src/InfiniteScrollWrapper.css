@@ -1,13 +1,14 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
 
 .table-container {
     min-height: 400px;
-    overflow: inherit;
+    overflow: hidden;
     background-color: white;
     margin: 0 auto;
     width: fit-content;
     max-width: 100%;
-    border-collapse: collapse;
     padding: 0;
     position: relative;
     font-family: "Inter", serif;
@@ -17,11 +18,11 @@
 
 .generic-table {
     border-collapse: collapse;
-    border-spacing: 0;
     width: fit-content;
 }
 
 .generic-table tbody tr td {
+    height: 40px;
     padding: 10px;
     border-bottom: 1px solid #ddd;
     width: fit-content;
@@ -49,16 +50,6 @@
     width: 32px;
     height: 40px;
     vertical-align: middle;
-}
-
-@media only screen and (max-width: 700px) {
-    .column-to-hide {
-        display: none;
-    }
-}
-
-.column-to-hide {
-    min-width: 55px;
 }
 
 .table-header {

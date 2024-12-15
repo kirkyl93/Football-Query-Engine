@@ -1,6 +1,7 @@
 import {FilterState, PlayerNumberOfGamesOrSeasonsResult, SortOptions, StatScope} from "./types";
 import {useInfiniteScroll} from "./InfiniteScrollWrapper";
 import './InfiniteScrollWrapper.css';
+import './NumberOfGamesOrSeasonsTable.css';
 import {fetchNumberOfGamesOrSeasonsResult} from "./searchUrlUtils";
 import {Link} from "react-router-dom";
 import React from "react";
@@ -25,8 +26,8 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                         <tr>
                             <th>Rank</th>
                             <th className="player-name">Player</th>
-                            <th>Clubs</th>
-                            <th>Position</th>
+                            <th className="first-gs-columns-to-hide">Clubs</th>
+                            <th className="first-gs-columns-to-hide">Position</th>
                             {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Season</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th>Number of seasons</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Number of games</th>}
@@ -42,11 +43,13 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                                 </td>
                                 <td>
                                     <img
+                                        className="second-gs-columns-to-hide"
                                         src={`https://flagicons.lipis.dev/flags/4x3/${player.country_code}.svg`}
                                         alt={`${player.country_code}`}
                                         style={{width: '20px', height: '14px', marginRight: '10px'}}
                                     />
                                     <img
+                                        className="second-gs-columns-to-hide"
                                         src={player.image_url}
                                         alt={player.player_name}
                                         width="50"
@@ -59,7 +62,7 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                                         {player.player_name}
                                     </Link>
                                 </td>
-                                <td className="column-to-hide">
+                                <td className="first-gs-columns-to-hide">
                                     {player.clubs_played_for.split(',').map(clubId => {
                                         const trimmedClubId = clubId.trim();
                                         return (
@@ -73,7 +76,7 @@ export const NumberOfGamesOrSeasonsTable: React.FC<NumberOfGamesOrSeasonsTablePr
                                         );
                                     })}
                                 </td>
-                                <td>{player.sub_position}</td>
+                                <td className="first-gs-columns-to-hide">{player.sub_position}</td>
                                 {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{formatSeason(player.season)}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td>{player.number_of_seasons}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{player.number_of_games}</td>}

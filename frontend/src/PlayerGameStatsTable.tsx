@@ -1,6 +1,7 @@
 import {FilterState, PlayerGameSearchResult, StatScope} from "./types";
 import {useInfiniteScroll} from "./InfiniteScrollWrapper";
 import {fetchPlayerGameData} from "./searchUrlUtils";
+import './PlayerGameStatsTable.css';
 import React from "react";
 import {Link} from "react-router-dom";
 import {convertDateStringToDate, dateFormatter, formatSeason} from "./dateUtils";
@@ -24,13 +25,13 @@ export const PlayerGameStatsTable: React.FC<PlayerGameStatsTableProps> = ({filte
                         <tr>
                             <th>Rank</th>
                             <th className="player-name">Player</th>
-                            <th>Club</th>
-                            <th>Competition</th>
-                            <th>Season</th>
-                            <th>Date</th>
-                            <th>Position</th>
+                            <th className="first-columns-to-hide">Club</th>
+                            <th className="second-columns-to-hide">Competition</th>
+                            <th className="second-columns-to-hide">Season</th>
+                            <th className="third-columns-to-hide">Date</th>
+                            <th className="first-columns-to-hide">Position</th>
                             <th>Result</th>
-                            <th>Mins Played</th>
+                            <th className="first-columns-to-hide">Mins Played</th>
                             <th>Goals</th>
                             <th>Assists</th>
                         </tr>
@@ -45,11 +46,13 @@ export const PlayerGameStatsTable: React.FC<PlayerGameStatsTableProps> = ({filte
                                 </td>
                                 <td>
                                     <img
+                                        className="third-columns-to-hide"
                                         src={`https://flagicons.lipis.dev/flags/4x3/${playerGame.country_code}.svg`}
                                         alt={`${playerGame.country_code}`}
                                         style={{width: '20px', height: '14px', marginRight: '10px'}}
                                     />
                                     <img
+                                        className="third-columns-to-hide"
                                         src={playerGame.image_url}
                                         alt={playerGame.player_name}
                                         width="50"
@@ -62,7 +65,7 @@ export const PlayerGameStatsTable: React.FC<PlayerGameStatsTableProps> = ({filte
                                         {playerGame.player_name}
                                     </Link>
                                 </td>
-                                <td>
+                                <td className="first-columns-to-hide">
                                     <img
                                         key={playerGame.club_id}
                                         src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(playerGame.club_id)}.png`}
@@ -71,18 +74,17 @@ export const PlayerGameStatsTable: React.FC<PlayerGameStatsTableProps> = ({filte
                                         style={{marginRight: '5px'}}
                                     />
                                 </td>
-                                <td>
+                                <td className="second-columns-to-hide">
                                     <img
                                         src={`https://flagcdn.com/w20/${playerGame.competition_country_code}.png`}
                                         alt={playerGame.competition_name}
-                                        // className="flag-icon"
                                         style={{marginRight: '5px', width: '18px', height: "auto" }}
                                     />
                                     {playerGame.competition_name}
                                 </td>
-                                <td>{formatSeason(playerGame.season)}</td>
-                                <td>{dateFormatter.format(convertDateStringToDate(playerGame.date))}</td>
-                                <td>{playerGame.sub_position}</td>
+                                <td className="second-columns-to-hide">{formatSeason(playerGame.season)}</td>
+                                <td className="third-columns-to-hide">{dateFormatter.format(convertDateStringToDate(playerGame.date))}</td>
+                                <td className="first-columns-to-hide">{playerGame.sub_position}</td>
                                 <td style={{display: 'flex', gap: '7px'}}>
                                     <img
                                         src={`https://tmssl.akamaized.net/images/wappen/head/${playerGame.home_club_id}.png`}
@@ -98,7 +100,7 @@ export const PlayerGameStatsTable: React.FC<PlayerGameStatsTableProps> = ({filte
                                         title={playerGame.away_club_name}
                                     />
                                 </td>
-                                <td>{playerGame.minutes_played}</td>
+                                <td className="first-columns-to-hide">{playerGame.minutes_played}</td>
                                 <td>{playerGame.goals}</td>
                                 <td>{playerGame.assists}</td>
                             </tr>

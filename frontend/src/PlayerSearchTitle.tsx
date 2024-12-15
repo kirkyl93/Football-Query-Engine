@@ -80,6 +80,8 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
             const maximumGoals = filterState.maximumGoals ?? 0;
             const minimumAssists = filterState.minimumAssists ?? 0;
             const maximumAssists = filterState.maximumAssists ?? 0;
+            const minimumGoalsAndAssists = filterState.minimumGoalsAndAssists ?? 0;
+            const maximumGoalsAndAssists = filterState.maximumGoalsAndAssists ?? 0;
 
             if (minimumGoals > 0 && maximumGoals > 0) {
                 if (minimumGoals === maximumGoals) {
@@ -107,6 +109,20 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
                 sortByTitle += `AT LEAST ${minimumAssists} ASSIST${minimumAssists > 1 ? 'S' : ''} `
             } else if (maximumAssists > 0) {
                 sortByTitle += `AT MOST ${maximumAssists} ASSIST${maximumAssists > 1 ? 'S' : ''} `
+            }
+
+            if (minimumGoals > 0 || maximumGoals > 0 || minimumAssists > 0 || maximumAssists > 0) {
+                sortByTitle += `AND `
+            }
+
+            if (minimumGoalsAndAssists > 0 && maximumGoalsAndAssists > 0) {
+                if (minimumGoalsAndAssists === maximumGoalsAndAssists) {
+                    sortByTitle += `EXACTLY ${maximumGoalsAndAssists} GOAL${maximumGoalsAndAssists > 1 ? `S` : ''} AND ASSIST${maximumGoalsAndAssists > 1 ? `S` : ''} `
+                }
+            } else if (minimumGoalsAndAssists > 0) {
+                sortByTitle += `AT LEAST ${minimumGoalsAndAssists} GOAL${minimumGoalsAndAssists > 1 ? `S` : ''} AND ASSIST${minimumGoalsAndAssists > 1 ? `S` : ''} `
+            } else if (maximumAssists > 0) {
+                sortByTitle += `AT MOST ${minimumGoalsAndAssists} GOAL${maximumGoalsAndAssists > 1 ? `S` : ''} AND ASSIST${maximumGoalsAndAssists > 1 ? `S` : ''} `
             }
         }
 
