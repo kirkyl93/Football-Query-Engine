@@ -86,14 +86,14 @@ impl SearchParamsBuilder {
     }
 
     pub fn competitions(mut self, competitions: Vec<Competition>) -> Self {
-        let competition_codes: Vec<&str> = competitions.iter().map(|comp| get_code_from_competition(comp)).collect();
+        let competition_codes: Vec<&str> = competitions.iter().map(Competition::competition_code).collect();
 
         self.params.competitions = Some(competition_codes.join(","));
         self
     }
 
     pub fn positions(mut self, positions: Vec<PlayerSubPosition>) -> Self {
-        let position_codes: Vec<&str> = positions.iter().map(|pos| get_code_from_sub_position(&pos)).collect();
+        let position_codes: Vec<&str> = positions.iter().map(get_code_from_sub_position).collect();
         self.params.positions = Some(position_codes.join(","));
         self
     }
@@ -134,7 +134,7 @@ impl SearchParamsBuilder {
     }
 
     pub fn countries(mut self, countries: Vec<Country>) -> Self {
-        let country_codes: Vec<&str> = countries.iter().map(|country| country.code()).collect();
+        let country_codes: Vec<&str> = countries.iter().map(Country::code).collect();
         self.params.countries = Some(country_codes.join(","));
         self
     }
@@ -229,56 +229,6 @@ impl SearchParamsBuilder {
         let params = self.params;
         let query_string = serde_urlencoded::to_string(&params).unwrap();
         query_string
-    }
-}
-
-#[cfg(test)]
-pub fn get_code_from_competition(competition: &Competition) -> &'static str {
-    match competition {
-        Competition::BelgianLeague => "BE1",
-        Competition::BelgianSuperCup => "BESC",
-        Competition::CopaDelRey => "CDR",
-        Competition::EFLCup => "CGB",
-        Competition::ItalyCup => "CIT",
-        Competition::ChampionsLeague => "CL",
-        Competition::ChampionsLeagueQualification => "CLQ",
-        Competition::DFBPokal => "DFB",
-        Competition::DFLSuperCup => "DFL",
-        Competition::Superligaen => "DK1",
-        Competition::SydbankPokalen => "DKP",
-        Competition::EuropaConferenceLeagueQualification => "ECLQ",
-        Competition::EuropaLeague => "EL",
-        Competition::EuropaLeagueQualification => "ELQ",
-        Competition::LaLiga => "ES1",
-        Competition::FACup => "FAC",
-        Competition::Ligue1 => "FR1",
-        Competition::TrophesDesChampions => "FRCH",
-        Competition::PremierLeague => "GB1",
-        Competition::CommunityShield => "GBCS",
-        Competition::SuperLeague1 => "GR1",
-        Competition::KypelloElladas => "GRP",
-        Competition::SerieA => "IT1",
-        Competition::FIFAKlubWM => "KLUB",
-        Competition::Bundesliga => "L1",
-        Competition::Eredivisie => "NL1",
-        Competition::TotoKNVBBeker => "NLP",
-        Competition::JohanCruijffSchaal => "NLSC",
-        Competition::LigaPortugalBwin => "PO1",
-        Competition::AllianzCup => "POCP",
-        Competition::SupertacaCandidoDeOliveira => "POSU",
-        Competition::PremierLiga => "RU1",
-        Competition::RussianCup => "RUP",
-        Competition::RussianSuperCup => "RUSS",
-        Competition::ScottishPremiership => "SC1",
-        Competition::SupercoppaItaliana => "SCI",
-        Competition::SFACup => "SFA",
-        Competition::Supercopa => "SUC",
-        Competition::SuperLig => "TR1",
-        Competition::UEFAConferenceLeague => "UCOL",
-        Competition::UkrainianCup => "UKRP",
-        Competition::UkrainianSuperCup => "UKRS",
-        Competition::UEFASuperCup => "USC",
-        Competition::Missing => "",
     }
 }
 

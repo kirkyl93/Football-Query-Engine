@@ -4,7 +4,7 @@ use sqlx::{Error, FromRow, Row};
 use sqlx::postgres::PgRow;
 use crate::competitions::{Competition, CompetitionType};
 use crate::countries::Country;
-use crate::services::player::player_enums::{Foot, PlayerPosition, PlayerSubPosition};
+use crate::services::player::player_enums::{Foot, PlayerSubPosition};
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct Player {
@@ -256,7 +256,6 @@ pub struct PlayerWithSeason {
     date_of_birth: NaiveDate,
     age: u32,
     sub_position: PlayerSubPosition,
-    position: PlayerPosition,
     foot: Foot,
     height_in_cm: i32,
     image_url: String,
@@ -300,7 +299,6 @@ impl<'r> FromRow<'r, PgRow> for PlayerWithSeason {
             date_of_birth,
             age: calculate_age(date_of_birth),
             sub_position: PlayerSubPosition::try_from(try_get_or_default::<&str>(row, "sub_position")).unwrap_or(PlayerSubPosition::Missing),
-            position: PlayerPosition::try_from(try_get_or_default::<&str>(row, "position")).unwrap_or(PlayerPosition::Missing),
             foot: Foot::try_from(try_get_or_default::<&str>(row, "foot")).unwrap_or(Foot::Missing),
             height_in_cm: try_get_or_default(row, "height_in_cm"),
             image_url: try_get_or_default(row, "image_url"),

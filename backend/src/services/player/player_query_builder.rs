@@ -1,5 +1,8 @@
 use sqlx::{Postgres, QueryBuilder};
+use crate::competitions::Competition;
+use crate::countries::Country;
 use crate::services::player::models::{HomeAwayOption, PenaltyOption, ProcessedSearchParams, StatScope};
+use crate::services::player::player_enums::PlayerSubPosition;
 
 pub trait PlayerFilterMethods<'a> {
     fn add_player_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self;
@@ -23,13 +26,13 @@ impl<'a> PlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
 
 trait PrivatePlayerFilterMethods<'a> {
     fn add_seasons(&mut self, seasons: Vec<i32>) -> &mut Self;
-    fn add_competitions(&mut self, competitions: Vec<String>) -> &mut Self;
-    fn add_positions(&mut self, positions: Vec<String>) -> &mut Self;
+    fn add_competitions(&mut self, competitions: Vec<Competition>) -> &mut Self;
+    fn add_positions(&mut self, positions: Vec<PlayerSubPosition>) -> &mut Self;
     fn add_home_or_away(&mut self, home_or_away: &HomeAwayOption) -> &mut Self;
     fn add_height(&mut self, min_height: i32, max_height: i32) -> &mut Self;
     fn add_ages(&mut self, min_age: i32, max_age: i32) -> &mut Self;
     fn add_player_names(&mut self, player_names: &Vec<String>) -> &mut Self;
-    fn add_player_countries(&mut self, player_countries: Vec<String>) -> &mut Self;
+    fn add_player_countries(&mut self, player_countries: Vec<Country>) -> &mut Self;
     fn add_clubs_played_for(&mut self, clubs_played_for: Vec<i32>) -> &mut Self;
     fn add_clubs_played_against(&mut self, clubs_played_against: Vec<i32>) -> &mut Self;
     fn add_sub_info(&mut self, subs_only: i32, earliest_sub_on_time: i32, latest_sub_on_time: i32) -> &mut Self;
@@ -54,7 +57,7 @@ impl<'a> PrivatePlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
         self
     }
 
-    fn add_competitions(&mut self, competitions: Vec<String>) -> &mut Self {
+    fn add_competitions(&mut self, competitions: Vec<Competition>) -> &mut Self {
         if !competitions.is_empty() {
             self.push("
             AND a.competition_id IN (");
@@ -63,7 +66,7 @@ impl<'a> PrivatePlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
                 if i > 0 {
                     self.push(", ");
                 }
-                self.push_bind(competition);
+                self.push_bind(competition.competition_code());
             }
             self.push(")");
         }
@@ -71,7 +74,7 @@ impl<'a> PrivatePlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
         self
     }
 
-    fn add_positions(&mut self, positions: Vec<String>) -> &mut Self {
+    fn add_positions(&mut self, positions: Vec<PlayerSubPosition>) -> &mut Self {
         if !positions.is_empty() {
             self.push("
             AND p.sub_position IN (");
@@ -80,7 +83,7 @@ impl<'a> PrivatePlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
                 if i > 0 {
                     self.push(", ");
                 }
-                self.push_bind(position);
+                self.push_bind(position.as_str());
             }
             self.push(")");
         }
@@ -158,7 +161,7 @@ impl<'a> PrivatePlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
         self
     }
 
-    fn add_player_countries(&mut self, player_countries: Vec<String>) -> &mut Self {
+    fn add_player_countries(&mut self, player_countries: Vec<Country>) -> &mut Self {
         if !player_countries.is_empty() {
             self.push("
             AND country_of_citizenship IN (");
@@ -167,7 +170,7 @@ impl<'a> PrivatePlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
                 if i > 0 {
                     self.push(", ");
                 }
-                self.push_bind(country);
+                self.push_bind(country.as_str());
             }
             self.push(")");
         }

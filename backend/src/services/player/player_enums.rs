@@ -31,6 +31,45 @@ pub enum PlayerSubPosition {
     Missing,
 }
 
+impl PlayerSubPosition {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PlayerSubPosition::Goalkeeper => "Goalkeeper",
+            PlayerSubPosition::LeftBack => "Left-Back",
+            PlayerSubPosition::CentreBack => "Centre-Back",
+            PlayerSubPosition::RightBack => "Right-Back",
+            PlayerSubPosition::DefensiveMidfield => "Defensive Midfield",
+            PlayerSubPosition::LeftMidfield => "Left Midfield",
+            PlayerSubPosition::CentralMidfield => "Central Midfield",
+            PlayerSubPosition::RightMidfield => "Right Midfield",
+            PlayerSubPosition::LeftWinger => "Left Winger",
+            PlayerSubPosition::RightWinger => "Right Winger",
+            PlayerSubPosition::AttackingMidfield => "Attacking Midfield",
+            PlayerSubPosition::SecondStriker => "Second Striker",
+            PlayerSubPosition::CentreForward => "Centre-Forward",
+            PlayerSubPosition::Missing => ""
+        }
+    }
+    pub fn from_code(p: &str) -> Self {
+        match p {
+            "GK" => PlayerSubPosition::Goalkeeper,
+            "LB" => PlayerSubPosition::LeftBack,
+            "CB" => PlayerSubPosition::CentreBack,
+            "RB" => PlayerSubPosition::RightBack,
+            "CDM" => PlayerSubPosition::DefensiveMidfield,
+            "LM" => PlayerSubPosition::LeftMidfield,
+            "CM" => PlayerSubPosition::CentralMidfield,
+            "RM" => PlayerSubPosition::RightMidfield,
+            "LW" => PlayerSubPosition::LeftWinger,
+            "RW" => PlayerSubPosition::RightWinger,
+            "CAM" => PlayerSubPosition::AttackingMidfield,
+            "SS" => PlayerSubPosition::SecondStriker,
+            "CF" => PlayerSubPosition::CentreForward,
+            _ => PlayerSubPosition::Missing,
+        }
+    }
+}
+
 impl TryFrom<&str> for PlayerSubPosition {
     type Error = ();
 
@@ -49,49 +88,6 @@ impl TryFrom<&str> for PlayerSubPosition {
             "Attacking Midfield" => Ok(Self::AttackingMidfield),
             "Second Striker" => Ok(Self::SecondStriker),
             "Centre-Forward" => Ok(Self::CentreForward),
-            _ => Err(()),
-        }
-    }
-}
-
-pub fn map_sub_position_code_to_position(s: &str) -> &str {
-    match s {
-        "GK" => "Goalkeeper",
-        "LB" => "Left-Back",
-        "CB" => "Centre-Back",
-        "RB" => "Right-Back",
-        "CDM" => "Defensive Midfield",
-        "LM" => "Left Midfield",
-        "CM" => "Central Midfield",
-        "RM" => "Right Midfield",
-        "LW" => "Left Winger",
-        "RW" => "Right Winger",
-        "CAM" => "Attacking Midfield",
-        "SS" => "Second Striker",
-        "CF" => "Centre-Forward",
-        _ => "Missing"
-    }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum PlayerPosition {
-    Goalkeeper,
-    Defender,
-    Midfield,
-    Attack,
-    #[serde(rename = "Unknown")]
-    Missing,
-}
-
-impl TryFrom<&str> for PlayerPosition {
-    type Error = ();
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "Goalkeeper" => Ok(Self::Goalkeeper),
-            "Defender" => Ok(Self::Defender),
-            "Midfield" => Ok(Self::Midfield),
-            "Attack" => Ok(Self::Attack),
             _ => Err(()),
         }
     }
