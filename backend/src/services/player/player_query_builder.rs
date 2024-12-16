@@ -256,7 +256,9 @@ impl<'a> PlayerMinuteFilterMethods<'a> for QueryBuilder<'a, Postgres> {
             JOIN
                 players p ON p.player_id = a.player_id
             JOIN
-                games g ON g.game_id = a.game_id LEFT JOIN game_events e ON e.game_id = a.game_id AND (e.player_id = a.player_id OR e.player_assist_id = a.player_id)
+                games g ON g.game_id = a.game_id
+            LEFT JOIN
+                game_events e ON e.game_id = a.game_id AND (e.player_id = a.player_id OR e.player_assist_id = a.player_id)
             WHERE 1 = 1")
             .add_player_filters(params)
             .push("

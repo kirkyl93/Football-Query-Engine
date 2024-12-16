@@ -23,60 +23,59 @@ impl ToolbarSearchParams {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct SearchParams {
-    page: Option<i32>,
-    limit: Option<i32>,
-    seasons: Option<String>,
+    pub page: Option<i32>,
+    pub limit: Option<i32>,
+    pub seasons: Option<String>,
     #[serde(rename = "comps")]
-    competitions: Option<String>,
-    positions: Option<String>,
+    pub competitions: Option<String>,
+    pub positions: Option<String>,
     #[serde(rename = "minfrom")]
-    minute_played_from: Option<i32>,
+    pub minute_played_from: Option<i32>,
     #[serde(rename = "minto")]
-    minute_played_to: Option<i32>,
+    pub minute_played_to: Option<i32>,
     #[serde(rename = "minage")]
-    minimum_age: Option<i32>,
+    pub minimum_age: Option<i32>,
     #[serde(rename = "maxage")]
-    maximum_age: Option<i32>,
+    pub maximum_age: Option<i32>,
     #[serde(rename = "minheight")]
-    minimum_height: Option<i32>,
+    pub minimum_height: Option<i32>,
     #[serde(rename = "maxheight")]
-    maximum_height: Option<i32>,
-    names: Option<String>,
+    pub maximum_height: Option<i32>,
+    pub names: Option<String>,
     #[serde(rename = "c")]
-    countries: Option<String>,
+    pub countries: Option<String>,
     #[serde(rename = "clubspf")]
-    clubs_played_for: Option<String>,
+    pub clubs_played_for: Option<String>,
     #[serde(rename = "clubspa")]
-    clubs_played_against: Option<String>,
+    pub clubs_played_against: Option<String>,
     #[serde(rename = "subonly")]
-    subs_only: Option<i32>,
+    pub subs_only: Option<i32>,
     #[serde(rename = "earliestsub")]
-    earliest_sub_on_time: Option<i32>,
+    pub earliest_sub_on_time: Option<i32>,
     #[serde(rename = "latestsub")]
-    latest_sub_on_time: Option<i32>,
-    penalty: Option<String>,
+    pub latest_sub_on_time: Option<i32>,
+    pub penalty: Option<String>,
     #[serde(rename = "home")]
-    home_or_away: Option<String>,
-    scope: Option<String>,
-    sort: Option<String>,
+    pub home_or_away: Option<String>,
+    pub scope: Option<String>,
+    pub sort: Option<String>,
     #[serde(rename = "ma")]
-    minimum_appearances: Option<i32>,
+    pub minimum_appearances: Option<i32>,
     #[serde(rename = "ming")]
-    minimum_goals: Option<i32>,
+    pub minimum_goals: Option<i32>,
     #[serde(rename = "maxg")]
-    maximum_goals: Option<i32>,
+    pub maximum_goals: Option<i32>,
     #[serde(rename = "mina")]
-    minimum_assists: Option<i32>,
+    pub minimum_assists: Option<i32>,
     #[serde(rename = "maxa")]
-    maximum_assists: Option<i32>,
+    pub maximum_assists: Option<i32>,
     #[serde(rename = "minga")]
-    minimum_goals_and_assists: Option<i32>,
+    pub minimum_goals_and_assists: Option<i32>,
     #[serde(rename = "maxga")]
-    maximum_goals_and_assists: Option<i32>
+    pub maximum_goals_and_assists: Option<i32>
 }
-
 impl SearchParams {
     pub fn to_processed(&self) -> Result<ProcessedSearchParams, String> {
         let seasons: Vec<i32> = self.seasons
