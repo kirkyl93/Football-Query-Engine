@@ -12,7 +12,7 @@ use crate::services::club::search_clubs::get_clubs;
 use crate::services::player::search_by_count::search_by_count;
 use crate::services::player::search_by_game::search_by_game;
 use crate::services::player::search_by_season_or_across_seasons::search_by_season_or_across_seasons;
-use crate::services::player::search_players::{fetch_player, fetch_player_stats_by_season, get_players};
+use crate::services::player::search_players::{fetch_player, fetch_player_stats_by_season, get_player_games, get_players};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -39,6 +39,7 @@ async fn main() -> std::io::Result<()> {
             .service(search_by_game)
             .service(get_clubs)
             .service(search_by_count)
+            .service(get_player_games)
     })
         .bind(("127.0.0.1", 8080))?
         .run()

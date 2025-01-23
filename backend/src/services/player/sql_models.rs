@@ -7,6 +7,61 @@ use crate::countries::Country;
 use crate::services::player::player_enums::{Foot, PlayerSubPosition};
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
+pub struct PlayerAppearances {
+    game_number: i64,
+    club_id: i32,
+    competition_id: String,
+    competition_name: Competition,
+    date: NaiveDate,
+    season: i32,
+    goals: i32,
+    penalty_goals: i32,
+    assists: i32,
+    yellow_cards: i32,
+    red_cards: i32,
+    played_from_minute: i32,
+    subbed_off_minute: i32,
+    home_club_goals: i32,
+    away_club_goals: i32,
+    goal_minutes: Vec<i32>,
+    penalty_goal_minutes: Vec<i32>,
+    assist_minutes: Vec<i32>,
+    yellow_minutes: Vec<i32>,
+    red_minutes: Vec<i32>,
+    minutes_played: Vec<i32>,
+    result: String
+}
+
+impl<'r> FromRow<'r, PgRow> for PlayerAppearances {
+    fn from_row(row: &'r PgRow) -> Result<Self, Error> {
+        Ok(Self {
+            game_number: try_get_or_default(row, "game_number"),
+            club_id: try_get_or_default(row, "club_id"),
+            competition_id: try_get_or_default(row, "competition_id"),
+            competition_name: Competition::from_str(try_get_or_default(row, "competition_name")),
+            date: try_get_or_default(row, "date"),
+            season: try_get_or_default(row, "season"),
+            goals: try_get_or_default(row, "goals"),
+            penalty_goals: try_get_or_default(row, "penalty_goals"),
+            assists: try_get_or_default(row, "assists"),
+            yellow_cards: try_get_or_default(row, "yellow_cards"),
+            red_cards: try_get_or_default(row, "red_cards"),
+            played_from_minute: try_get_or_default(row, "played_from_minute"),
+            subbed_off_minute: try_get_or_default(row, "subbed_off_minute"),
+            home_club_goals: try_get_or_default(row, "home_club_goals"),
+            away_club_goals: try_get_or_default(row, "away_club_goals"),
+            goal_minutes: try_get_or_default(row, "goal_minutes"),
+            penalty_goal_minutes: try_get_or_default(row, "penalty_goal_minutes"),
+            assist_minutes: try_get_or_default(row, "assist_minutes"),
+            yellow_minutes: try_get_or_default(row, "yellow_minutes"),
+            red_minutes: try_get_or_default(row, "red_minutes"),
+            minutes_played: try_get_or_default(row, "minutes_played"),
+            result: try_get_or_default(row, "result"),
+        })
+    }
+}
+
+#[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct Player {
     player_id: i32,
     first_name: String,

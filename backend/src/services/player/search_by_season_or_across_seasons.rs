@@ -69,6 +69,7 @@ fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuild
         .add_player_filters(&params)
         .add_group_by(*params.scope() == StatScope::Season)
         .add_minimum_appearances_to_query(params.minimum_appearances())
+        .add_order_by(params.sort(), &goals_calculation, false, *params.scope() == StatScope::Season)
         .add_limit_and_offset(params.limit(), params.page());
 
     query

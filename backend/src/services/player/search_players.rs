@@ -1,9 +1,9 @@
 use actix_web::{get, web, HttpResponse};
 use actix_web::web::Path;
-use sqlx::{PgPool, Postgres, QueryBuilder};
+use sqlx::{query, PgPool, Postgres, QueryBuilder};
 use crate::services::base_query_builder::BaseQueryMethods;
 use crate::services::player::models::ToolbarSearchParams;
-use crate::services::player::sql_models::{Player, PlayerSeasonByCompAndTeam};
+use crate::services::player::sql_models::{Player, PlayerAppearances, PlayerSeasonByCompAndTeam};
 
 #[get("/players")]
 pub async fn get_players(pool: web::Data<PgPool>, params: web::Query<ToolbarSearchParams>) -> HttpResponse {
@@ -29,6 +29,44 @@ pub async fn get_players(pool: web::Data<PgPool>, params: web::Query<ToolbarSear
             HttpResponse::InternalServerError().json(err.to_string())
         }
     }
+}
+
+#[get("/players/{id}/games")]
+pub async fn get_player_games(pool: web::Data<PgPool>, path: Path<i32>) -> HttpResponse {
+    let id: i32 = path.into_inner();
+
+    let mut query = QueryBuilder::new("
+    SELECT RANK() OVER (ORDER BY g.date) AS game_number, player_club_id as club_id, a.competition_id, c.name as competition_name, a.date, g.season,
+    yellow_cards, red_cards, goals, penalty_goals, assists, minutes_played, played_from_minute, subbed_off_minute, home_club_goals, away_club_goals,
+    goal_minutes, penalty_goal_minutes, assist_minutes, yellow_minutes, red_minutes,
+    CASE
+        WHEN player_club_id = g.home_club_id AND home_club_goals > away_club_goals THEN 'Win'
+        WHEN player_club_id = g.away_club_id AND away_club_goals > home_club_goals THEN 'Win'
+        WHEN home_club_goals = away_club_goals THEN 'Draw'
+        ELSE 'Loss'
+    END AS result
+    FROM appearances_with_event_times a
+    JOIN
+        games g ON a.game_id = g.game_id
+    JOIN
+        competitions c ON a.competition_id = c.competition_id
+    WHERE player_id = ");
+
+    query.push_bind(id).push("
+    ORDER BY g.date");
+
+    match query.build_query_as::<PlayerAppearances>()
+        .fetch_all(pool.get_ref())
+        .await
+    {
+        Ok(players) => HttpResponse::Ok().json(players),
+        Err(err) => {
+            println!("{:?}", err.as_database_error());
+            HttpResponse::InternalServerError().json(err.to_string())
+        }
+    }
+
+
 }
 
 #[get("/players/{id}")]

@@ -16,6 +16,31 @@ export interface Player {
     image_url: string
 }
 
+export interface PlayerAppearance {
+    game_number: number,
+    club_id: number,
+    competition_id: string,
+    competition_name: string,
+    date: string,
+    season: number,
+    goals: number,
+    penalty_goals: number,
+    assists: number,
+    yellow_cards: number,
+    red_cards: number,
+    played_from_minute: number,
+    subbed_off_minute: number,
+    home_club_goals: number,
+    away_club_goals: number,
+    goal_minutes: number[],
+    penalty_goal_minutes: number[],
+    assist_minutes: number[],
+    yellow_minutes: number[],
+    red_minutes: number[],
+    minutes_played: number[],
+    result: string
+}
+
 export interface SeasonStats {
     player_id: number,
     season: number,

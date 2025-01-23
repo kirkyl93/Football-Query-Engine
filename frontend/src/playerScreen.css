@@ -2,6 +2,9 @@
     width: 100%;
     overflow-x: auto;
     margin-top: 20px;
+    font-family: "Inter", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
 }
 
 .player-stats-table {
@@ -27,4 +30,8 @@
 
 .player-stats-table tr:hover {
     background-color: #f1f1f1;
+}
+
+.graph {
+    width: 70%;
 }
