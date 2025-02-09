@@ -1,11 +1,6 @@
 import React, {useEffect, useState} from "react";
 import './AppearancesChartFilterBar.css';
-import {
-    EventType,
-    HomeOrAwayOptions,
-    PlayerFilterState,
-    PlayerSeasonsCompetitionsAndClubs
-} from "./types";
+import {EventType, HomeOrAwayOptions, PlayerFilterState, PlayerSeasonsCompetitionsAndClubs} from "./types";
 import {formatSeason} from "./dateUtils";
 import {competitions} from "./competitions";
 import {getColour, hexToRGB} from "./colourUtil";
@@ -47,11 +42,12 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
     ]
 
     const eventTypeOptions = [
-        {eventType: EventType.Goals, colour: "blue"},
-        {eventType: EventType.Penalties, colour: "gold"},
-        {eventType: EventType.Assists, colour: "green"},
-        {eventType: EventType.Yellows, colour: "yellow"},
-        {eventType: EventType.Reds, colour: "red"},
+        {eventType: EventType.Goals, colour: "blue", name: "Goals"},
+        {eventType: EventType.Penalties, colour: "gold", name: "Penalties"},
+        {eventType: EventType.OwnGoals, colour: "pink", name: "Own goals"},
+        {eventType: EventType.Assists, colour: "green", name: "Assists"},
+        {eventType: EventType.Yellows, colour: "yellow", name: "Yellows"},
+        {eventType: EventType.Reds, colour: "red", name: "Reds"},
     ]
 
     useEffect(() => {
@@ -69,6 +65,7 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
             selectedEvents: {
                 [EventType.Goals]: false,
                 [EventType.Penalties]: false,
+                [EventType.OwnGoals]: false,
                 [EventType.Assists]: false,
                 [EventType.Yellows]: false,
                 [EventType.Reds]: false
@@ -396,7 +393,7 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                                         checked={isEventSelected(event.eventType)}
                                         onChange={handleEventSelectionChange}
                                     />
-                                    <span className="square" style={{backgroundColor: event.colour}}></span> {event.eventType}
+                                    <span className="square" style={{backgroundColor: event.colour}}></span> {event.name}
                                 </label>
                             ))}
                         </div>

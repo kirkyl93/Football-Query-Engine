@@ -39,33 +39,12 @@ export interface PlayerAppearance {
     away_club_goals: number,
     goal_minutes: number[],
     penalty_goal_minutes: number[],
+    own_goal_minutes: number[],
     assist_minutes: number[],
     yellow_minutes: number[],
     red_minutes: number[],
     minutes_played: number[],
     result: string
-}
-
-export interface SeasonStats {
-    player_id: number,
-    season: number,
-    club_name: string,
-    competition_id: string,
-    competition_country_code: string,
-    competition_name: string,
-    competition_type: string,
-    competition_country: string,
-    competition_country_id: string,
-    total_appearances: number,
-    total_goals: number,
-    total_assists: number,
-    total_yellow_cards: number,
-    total_red_cards: number,
-    total_minutes_played: number,
-    mins_per_goal: number | null,
-    mins_per_assist: number | null,
-    mins_per_yellow_card: number | null,
-    mins_per_red_card: number | null
 }
 
 export enum UrlFilters {
@@ -254,6 +233,7 @@ export interface PlayerFilterState {
 export interface PlayerTotals {
     goals: number,
     penalties: number,
+    ownGoals: number,
     assists: number,
     yellows: number,
     reds: number
@@ -264,6 +244,7 @@ type SelectedEvents = Record<EventType, boolean>;
 export enum EventType {
     Goals = "Goals",
     Penalties = "Penalties",
+    OwnGoals = "OwnGoals",
     Assists = "Assists",
     Yellows = "Yellows",
     Reds = "Reds"
@@ -280,42 +261,6 @@ export interface PlayerNumberOfGamesOrSeasonsResult {
     season: number,
     number_of_games: number,
     number_of_seasons: number
-}
-
-export interface PlayerWithSeasonStats {
-    player_id: number,
-    first_name: string,
-    last_name: string,
-    current_club_id: number,
-    country_of_birth: string,
-    country_of_citizenship: string,
-    country_code: string,
-    date_of_birth: string,
-    age: number,
-    sub_position: string,
-    position: string,
-    foot: string,
-    height_in_cm: number,
-    image_url: string,
-    season: number,
-    club_id: string,
-    club_name: string,
-    competition_id: string,
-    competition_country_code: string,
-    competition_name: string,
-    competition_type: string,
-    competition_country: string,
-    competition_country_id: string,
-    total_appearances: number,
-    total_goals: number,
-    total_assists: number,
-    total_yellow_cards: number,
-    total_red_cards: number,
-    total_minutes_played: number,
-    mins_per_goal: number | null,
-    mins_per_assist: number | null,
-    mins_per_yellow_card: number | null,
-    mins_per_red_card: number | null
 }
 
 export interface Competition {

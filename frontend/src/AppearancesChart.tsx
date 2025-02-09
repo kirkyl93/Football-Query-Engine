@@ -50,6 +50,7 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
         selectedEvents: {
             [EventType.Goals]: false,
             [EventType.Penalties]: false,
+            [EventType.OwnGoals]: false,
             [EventType.Assists]: false,
             [EventType.Yellows]: false,
             [EventType.Reds]: false
@@ -167,8 +168,8 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
     const noEventFiltersSelected = useMemo(() => {
         const selectedEvents = playerFilterState.selectedEvents;
 
-        return !selectedEvents.Goals && !selectedEvents.Assists && !selectedEvents.Penalties
-            && !selectedEvents.Yellows && !selectedEvents.Reds
+        return !selectedEvents.Goals && !selectedEvents.Penalties && !selectedEvents.OwnGoals
+            && !selectedEvents.Assists && !selectedEvents.Yellows && !selectedEvents.Reds
     }, [playerFilterState])
 
     useEffect(() => {
@@ -191,6 +192,12 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
             if (noEventFiltersSelected || playerFilterState.selectedEvents.Penalties) {
                 item.penalty_goal_minutes.forEach((minute) => {
                     events.push({game_number: item.game_number, minute, size: 5, color: 'gold', shape: 'rectangle'});
+                })
+            }
+
+            if (noEventFiltersSelected || playerFilterState.selectedEvents.OwnGoals) {
+                item.own_goal_minutes.forEach((minute) => {
+                    events.push({game_number: item.game_number, minute, size: 5, color: 'pink', shape: 'rectangle'});
                 })
             }
 
@@ -325,6 +332,7 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
             let playerTotals: PlayerTotals = {
                 goals: 0,
                 penalties: 0,
+                ownGoals: 0,
                 assists: 0,
                 yellows: 0,
                 reds: 0
@@ -334,6 +342,7 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
             zoomedData.map(app => {
                 playerTotals.goals += app.goal_minutes.length;
                 playerTotals.penalties += app.penalty_goals;
+                playerTotals.ownGoals += app.own_goal_minutes.length;
                 playerTotals.assists += app.assists;
                 if (app.yellow_cards < 2) {
                     playerTotals.yellows += app.yellow_cards;
@@ -463,6 +472,7 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
                     <p style={{fontWeight: "bold"}}>{`${appearance.competition_name}`}</p>
                     <p>Minutes: {appearance.minutes_played[1] - appearance.minutes_played[0]}</p>
                     <p>Goals: {appearance.goals}</p>
+                    <p>Own goals: {appearance.own_goal_minutes.length}</p>
                     <p>Assists: {appearance.assists}</p>
                     <p>Yellows: {appearance.yellow_cards}</p>
                     <p>Reds: {appearance.red_cards}</p>
@@ -545,6 +555,13 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
                     <>
                         <span className="square-title" style={{backgroundColor: "gold"}}></span>
                         {calculateGoalsAssistsAndCards.penalties !== 1 ? `${calculateGoalsAssistsAndCards.penalties} Penalties` : `1 Penalty`}
+                    </>
+                ) : null}
+
+                {(noEventFiltersSelected || playerFilterState.selectedEvents.OwnGoals) ? (
+                    <>
+                        <span className="square-title" style={{backgroundColor: "pink"}}></span>
+                        {calculateGoalsAssistsAndCards.ownGoals !== 1 ? `${calculateGoalsAssistsAndCards.ownGoals} Own goals` : `1 Own goal`}
                     </>
                 ) : null}
 

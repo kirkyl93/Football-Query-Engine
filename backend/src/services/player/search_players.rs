@@ -39,7 +39,7 @@ pub async fn get_player_games(pool: web::Data<PgPool>, path: Path<i32>) -> HttpR
     SELECT RANK() OVER (ORDER BY g.date) AS game_number, player_club_id as club_id, home_club_id,
     home_club_name, away_club_id, away_club_name, a.competition_id, c.name as competition_name, c.type as competition_type, a.date, g.season,
     yellow_cards, red_cards, goals, penalty_goals, assists, minutes_played, played_from_minute, subbed_off_minute, home_club_goals, away_club_goals,
-    goal_minutes, penalty_goal_minutes, assist_minutes, yellow_minutes, red_minutes,
+    goal_minutes, penalty_goal_minutes, own_goal_minutes, assist_minutes, yellow_minutes, red_minutes,
     CASE
         WHEN player_club_id = g.home_club_id AND home_club_goals > away_club_goals THEN 'Win'
         WHEN player_club_id = g.away_club_id AND away_club_goals > home_club_goals THEN 'Win'
