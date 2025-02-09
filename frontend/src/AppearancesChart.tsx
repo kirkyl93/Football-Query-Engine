@@ -10,6 +10,7 @@ import {convertDateStringToDate, dateFormatter, formatSeason} from "./dateUtils"
 import AppearancesChartTitle from "./AppearancesChartTitle";
 import AppearancesChartFilterBar from "./AppearancesChartFilterBar";
 import {getColour} from "./colourUtil";
+import './AppearancesChart.css';
 import {
     Bar,
     Cell,

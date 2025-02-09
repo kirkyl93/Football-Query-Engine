@@ -19,8 +19,13 @@ export interface Player {
 export interface PlayerAppearance {
     game_number: number,
     club_id: number,
+    home_club_id: number,
+    home_club_name: string,
+    away_club_id: number,
+    away_club_name: string,
     competition_id: string,
     competition_name: string,
+    competition_type: string,
     date: string,
     season: number,
     goals: number,
@@ -151,7 +156,7 @@ export const overallOnlySortOptions = [
     SortOptions.NUMBER_OF_SEASONS_WITH
 ]
 
-export interface FilterState {
+export interface SearchFilterState {
     seasons: number[];
     competitions: string[];
     positions: string[];
@@ -227,6 +232,41 @@ export interface PlayerGameSearchResult {
     minutes_played: number,
     goals: number,
     assists: number,
+}
+
+export interface PlayerSeasonsCompetitionsAndClubs {
+    seasons: number[],
+    leagueCompetitions: string[],
+    europeanCompetitions: string[],
+    clubsPlayedFor: [number, string][],
+    clubsPlayedAgainst: [number, string][]
+}
+
+export interface PlayerFilterState {
+    selectedSeasons: number[],
+    selectedCompetitions: string[],
+    selectedClubsPlayedFor: number[],
+    selectedClubsPlayedAgainst: number[],
+    selectedHomeOrAway: HomeOrAwayOptions,
+    selectedEvents: SelectedEvents
+}
+
+export interface PlayerTotals {
+    goals: number,
+    penalties: number,
+    assists: number,
+    yellows: number,
+    reds: number
+}
+
+type SelectedEvents = Record<EventType, boolean>;
+
+export enum EventType {
+    Goals = "Goals",
+    Penalties = "Penalties",
+    Assists = "Assists",
+    Yellows = "Yellows",
+    Reds = "Reds"
 }
 
 export interface PlayerNumberOfGamesOrSeasonsResult {

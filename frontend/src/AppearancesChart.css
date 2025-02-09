@@ -1,0 +1,10 @@
+.square-title {
+    display: inline-block;
+    width: 8px;
+    height: 10px;
+    border: 2px solid black;
+    margin-left: 15px;
+    margin-right: 5px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
