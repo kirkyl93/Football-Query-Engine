@@ -36,7 +36,8 @@ pub async fn get_player_games(pool: web::Data<PgPool>, path: Path<i32>) -> HttpR
     let id: i32 = path.into_inner();
 
     let mut query = QueryBuilder::new("
-    SELECT RANK() OVER (ORDER BY g.date) AS game_number, player_club_id as club_id, a.competition_id, c.name as competition_name, a.date, g.season,
+    SELECT RANK() OVER (ORDER BY g.date) AS game_number, player_club_id as club_id, home_club_id,
+    home_club_name, away_club_id, away_club_name, a.competition_id, c.name as competition_name, c.type as competition_type, a.date, g.season,
     yellow_cards, red_cards, goals, penalty_goals, assists, minutes_played, played_from_minute, subbed_off_minute, home_club_goals, away_club_goals,
     goal_minutes, penalty_goal_minutes, assist_minutes, yellow_minutes, red_minutes,
     CASE
@@ -53,6 +54,7 @@ pub async fn get_player_games(pool: web::Data<PgPool>, path: Path<i32>) -> HttpR
     WHERE player_id = ");
 
     query.push_bind(id).push("
+    AND competition_type IN ('domestic_league', 'international_cup')
     ORDER BY g.date");
 
     match query.build_query_as::<PlayerAppearances>()

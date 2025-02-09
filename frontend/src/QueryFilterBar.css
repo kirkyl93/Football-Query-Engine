@@ -183,19 +183,6 @@
     align-items: center;
 }
 
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    margin-top: 10px;
-}
-
-.checkbox-group label {
-    font-size: 12px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-}
-
 .flag-icon {
     width: 15px;
     height: auto;
@@ -254,6 +241,49 @@
     z-index: 2;
 }
 
+.checkbox-group-vertical {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    width: 220px;
+}
+
+.checkbox-group-vertical label {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    background-color: white;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    border-radius: 2px;
+    position: relative;
+    z-index: 1;
+}
+
+.checkbox-group-vertical input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-group-vertical input[type="checkbox"]:checked + span {
+    font-weight: bold;
+    color: #0066cc;
+}
+
+.checkbox-group-vertical label:has(input:checked) {
+    border: 1px solid #131313;
+    font-weight: bold;
+    background-color: #f6f4f4;
+    z-index: 3;
+}
+
+.checkbox-group-vertical label:hover {
+    border: 1px solid #131313;
+    font-weight: bold;
+    z-index: 2;
+}
+
 .radio-group-vertical {
     display: flex;
     flex-direction: column;
@@ -291,7 +321,6 @@
     z-index: 3;
 }
 
-/* Hover state */
 .radio-group-vertical label:hover {
     border: 1px solid #131313;
     font-weight: bold;

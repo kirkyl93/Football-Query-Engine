@@ -1,9 +1,9 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
-import FilterSortDrawer from "./FilterSortDrawer";
-import './PlayerFilterScreen.css';
+import QueryFilterBar from "./QueryFilterBar";
+import './QueryScreen.css';
 import {useLocation, useNavigate} from "react-router-dom";
 import {
-    FilterState,
+    SearchFilterState,
     HomeOrAwayOptions,
     minuteBasedSortOptions,
     numberOfGamesOrSeasonsSortOptions,
@@ -12,13 +12,13 @@ import {
     StatScope,
     UrlFilters
 } from "./types";
-import PlayerSearchTitle from "./PlayerSearchTitle";
-import {PlayerCombinedStatsTable} from "./PlayerCombinedStatsTable";
-import {PlayerGameStatsTable} from "./PlayerGameStatsTable";
-import {NumberOfGamesOrSeasonsTable} from "./NumberOfGamesOrSeasonsTable";
+import QueryTitle from "./QueryTitle";
+import {QueryOverallTable} from "./QueryOverallTable";
+import {QueryByGameTable} from "./QueryByGameTable";
+import {QueryByCountTable} from "./QueryByCountTable";
 import {countries, Country} from "./countryType";
 
-const PlayerFilterScreen: React.FC = () => {
+const QueryScreen: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
@@ -119,7 +119,7 @@ const PlayerFilterScreen: React.FC = () => {
         };
     }, [location.search]);
 
-    const handleFilterChange = (filterState: FilterState) => {
+    const handleFilterChange = (filterState: SearchFilterState) => {
         const params = new URLSearchParams();
 
         const addParam = (key: string, value: any) => {
@@ -191,7 +191,7 @@ const PlayerFilterScreen: React.FC = () => {
         <div className="player-filter-screen">
             <div className="content-wrapper">
                 <div className="header-container">
-                    <PlayerSearchTitle
+                    <QueryTitle
                         filterState={filterState}
                     />
                     <button className="filter-button" onClick={toggleDrawer}>
@@ -201,27 +201,27 @@ const PlayerFilterScreen: React.FC = () => {
 
                 {selectedScope !== StatScope.GAME &&
                     !numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
-                    <PlayerCombinedStatsTable
+                    <QueryOverallTable
                         filterState={filterState}
                     />
                 }
 
                 {selectedScope !== StatScope.GAME &&
                     numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
-                    <NumberOfGamesOrSeasonsTable
+                    <QueryByCountTable
                         filterState={filterState}
                     />
                 }
 
                 {selectedScope === StatScope.GAME &&
-                    <PlayerGameStatsTable
+                    <QueryByGameTable
                         filterState={filterState}
                     />
                 }
             </div>
 
             <div ref={drawerRef}>
-                <FilterSortDrawer
+                <QueryFilterBar
                     isOpen={isDrawerOpen}
                     filterState={filterState}
                     onFilterChange={handleFilterChange}
@@ -232,4 +232,4 @@ const PlayerFilterScreen: React.FC = () => {
     );
 }
 
-export default PlayerFilterScreen;
+export default QueryScreen;

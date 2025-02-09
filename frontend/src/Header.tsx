@@ -41,7 +41,7 @@ const Header: React.FC = () => {
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            if (searchTerm.trim()) {
+            if (searchTerm.trim().length > 1) {
                 fetchSuggestions(searchTerm);
             } else {
                 setSuggestions([]);
@@ -76,6 +76,18 @@ const Header: React.FC = () => {
     return (
         <header className="header">
             <nav className="nav">
+                <Link to="/?seasons=2024&comps=GB1&penalty=ip&home=e&sort=g&scope=o">
+                    <img
+                        src={'/favicon.ico'}
+                        alt={`Football`}
+                        style={{
+                            width: '40px',
+                            height: '40px',
+                            marginRight: '10px',
+                            borderRadius: '50%'
+                        }}
+                    />
+                </Link>
                 <form ref={dropdownRef} className="search-form">
                     <input
                         type="text"
@@ -103,9 +115,10 @@ const Header: React.FC = () => {
                                             src={`https://flagicons.lipis.dev/flags/4x3/${suggestion.country_code}.svg`}
                                             alt={`${suggestion.country_of_citizenship}`}
                                             style={{
-                                                width: '30px',
-                                                height: '20px',
-                                                marginRight: '10px',
+                                                width: '20px',
+                                                height: '13px',
+                                                marginRight: '6px',
+                                                marginLeft: '6px',
                                                 borderRadius: 1
                                             }}
                                         />
@@ -113,8 +126,8 @@ const Header: React.FC = () => {
                                             src={suggestion.image_url || 'fake_image.jpg'}
                                             alt={`${suggestion.first_name} ${suggestion.last_name}`}
                                             style={{
-                                                width: '40px',
-                                                height: '50px',
+                                                width: '30px',
+                                                height: '37px',
                                                 marginRight: '10px',
                                                 borderRadius: '50%'
                                             }}

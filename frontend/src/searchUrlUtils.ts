@@ -1,4 +1,4 @@
-import {FetchParams} from "./InfiniteScrollWrapper";
+import {FetchParams} from "./QueryBaseTable";
 import {
     PlayerGameSearchResult,
     PlayerNumberOfGamesOrSeasonsResult,

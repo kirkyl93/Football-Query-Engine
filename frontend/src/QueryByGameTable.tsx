@@ -1,18 +1,18 @@
-import {FilterState, PlayerGameSearchResult, StatScope} from "./types";
-import {useInfiniteScroll} from "./InfiniteScrollWrapper";
+import {SearchFilterState, PlayerGameSearchResult, StatScope} from "./types";
+import {useInfiniteScroll} from "./QueryBaseTable";
 import {fetchPlayerGameData} from "./searchUrlUtils";
-import './PlayerGameStatsTable.css';
+import './QueryByGameTable.css';
 import React from "react";
 import {Link} from "react-router-dom";
 import {convertDateStringToDate, dateFormatter, formatSeason} from "./dateUtils";
 import {LoadingBar} from "./LoadingBar";
 
 
-interface PlayerGameStatsTableProps {
-    filterState: FilterState
+interface QueryByGameTableProps {
+    filterState: SearchFilterState
 }
 
-export const PlayerGameStatsTable: React.FC<PlayerGameStatsTableProps> = ({filterState}) => {
+export const QueryByGameTable: React.FC<QueryByGameTableProps> = ({filterState}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef} =
         useInfiniteScroll<PlayerGameSearchResult>(fetchPlayerGameData);
 

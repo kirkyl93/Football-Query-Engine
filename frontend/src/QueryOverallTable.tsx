@@ -1,15 +1,15 @@
-import {FilterState, PlayerSearchResult, SortOptions, StatScope} from "./types";
-import {useInfiniteScroll} from "./InfiniteScrollWrapper";
-import './InfiniteScrollWrapper.css';
-import './PlayerCombinedStatsTable.css';
+import {SearchFilterState, PlayerSearchResult, SortOptions, StatScope} from "./types";
+import {useInfiniteScroll} from "./QueryBaseTable";
+import './QueryBaseTable.css';
+import './QueryOverallTable.css';
 import {formatSeason} from "./dateUtils";
 import React from "react";
 import {Link} from "react-router-dom";
 import {fetchPlayerOverallOrSeasonData} from "./searchUrlUtils";
 import {LoadingBar} from "./LoadingBar";
 
-interface PlayerCombinedStatsTableProps {
-    filterState: FilterState;
+interface QueryOverallTableProps {
+    filterState: SearchFilterState;
 }
 
 const getDisplayTitleForSmallScreen = (sortBy: SortOptions) => {
@@ -74,7 +74,7 @@ const getDisplayStatForSmallScreen = (sortBy: SortOptions, player: PlayerSearchR
     }
 };
 
-export const PlayerCombinedStatsTable: React.FC<PlayerCombinedStatsTableProps> = ({filterState}) => {
+export const QueryOverallTable: React.FC<QueryOverallTableProps> = ({filterState}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef} =
         useInfiniteScroll<PlayerSearchResult>(fetchPlayerOverallOrSeasonData);
 

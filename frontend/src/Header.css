@@ -1,60 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
 .header {
-    background-color: #cfcfcf;
+    background-color: #4c4848;
     padding: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    overflow: hidden;
+    font-family: "Inter", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    height: 40px;
 }
 
 .nav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-}
-
-.nav-link {
-    color: white;
-    text-decoration: none;
-    margin: 0 15px;
+    height: 100%;
 }
 
 .search-input {
     padding: 5px;
     border-radius: 4px;
     border: none;
-    margin-right: 10px;
+    outline-color: #0056b3;
+    font-size: 14px;
 }
 
 .search-form {
     position: relative;
     width: 100%;
-    max-width: 400px;
+    outline-color: #0056b3;
+    padding-top: 16px;
 }
 
-/* Style the suggestions dropdown */
 .header-suggestions-dropdown {
     position: absolute;
-    top: 100%; /* Ensure the dropdown starts directly below the input */
-    left: 0;
-    right: 0;
-    background-color: rgb(231, 60, 60);
-    border: 1px solid #ccc;
+    top: 100%;
+    background-color: rgb(255, 255, 255);
     list-style: none;
     padding: 0;
     margin: 0;
-    z-index: 1000; /* Ensure dropdown is on top of other elements */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%; /* Full width matching the input field */
+    border: 2px solid #0056b3;
+    border-top: none;
+    font-size: 11.5px;
+    font-weight: 450;
+    z-index: 1000;
+    border-radius: 6px;
+    left: -3px;
+    width: 101%;
 }
 
 /* Style each suggestion item */
 .header-suggestion-item {
-    padding: 10px;
     cursor: pointer;
     border-bottom: 1px solid #eee;
+    padding: 5px 7px;
 }
 
 .header-suggestion-item:hover {
-    background-color: #2e89a5;
+    background-color: #0056b3;
 }

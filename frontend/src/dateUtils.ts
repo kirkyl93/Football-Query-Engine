@@ -4,6 +4,10 @@ export function formatSeason(year: number) {
 }
 
 export function convertDateStringToDate(dateString: string): Date {
+    if (!dateString || dateString.length < 0) {
+        return new Date();
+    }
+
     return new Date(`${dateString}T00:00:00Z`);
 }
 

@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import './FilterSortDrawer.css';
+import './QueryFilterBar.css';
 import {competitions} from "./competitions";
 import {formatSeason} from "./dateUtils";
 import {
     Club,
-    FilterState,
+    SearchFilterState,
     gameOnlySortOptions,
     HomeOrAwayOptions,
     minuteBasedSortOptions,
@@ -16,14 +16,14 @@ import {
 } from "./types";
 import {countries, Country} from "./countryType";
 
-interface FilterSortDrawerProps {
+interface QueryFilterBarProps {
     isOpen: boolean;
-    filterState: FilterState;
-    onFilterChange: (filterState: FilterState) => void;
+    filterState: SearchFilterState;
+    onFilterChange: (filterState: SearchFilterState) => void;
     onClose: () => void;
 }
 
-const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
+const QueryFilterBar: React.FC<QueryFilterBarProps> = (
     {
         isOpen,
         filterState,
@@ -84,7 +84,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     ];
 
 
-    const [localFilterState, setLocalFilterState] = useState<FilterState>(filterState);
+    const [localFilterState, setLocalFilterState] = useState<SearchFilterState>(filterState);
     const [newCountry, setNewCountry] = useState<string>("");
     const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
     const [newPlayerName, setNewPlayerName] = useState<string>("");
@@ -556,7 +556,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                 <span className="arrow-icon">{isLeaguesOpen ? '▲' : '▼'}</span>
                             </div>
                             {isLeaguesOpen && (
-                                <div className="checkbox-group">
+                                <div className="checkbox-group-vertical">
                                     {competitions.leagues.map(league => (
                                         <label className="competition-label" key={league.competitionId}>
                                             <input
@@ -582,7 +582,7 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
                                 <span className="arrow-icon">{isEuropeanCompetitionsOpen ? '▲' : '▼'}</span>
                             </div>
                             {isEuropeanCompetitionsOpen && (
-                                <div className="checkbox-group">
+                                <div className="checkbox-group-vertical">
                                     {competitions.europeanCompetitions.map(competition => (
                                         <label className="competition-label" key={competition.competitionId}>
                                             <input
@@ -1094,4 +1094,4 @@ const FilterSortDrawer: React.FC<FilterSortDrawerProps> = (
     );
 };
 
-export default FilterSortDrawer;
+export default QueryFilterBar;

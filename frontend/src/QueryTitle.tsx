@@ -1,5 +1,5 @@
 import {
-    FilterState,
+    SearchFilterState,
     HomeOrAwayOptions,
     minuteBasedSortOptions,
     numberOfGamesOrSeasonsSortOptions,
@@ -10,13 +10,13 @@ import {
 import React, {useMemo} from "react";
 import {competitions} from "./competitions";
 import {formatSeason} from "./dateUtils";
-import './PlayerSearchTitle.css'
+import './QueryTitle.css'
 
-interface PlayerSearchTitleProps {
-    filterState: FilterState;
+interface QueryTitleProps {
+    filterState: SearchFilterState;
 }
 
-const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
+const QueryTitle: React.FC<QueryTitleProps> = (
     {
         filterState
     }) => {
@@ -340,4 +340,4 @@ const PlayerSearchTitle: React.FC<PlayerSearchTitleProps> = (
     );
 }
 
-export default PlayerSearchTitle;
+export default QueryTitle;
