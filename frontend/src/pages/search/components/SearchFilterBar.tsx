@@ -1,29 +1,26 @@
 import React, {useEffect, useState} from 'react';
-import './QueryFilterBar.css';
-import {competitions} from "./competitions";
-import {formatSeason} from "./dateUtils";
+import './SearchFilterBar.css';
+import {competitions} from "../../../data/Competitions";
+import {formatSeason} from "../../../lib/DateUtils";
+import {countries, Country} from "../../../data/Countries";
 import {
-    Club,
-    SearchFilterState,
     gameOnlySortOptions,
-    HomeOrAwayOptions,
-    minuteBasedSortOptions,
-    numberOfGamesOrSeasonsSortOptions,
-    overallOnlySortOptions,
+    HomeOrAwayOptions, minuteBasedSortOptions, numberOfGamesOrSeasonsSortOptions, overallOnlySortOptions,
     PenaltyOptions,
     SortOptions,
     StatScope
-} from "./types";
-import {countries, Country} from "./countryType";
+} from "../../../types/SearchOptions";
+import {SearchFilterState} from "../../../types/SearchFilterState";
+import {Club} from "../../../types/Club";
 
-interface QueryFilterBarProps {
+interface SearchFilterBarProps {
     isOpen: boolean;
     filterState: SearchFilterState;
     onFilterChange: (filterState: SearchFilterState) => void;
     onClose: () => void;
 }
 
-const QueryFilterBar: React.FC<QueryFilterBarProps> = (
+const SearchFilterBar: React.FC<SearchFilterBarProps> = (
     {
         isOpen,
         filterState,
@@ -1094,4 +1091,4 @@ const QueryFilterBar: React.FC<QueryFilterBarProps> = (
     );
 };
 
-export default QueryFilterBar;
+export default SearchFilterBar;

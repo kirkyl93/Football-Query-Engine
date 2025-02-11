@@ -1,19 +1,21 @@
-import {SearchFilterState, PlayerNumberOfGamesOrSeasonsResult, SortOptions, StatScope} from "./types";
-import {useInfiniteScroll} from "./QueryBaseTable";
-import './QueryBaseTable.css';
-import './QueryByCountTable.css';
-import {fetchNumberOfGamesOrSeasonsResult} from "./searchUrlUtils";
+import {useInfiniteScroll} from "./SearchBaseTable";
+import './SearchBaseTable.css';
+import './SearchByCountTable.css';
+import {fetchNumberOfGamesOrSeasonsResult} from "../../../lib/SearchUrlUtils";
 import {Link} from "react-router-dom";
 import React from "react";
-import {formatSeason} from "./dateUtils";
-import {LoadingBar} from "./LoadingBar";
+import {formatSeason} from "../../../lib/DateUtils";
+import {LoadingBar} from "../../../components/LoadingBar";
+import {SearchFilterState} from "../../../types/SearchFilterState";
+import {PlayerNumberOfGamesOrSeasonsResult} from "../../../types/Player";
+import {SortOptions, StatScope} from "../../../types/SearchOptions";
 
 
-interface QueryByCountTableProps {
+interface SearchByCountTableProps {
     filterState: SearchFilterState;
 }
 
-export const QueryByCountTable: React.FC<QueryByCountTableProps> = ({filterState}) => {
+export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterState}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef} =
     useInfiniteScroll<PlayerNumberOfGamesOrSeasonsResult>(fetchNumberOfGamesOrSeasonsResult);
 

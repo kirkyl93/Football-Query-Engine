@@ -1,7 +1,8 @@
-import {HomeOrAwayOptions, PlayerFilterState} from "./types";
-import {competitions} from "./competitions";
-import {formatSeason} from "./dateUtils";
+import {competitions} from "../../../data/Competitions";
+import {formatSeason} from "../../../lib/DateUtils";
 import {useMemo} from "react";
+import {PlayerFilterState} from "../../../types/Player";
+import {HomeOrAwayOptions} from "../../../types/SearchOptions";
 
 interface GamesPlayedChartTitleProps {
     filterState: PlayerFilterState;

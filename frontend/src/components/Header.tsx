@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Link} from 'react-router-dom';
 import './Header.css';
-import {Player} from './types';
+import {Player} from "../types/Player";
 
 const Header: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -78,7 +78,7 @@ const Header: React.FC = () => {
             <nav className="nav">
                 <Link to="/?seasons=2024&comps=GB1&penalty=ip&home=e&sort=g&scope=o">
                     <img
-                        src={'/favicon.ico'}
+                        src={'/src/assets/football.png'}
                         alt={`Football`}
                         style={{
                             width: '40px',

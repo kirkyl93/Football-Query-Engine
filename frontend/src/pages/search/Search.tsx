@@ -1,24 +1,23 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
-import QueryFilterBar from "./QueryFilterBar";
-import './QueryScreen.css';
+import SearchFilterBar from "./components/SearchFilterBar";
+import './Search.css';
 import {useLocation, useNavigate} from "react-router-dom";
+import SearchTitle from "./components/SearchTitle";
+import {SearchOverallTable} from "./components/SearchOverallTable";
+import {SearchByGameTable} from "./components/SearchByGameTable";
+import {SearchByCountTable} from "./components/SearchByCountTable";
+import {countries, Country} from "../../data/Countries";
 import {
-    SearchFilterState,
     HomeOrAwayOptions,
-    minuteBasedSortOptions,
-    numberOfGamesOrSeasonsSortOptions,
+    minuteBasedSortOptions, numberOfGamesOrSeasonsSortOptions,
     PenaltyOptions,
     SortOptions,
-    StatScope,
-    UrlFilters
-} from "./types";
-import QueryTitle from "./QueryTitle";
-import {QueryOverallTable} from "./QueryOverallTable";
-import {QueryByGameTable} from "./QueryByGameTable";
-import {QueryByCountTable} from "./QueryByCountTable";
-import {countries, Country} from "./countryType";
+    StatScope
+} from "../../types/SearchOptions";
+import {UrlFilters} from "../../types/UrlFilters";
+import {SearchFilterState} from "../../types/SearchFilterState";
 
-const QueryScreen: React.FC = () => {
+const Search: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
@@ -191,7 +190,7 @@ const QueryScreen: React.FC = () => {
         <div className="player-filter-screen">
             <div className="content-wrapper">
                 <div className="header-container">
-                    <QueryTitle
+                    <SearchTitle
                         filterState={filterState}
                     />
                     <button className="filter-button" onClick={toggleDrawer}>
@@ -201,27 +200,27 @@ const QueryScreen: React.FC = () => {
 
                 {selectedScope !== StatScope.GAME &&
                     !numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
-                    <QueryOverallTable
+                    <SearchOverallTable
                         filterState={filterState}
                     />
                 }
 
                 {selectedScope !== StatScope.GAME &&
                     numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
-                    <QueryByCountTable
+                    <SearchByCountTable
                         filterState={filterState}
                     />
                 }
 
                 {selectedScope === StatScope.GAME &&
-                    <QueryByGameTable
+                    <SearchByGameTable
                         filterState={filterState}
                     />
                 }
             </div>
 
             <div ref={drawerRef}>
-                <QueryFilterBar
+                <SearchFilterBar
                     isOpen={isDrawerOpen}
                     filterState={filterState}
                     onFilterChange={handleFilterChange}
@@ -232,4 +231,4 @@ const QueryScreen: React.FC = () => {
     );
 }
 
-export default QueryScreen;
+export default Search;

@@ -1,16 +1,13 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
-import './PlayerScreen.css';
+import React, {useEffect, useState} from "react";
+import './Player.css';
 
-import {
-    Player,
-    PlayerAppearance,
-} from "./types";
 import {useParams} from "react-router-dom";
-import {convertDateStringToDate, dateFormatter} from "./dateUtils";
-import {LoadingBar} from "./LoadingBar";
-import {AppearancesChart} from "./AppearancesChart";
+import {convertDateStringToDate, dateFormatter} from "../../lib/DateUtils";
+import {LoadingBar} from "../../components/LoadingBar";
+import {AppearancesChart} from "./components/AppearancesChart";
+import { PlayerAppearance, Player } from "../../types/Player";
 
-const PlayerScreen: React.FC = () => {
+const Player: React.FC = () => {
     const {playerId} = useParams<{ playerId: string }>();
     const [playerData, setPlayerData] = useState<Player | null>(null);
     const [zoomedData, setZoomedData] = useState<PlayerAppearance[]>([]);
@@ -45,7 +42,7 @@ const PlayerScreen: React.FC = () => {
         fetchPlayerData();
     }, [playerId]);
 
-    if (loading) {
+    if (loading || !playerData) {
         return <LoadingBar
             loading={loading}
             hasData={false}
@@ -97,4 +94,4 @@ const PlayerScreen: React.FC = () => {
     )
 };
 
-export default PlayerScreen;
+export default Player;

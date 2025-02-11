@@ -1,15 +1,8 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
-import {
-    EventType,
-    HomeOrAwayOptions,
-    PlayerAppearance,
-    PlayerFilterState,
-    PlayerSeasonsCompetitionsAndClubs, PlayerTotals
-} from "./types";
-import {convertDateStringToDate, dateFormatter, formatSeason} from "./dateUtils";
+import {convertDateStringToDate, dateFormatter, formatSeason} from "../../../lib/DateUtils";
 import AppearancesChartTitle from "./AppearancesChartTitle";
 import AppearancesChartFilterBar from "./AppearancesChartFilterBar";
-import {getColour} from "./colourUtil";
+import {getColour} from "../../../lib/ColourUtils";
 import './AppearancesChart.css';
 import {
     Bar,
@@ -23,6 +16,14 @@ import {
     XAxis,
     YAxis
 } from "recharts";
+import {
+    EventType,
+    PlayerAppearance,
+    PlayerFilterState,
+    PlayerSeasonsCompetitionsAndClubs,
+    PlayerTotals
+} from "../../../types/Player";
+import {HomeOrAwayOptions} from "../../../types/SearchOptions";
 
 type AppearancesChartProps = {
     data?: PlayerAppearance[];

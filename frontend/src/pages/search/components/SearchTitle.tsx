@@ -1,22 +1,21 @@
+import React, {useMemo} from "react";
+import {competitions} from "../../../data/Competitions";
+import {formatSeason} from "../../../lib/DateUtils";
+import './SearchTitle.css'
+import {SearchFilterState} from "../../../types/SearchFilterState";
 import {
-    SearchFilterState,
     HomeOrAwayOptions,
     minuteBasedSortOptions,
-    numberOfGamesOrSeasonsSortOptions,
-    PenaltyOptions,
+    numberOfGamesOrSeasonsSortOptions, PenaltyOptions,
     SortOptions,
     StatScope
-} from "./types";
-import React, {useMemo} from "react";
-import {competitions} from "./competitions";
-import {formatSeason} from "./dateUtils";
-import './QueryTitle.css'
+} from "../../../types/SearchOptions";
 
-interface QueryTitleProps {
+interface SearchTitleProps {
     filterState: SearchFilterState;
 }
 
-const QueryTitle: React.FC<QueryTitleProps> = (
+const SearchTitle: React.FC<SearchTitleProps> = (
     {
         filterState
     }) => {
@@ -340,4 +339,4 @@ const QueryTitle: React.FC<QueryTitleProps> = (
     );
 }
 
-export default QueryTitle;
+export default SearchTitle;

@@ -1,14 +1,16 @@
-import {SearchFilterState, PlayerSearchResult, SortOptions, StatScope} from "./types";
-import {useInfiniteScroll} from "./QueryBaseTable";
-import './QueryBaseTable.css';
-import './QueryOverallTable.css';
-import {formatSeason} from "./dateUtils";
+import {useInfiniteScroll} from "./SearchBaseTable";
+import './SearchBaseTable.css';
+import './SearchOverallTable.css';
+import {formatSeason} from "../../../lib/DateUtils";
 import React from "react";
 import {Link} from "react-router-dom";
-import {fetchPlayerOverallOrSeasonData} from "./searchUrlUtils";
-import {LoadingBar} from "./LoadingBar";
+import {fetchPlayerOverallOrSeasonData} from "../../../lib/SearchUrlUtils";
+import {LoadingBar} from "../../../components/LoadingBar";
+import {SearchFilterState} from "../../../types/SearchFilterState";
+import {SortOptions, StatScope} from "../../../types/SearchOptions";
+import {PlayerSearchResult} from "../../../types/Player";
 
-interface QueryOverallTableProps {
+interface SearchOverallTableProps {
     filterState: SearchFilterState;
 }
 
@@ -74,7 +76,7 @@ const getDisplayStatForSmallScreen = (sortBy: SortOptions, player: PlayerSearchR
     }
 };
 
-export const QueryOverallTable: React.FC<QueryOverallTableProps> = ({filterState}) => {
+export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterState}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef} =
         useInfiniteScroll<PlayerSearchResult>(fetchPlayerOverallOrSeasonData);
 

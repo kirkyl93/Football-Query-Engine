@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from "react";
 import './AppearancesChartFilterBar.css';
-import {EventType, HomeOrAwayOptions, PlayerFilterState, PlayerSeasonsCompetitionsAndClubs} from "./types";
-import {formatSeason} from "./dateUtils";
-import {competitions} from "./competitions";
-import {getColour, hexToRGB} from "./colourUtil";
+import {formatSeason} from "../../../lib/DateUtils";
+import {competitions} from "../../../data/Competitions";
+import {getColour, hexToRGB} from "../../../lib/ColourUtils";
+import {HomeOrAwayOptions} from "../../../types/SearchOptions";
+import {EventType, PlayerFilterState, PlayerSeasonsCompetitionsAndClubs} from "../../../types/Player";
 
 interface AppearancesChartFilterBarProps {
     isOpen: boolean;

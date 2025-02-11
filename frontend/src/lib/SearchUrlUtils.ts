@@ -1,11 +1,7 @@
-import {FetchParams} from "./QueryBaseTable";
-import {
-    PlayerGameSearchResult,
-    PlayerNumberOfGamesOrSeasonsResult,
-    PlayerSearchResult,
-    StatScope,
-    UrlFilters
-} from "./types";
+import {FetchParams} from "../pages/search/components/SearchBaseTable";
+import {UrlFilters} from "../types/UrlFilters";
+import {StatScope} from "../types/SearchOptions";
+import {PlayerGameSearchResult, PlayerNumberOfGamesOrSeasonsResult, PlayerSearchResult} from "../types/Player";
 
 export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams }: FetchParams): string => {
     let url = `${baseUrl}?page=${page}&limit=${limit}`;
