@@ -68,10 +68,9 @@
 }
 
 .chart-container {
-    padding: 30px;
+    padding: 7px 7px 30px 30px;
     position: relative;
     overflow: hidden;
     width: 100%;
-    margin-top: 20px;
     font-weight: 400;
 }

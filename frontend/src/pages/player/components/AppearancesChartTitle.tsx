@@ -5,11 +5,13 @@ import {PlayerFilterState} from "../../../types/Player";
 import {HomeOrAwayOptions} from "../../../types/SearchOptions";
 
 interface GamesPlayedChartTitleProps {
+    playerName: string;
     filterState: PlayerFilterState;
 }
 
 const AppearancesChartTitle: React.FC<GamesPlayedChartTitleProps> = (
     {
+        playerName,
         filterState
     }) => {
 
@@ -70,7 +72,8 @@ const AppearancesChartTitle: React.FC<GamesPlayedChartTitleProps> = (
     }
 
     const constructTitle = useMemo((): string => {
-        let title = competitionsTitle();
+        let title = playerName.toUpperCase();
+        title += (playerName.length > 0 ? " · " : "") + competitionsTitle();
         title += " · " + seasonsTitle();
         title += homeOrAwayTitle();
         return title;

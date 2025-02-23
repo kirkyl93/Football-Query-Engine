@@ -143,4 +143,102 @@ export enum EventType {
     Reds = "Reds"
 }
 
+export enum Result {
+    WIN,
+    DRAW,
+    LOSS
+}
+
+export type Streak = {
+    count: number;
+    startDate: string;
+    endDate: string;
+};
+
+export type PlayerStreaks = {
+    longestWinningStreak: Streak;
+    longestUnbeatenStreak: Streak;
+    longestLosingStreak: Streak;
+    longestTeamScoringStreak: Streak;
+    longestTeamNotScoringStreak: Streak;
+    longestCleanSheetStreak: Streak;
+    longestStreakWithoutCleanSheet: Streak;
+    longestGoalStreak: Streak;
+    longestGoalStreakExcludingPenalties: Streak;
+    longestGoalDrought: Streak;
+    longestAssistStreak: Streak;
+    longestYellowStreak: Streak;
+    longestRedStreak: Streak;
+};
+
+const defaultStreak = (): Streak => ({ count: 0, startDate: "", endDate: "" });
+
+export const createDefaultPlayerStreaks = (): PlayerStreaks => ({
+    longestWinningStreak: defaultStreak(),
+    longestUnbeatenStreak: defaultStreak(),
+    longestLosingStreak: defaultStreak(),
+    longestTeamScoringStreak: defaultStreak(),
+    longestTeamNotScoringStreak: defaultStreak(),
+    longestCleanSheetStreak: defaultStreak(),
+    longestStreakWithoutCleanSheet: defaultStreak(),
+    longestGoalStreak: defaultStreak(),
+    longestGoalStreakExcludingPenalties: defaultStreak(),
+    longestGoalDrought: defaultStreak(),
+    longestAssistStreak: defaultStreak(),
+    longestYellowStreak: defaultStreak(),
+    longestRedStreak: defaultStreak(),
+});
+
+export type PlayerStats = {
+    totalGames: number;
+    gamesStartedAndFinished: number;
+    gamesStartedAndSubbedOff: number;
+    gamesSubbedOnAndFinished: number;
+    gamesSubbedOnAndSubbedOff: number;
+    totalWins: number;
+    totalDraws: number;
+    totalLosses: number;
+    totalMinutes: number;
+    playerAppearancesByMinute: number[];
+    totalTeamGoals: number;
+    totalTeamGoalsConceded: number;
+    totalPlayerGoalsExcludingPenalties:number;
+    totalPenalties: number;
+    totalPlayerAssists: number;
+    totalYellows: number;
+    totalReds: number;
+    playerGoalsByGame: number[];
+    playerGoalsByMinute: number[];
+    playerAssistsByGame: number[];
+    playerAssistsByMinute: number[];
+    teamGoalsByGame: number[];
+    teamGoalsConcededByGame: number[];
+}
+
+export const createDefaultPlayerStats = (): PlayerStats => ({
+    totalGames: 0,
+    gamesStartedAndFinished: 0,
+    gamesStartedAndSubbedOff: 0,
+    gamesSubbedOnAndFinished: 0,
+    gamesSubbedOnAndSubbedOff: 0,
+    totalWins: 0,
+    totalDraws: 0,
+    totalLosses: 0,
+    totalMinutes: 0,
+    playerAppearancesByMinute: [0, 0, 0, 0, 0, 0, 0],
+    totalTeamGoals: 0,
+    totalTeamGoalsConceded: 0,
+    totalPlayerGoalsExcludingPenalties: 0,
+    totalPenalties: 0,
+    totalPlayerAssists: 0,
+    totalYellows: 0,
+    totalReds: 0,
+    playerGoalsByGame: [0, 0, 0, 0],
+    playerGoalsByMinute: [0, 0, 0, 0, 0, 0, 0],
+    playerAssistsByGame: [0, 0, 0, 0],
+    playerAssistsByMinute: [0, 0, 0, 0, 0, 0, 0],
+    teamGoalsByGame: [0, 0, 0, 0, 0, 0],
+    teamGoalsConcededByGame: [0, 0, 0, 0, 0, 0]
+});
+
 type SelectedEvents = Record<EventType, boolean>;

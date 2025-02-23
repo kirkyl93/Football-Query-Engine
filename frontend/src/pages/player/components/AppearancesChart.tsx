@@ -26,21 +26,25 @@ import {
 import {HomeOrAwayOptions} from "../../../types/SearchOptions";
 
 type AppearancesChartProps = {
+    playerName: string;
     data?: PlayerAppearance[];
     onZoomChange: (zoomedData: PlayerAppearance[]) => void;
 
 };
 
-export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}: AppearancesChartProps) {
+export function AppearancesChart({playerName: name, data: initialData, onZoomChange: onZoomChange}: AppearancesChartProps) {
     const [isPlayerDrawerOpen, setIsPlayerDrawerOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
     const [data, setData] = useState<PlayerAppearance[]>(initialData || []);
+    const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [refAreaLeft, setRefAreaLeft] = useState<number | null>(null);
     const [refAreaRight, setRefAreaRight] = useState<number | null>(null);
     const [startGame, setStartGame] = useState<number | null>(null);
     const [endGame, setEndGame] = useState<number | null>(null);
     const [isSelecting, setIsSelecting] = useState(false);
     const chartRef = useRef<HTMLDivElement>(null);
+
+    const syncId = useMemo(() => `chart-${Math.random().toString(36).substring(2, 10)}`, []);
 
     const [playerFilterState, setPlayerFilterState] = useState<PlayerFilterState>({
         selectedSeasons: [],
@@ -344,7 +348,7 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
                 playerTotals.goals += app.goal_minutes.length;
                 playerTotals.penalties += app.penalty_goals;
                 playerTotals.ownGoals += app.own_goal_minutes.length;
-                playerTotals.assists += app.assists;
+                playerTotals.assists += app.assist_minutes.length;
                 if (app.yellow_cards < 2) {
                     playerTotals.yellows += app.yellow_cards;
                 }
@@ -388,8 +392,25 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
         setEndGame(filteredData[filteredData.length - 1].game_number);
     };
 
+    const stopScrolling = () => {
+        if (scrollbarWidth === 0) {
+            const calculatedScrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.paddingRight = `${calculatedScrollBarWidth}px`;
+            setScrollbarWidth(calculatedScrollBarWidth);
+        } else {
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+        }
+
+        document.body.style.overflow='hidden';
+    }
+
+    const enableScrolling = () => {
+        if (chartRef.current)
+        document.body.style.paddingRight = '';
+        document.body.style.overflow='auto';
+    }
+
     const handleZoom = (e: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
-        e.preventDefault();
         if (!filteredData.length || !chartRef.current) return;
 
         let zoomFactor = 0.05;
@@ -511,6 +532,7 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
         <div className="chart-container" ref={chartRef}>
             <div className="header-container">
                 <AppearancesChartTitle
+                    playerName={name}
                     filterState={playerFilterState}
                 />
                 <div className="button-container">
@@ -539,9 +561,9 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
             <div style={{
                 display: 'flex',
                 justifyContent: 'center',
-                marginTop: '7px',
-                marginBottom: '25px',
-                fontSize: '14px'
+                marginTop: '4px',
+                marginBottom: '4px',
+                fontSize: '13.5px',
             }}>
                 {zoomedData.length} Games
 
@@ -555,14 +577,7 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
                 {(noEventFiltersSelected || playerFilterState.selectedEvents.Penalties) ? (
                     <>
                         <span className="square-title" style={{backgroundColor: "gold"}}></span>
-                        {calculateGoalsAssistsAndCards.penalties !== 1 ? `${calculateGoalsAssistsAndCards.penalties} Penalties` : `1 Penalty`}
-                    </>
-                ) : null}
-
-                {(noEventFiltersSelected || playerFilterState.selectedEvents.OwnGoals) ? (
-                    <>
-                        <span className="square-title" style={{backgroundColor: "pink"}}></span>
-                        {calculateGoalsAssistsAndCards.ownGoals !== 1 ? `${calculateGoalsAssistsAndCards.ownGoals} Own goals` : `1 Own goal`}
+                        {calculateGoalsAssistsAndCards.penalties !== 1 ? `${calculateGoalsAssistsAndCards.penalties} Pens` : `1 Pen`}
                     </>
                 ) : null}
 
@@ -570,6 +585,13 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
                     <>
                         <span className="square-title" style={{backgroundColor: "green"}}></span>
                         {calculateGoalsAssistsAndCards.assists !== 1 ? `${calculateGoalsAssistsAndCards.assists} Assists` : `1 Assist`}
+                    </>
+                ) : null}
+
+                {(noEventFiltersSelected || playerFilterState.selectedEvents.OwnGoals) ? (
+                    <>
+                        <span className="square-title" style={{backgroundColor: "pink"}}></span>
+                        {calculateGoalsAssistsAndCards.ownGoals !== 1 ? `${calculateGoalsAssistsAndCards.ownGoals} Own goals` : `1 Own goal`}
                     </>
                 ) : null}
 
@@ -594,9 +616,14 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
                 onFilterChange={setPlayerFilterState}
                 onClose={toggleDrawer}
             />
-            <div className="h-full" onWheel={handleZoom} onTouchMove={handleZoom} ref={chartRef}
+            <div className="h-full"
+                 onWheel={handleZoom}
+                 onTouchMove={handleZoom}
+                 onMouseEnter={stopScrolling}
+                 onMouseLeave={enableScrolling}
+                 ref={chartRef}
                  style={{touchAction: 'none'}}>
-                <div style={{height: '500px'}}>
+                <div style={{height: '360px'}}>
                     <ResponsiveContainer>
                         <ComposedChart
                             data={zoomedData}
@@ -606,7 +633,7 @@ export function AppearancesChart({data: initialData, onZoomChange: onZoomChange}
                                 left: 20,
                                 bottom: 40,
                             }}
-                            syncId="chartId"
+                            syncId={syncId}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}

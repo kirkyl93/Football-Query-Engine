@@ -45,8 +45,8 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
     const eventTypeOptions = [
         {eventType: EventType.Goals, colour: "blue", name: "Goals"},
         {eventType: EventType.Penalties, colour: "gold", name: "Penalties"},
-        {eventType: EventType.OwnGoals, colour: "pink", name: "Own goals"},
         {eventType: EventType.Assists, colour: "green", name: "Assists"},
+        {eventType: EventType.OwnGoals, colour: "pink", name: "Own goals"},
         {eventType: EventType.Yellows, colour: "yellow", name: "Yellows"},
         {eventType: EventType.Reds, colour: "red", name: "Reds"},
     ]
