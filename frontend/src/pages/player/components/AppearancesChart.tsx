@@ -57,6 +57,7 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
             [EventType.Penalties]: false,
             [EventType.OwnGoals]: false,
             [EventType.Assists]: false,
+            [EventType.CleanSheets]: false,
             [EventType.Yellows]: false,
             [EventType.Reds]: false
         }
@@ -174,7 +175,7 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
         const selectedEvents = playerFilterState.selectedEvents;
 
         return !selectedEvents.Goals && !selectedEvents.Penalties && !selectedEvents.OwnGoals
-            && !selectedEvents.Assists && !selectedEvents.Yellows && !selectedEvents.Reds
+            && !selectedEvents.Assists && !selectedEvents.CleanSheets && !selectedEvents.Yellows && !selectedEvents.Reds
     }, [playerFilterState])
 
     useEffect(() => {
@@ -339,22 +340,27 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 penalties: 0,
                 ownGoals: 0,
                 assists: 0,
+                cleanSheets: 0,
                 yellows: 0,
                 reds: 0
             };
 
 
             zoomedData.map(app => {
-                playerTotals.goals += app.goal_minutes.length;
+                playerTotals.goals += app.goals - app.penalty_goals;
                 playerTotals.penalties += app.penalty_goals;
                 playerTotals.ownGoals += app.own_goal_minutes.length;
                 playerTotals.assists += app.assist_minutes.length;
+                const cleanSheet = app.club_id === app.home_club_id ? app.away_club_goals === 0 : app.home_club_goals === 0;
+                if (cleanSheet) {
+                    playerTotals.cleanSheets++;
+                }
                 if (app.yellow_cards < 2) {
                     playerTotals.yellows += app.yellow_cards;
                 }
                 playerTotals.reds += app.red_cards;
                 if (app.yellow_cards > 1) {
-                    playerTotals.reds += 1;
+                    playerTotals.reds ++;
                 }
             })
 
@@ -554,7 +560,8 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 alignItems: 'center',
                 fontSize: '14px',
                 fontWeight: '600',
-                marginTop: '25px'
+                marginTop: '25px',
+                marginLeft: '35px'
             }}>
                 {zoomedData.length > 1 ? `Between ${dateFormatter.format(convertDateStringToDate(zoomedData[0].date))} and ${dateFormatter.format(convertDateStringToDate(zoomedData[zoomedData.length - 1].date))}` : null}
             </div>
@@ -563,6 +570,7 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 justifyContent: 'center',
                 marginTop: '4px',
                 marginBottom: '4px',
+                marginLeft: '35px',
                 fontSize: '13.5px',
             }}>
                 {zoomedData.length} Games
@@ -585,6 +593,25 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                     <>
                         <span className="square-title" style={{backgroundColor: "green"}}></span>
                         {calculateGoalsAssistsAndCards.assists !== 1 ? `${calculateGoalsAssistsAndCards.assists} Assists` : `1 Assist`}
+                    </>
+                ) : null}
+            </div>
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginTop: '4px',
+                marginBottom: '10px',
+                marginLeft: '35px',
+                fontSize: '13.5px',
+            }}>
+                {(noEventFiltersSelected || playerFilterState.selectedEvents.CleanSheets) ? (
+                    <>
+                        <img
+                            src={'/light-bulb.png'}
+                            alt={`Light bulb`}
+                            style={{width: '20px', height: '20px', verticalAlign: 'middle', marginTop: '-2px'}}
+                        />
+                        {calculateGoalsAssistsAndCards.cleanSheets !== 1 ? `${calculateGoalsAssistsAndCards.cleanSheets} Clean sheets` : `1 Clean sheet`}
                     </>
                 ) : null}
 
@@ -685,15 +712,25 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                             >
                                 {
                                     zoomedData.map((entry, index) => {
-                                        // Check if the club_id has changed, and update the currentClubId ref
                                         if (entry.club_id !== currentClubIdRef.current) {
                                             currentClubIdRef.current = entry.club_id;
                                             currentClubColour.current = getColour(currentClubIdRef.current);
                                         }
 
+                                        const cleanSheet =
+                                            (noEventFiltersSelected || playerFilterState.selectedEvents.CleanSheets) &&
+                                            (entry.club_id === entry.home_club_id
+                                                ? entry.away_club_goals === 0
+                                                : entry.home_club_goals === 0);
+                                        const adjustedOpacity = cleanSheet ? barChartOpacity + 0.35 : barChartOpacity;
+
                                         return (
-                                            <Cell key={index} fill={currentClubColour.current}
-                                                  stroke={getBarOutlineColour(entry)}/>
+                                            <Cell
+                                                key={index}
+                                                fill={currentClubColour.current}
+                                                fillOpacity={adjustedOpacity}
+                                                stroke={getBarOutlineColour(entry)}
+                                            />
                                         );
                                     })
                                 }
@@ -748,3 +785,4 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
         </div>
     );
 }
+

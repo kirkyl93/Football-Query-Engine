@@ -46,6 +46,7 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
         {eventType: EventType.Goals, colour: "blue", name: "Goals"},
         {eventType: EventType.Penalties, colour: "gold", name: "Penalties"},
         {eventType: EventType.Assists, colour: "green", name: "Assists"},
+        {eventType: EventType.CleanSheets, colour: "green", name: "Clean sheets"},
         {eventType: EventType.OwnGoals, colour: "pink", name: "Own goals"},
         {eventType: EventType.Yellows, colour: "yellow", name: "Yellows"},
         {eventType: EventType.Reds, colour: "red", name: "Reds"},
@@ -67,6 +68,7 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                 [EventType.Goals]: false,
                 [EventType.Penalties]: false,
                 [EventType.OwnGoals]: false,
+                [EventType.CleanSheets]: false,
                 [EventType.Assists]: false,
                 [EventType.Yellows]: false,
                 [EventType.Reds]: false
@@ -394,7 +396,21 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                                         checked={isEventSelected(event.eventType)}
                                         onChange={handleEventSelectionChange}
                                     />
-                                    <span className="square" style={{backgroundColor: event.colour}}></span> {event.name}
+                                    {event.eventType !== EventType.CleanSheets ?
+                                        <span className="square" style={{backgroundColor: event.colour}}></span> :
+                                        <img
+                                            src={'/light-bulb.png'}
+                                            alt={`Light bulb`}
+                                            style={{
+                                                width: '20px',
+                                                height: '20px',
+                                                verticalAlign: 'middle',
+                                                marginLeft: '-3.8px',
+                                                marginTop: '-2px'
+                                            }}
+                                        />
+                                    }
+                                    {event.name}
                                 </label>
                             ))}
                         </div>

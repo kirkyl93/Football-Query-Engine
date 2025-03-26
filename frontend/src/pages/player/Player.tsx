@@ -18,7 +18,11 @@ import PlayerSearchBar from "../../components/PlayerSearchBar";
 import TeamStreakChart from "./components/TeamStreakChart";
 import PlayerStreakChart from "./components/PlayerStreakChart";
 import Per90Chart from "./components/Per90Chart";
-import PlayerWinPercentageChart from "../../components/PlayerWinPercentageChart";
+import PlayerWinPercentageChart from "./components/PlayerWinPercentageChart";
+import GoalsPerGameChart from "./components/GoalsPerGameChart";
+import GoalAndAssistContributionChart from "./components/GoalAndAssistContributionChart";
+import TeamGoalsByGameChart from "./components/TeamGoalsByGameChart";
+import TeamGoalsConcededByGameChart from "./components/TeamGoalsConcededByGameChart";
 
 const Player: React.FC = () => {
     const {playerId} = useParams<{ playerId: string }>();
@@ -287,48 +291,6 @@ const Player: React.FC = () => {
         return mapStreaks(streaks);
     };
 
-    const player1WinDrawLoss = [
-        {name: "Win", value: stats.totalWins, colour: "green"},
-        {name: "Draw", value: stats.totalDraws, colour: "yellow"},
-        {name: "Loss", value: stats.totalLosses, colour: "red"},
-    ];
-
-    const player1Goals = [
-        {name: "No goals", value: stats.playerGoalsByGame[0], colour: "red"},
-        {name: "1 goal", value: stats.playerGoalsByGame[1], colour: "yellow"},
-        {name: "2 goals", value: stats.playerGoalsByGame[2], colour: "green"},
-        {name: "3+ goals", value: stats.playerGoalsByGame[3], colour: "gold"},
-    ];
-
-    const player1PercentageOfTeamGoalsContributedTo = [
-        {name: "Scored from open play", value: stats.totalPlayerGoalsExcludingPenalties, colour: "blue"},
-        {name: "Penalties", value: stats.totalPenalties, colour: "gold"},
-        {name: "Assists", value: stats.totalPlayerAssists, colour: "green"},
-        {
-            name: "Not involved",
-            value: stats.totalTeamGoals - stats.totalPlayerGoalsExcludingPenalties - stats.totalPenalties - stats.totalPlayerAssists,
-            colour: "red"
-        }
-    ]
-
-    const player1TeamGoalsScored = [
-        {name: "No goals", value: stats.teamGoalsByGame[0], colour: "red"},
-        {name: "1 goal", value: stats.teamGoalsByGame[1], colour: "yellow"},
-        {name: "2 goals", value: stats.teamGoalsByGame[2], colour: "green"},
-        {name: "3 goals", value: stats.teamGoalsByGame[3], colour: "blue"},
-        {name: "4 goals", value: stats.teamGoalsByGame[4], colour: "silver"},
-        {name: "5+ goals", value: stats.teamGoalsByGame[5], colour: "gold"}
-    ]
-
-    const player1TeamGoalsConceded = [
-        {name: "No goals", value: stats.teamGoalsConcededByGame[0], colour: "green"},
-        {name: "1 goal", value: stats.teamGoalsConcededByGame[1], colour: "yellow"},
-        {name: "2 goals", value: stats.teamGoalsConcededByGame[2], colour: "grey"},
-        {name: "3 goals", value: stats.teamGoalsConcededByGame[3], colour: "#FFBF00"},
-        {name: "4 goals", value: stats.teamGoalsConcededByGame[4], colour: "red"},
-        {name: "5+ goals", value: stats.teamGoalsConcededByGame[5], colour: "black"}
-    ]
-
     const minutesPlayed = [
         {name: "Full game", value: stats.gamesStartedAndFinished, colour: "green"},
         {name: "Started and subbed", value: stats.gamesStartedAndSubbedOff, colour: "yellow"},
@@ -491,7 +453,7 @@ const Player: React.FC = () => {
                         onZoomChange={setZoomedComparisonPlayerGameData}/>
                 }
             </div>
-            <div style={{display: "flex", width: "85%", flexWrap: "wrap", justifyContent: "space-between" }}>
+            <div style={{display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                 <TeamStreakChart
                     playerName={playerData.last_name}
                     playerStreaks={playerStreaks}
@@ -511,7 +473,7 @@ const Player: React.FC = () => {
                     comparisonPlayerStats={comparisonStats}
                 />
             </div>
-            <div>
+            <div style={{display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
                 <PlayerWinPercentageChart
                     playerName={playerData.last_name}
                     wins={stats.totalWins}
@@ -522,82 +484,36 @@ const Player: React.FC = () => {
                     comparisonDraws={comparisonStats.totalDraws}
                     comparisonLosses={comparisonStats.totalLosses}
                 />
-                <PieChart width={400} height={400}>
-                    <Pie
-                        activeIndex={activeIndex}
-                        activeShape={renderActiveShape}
-                        data={player1Goals}
-                        cx="50%"
-                        cy="50%"
-                        paddingAngle={4}
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        onMouseEnter={onPieEnter}
-                    >
-                        {player1Goals.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.colour}/>
-                        ))}
-                    </Pie>
-                </PieChart>
-                <PieChart width={400} height={400}>
-                    <Pie
-                        activeIndex={activeIndex}
-                        activeShape={renderActiveShape}
-                        data={player1PercentageOfTeamGoalsContributedTo}
-                        cx="50%"
-                        cy="50%"
-                        paddingAngle={4}
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        onMouseEnter={onPieEnter}
-                    >
-                        {player1PercentageOfTeamGoalsContributedTo.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.colour}/>
-                        ))}
-                    </Pie>
-                </PieChart>
-                <PieChart width={400} height={400}>
-                    <Pie
-                        activeIndex={activeIndex}
-                        activeShape={renderActiveShape}
-                        data={player1TeamGoalsScored}
-                        cx="50%"
-                        cy="50%"
-                        paddingAngle={4}
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        onMouseEnter={onPieEnter}
-                    >
-                        {player1TeamGoalsScored.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.colour}/>
-                        ))}
-                    </Pie>
-                </PieChart>
-                <PieChart width={400} height={400}>
-                    <Pie
-                        activeIndex={activeIndex}
-                        activeShape={renderActiveShape}
-                        data={player1TeamGoalsConceded}
-                        cx="50%"
-                        cy="50%"
-                        paddingAngle={4}
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        onMouseEnter={onPieEnter}
-                    >
-                        {player1TeamGoalsConceded.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.colour}/>
-                        ))}
-                    </Pie>
-                </PieChart>
+                <GoalsPerGameChart
+                    playerName={playerData.last_name}
+                    goalsByGame={stats.playerGoalsByGame}
+                    comparisonPlayerName={comparisonPlayerName}
+                    comparisonGoalsByGame={comparisonStats.playerGoalsByGame}
+                />
+                <GoalAndAssistContributionChart
+                    playerName={playerData.last_name}
+                    nonPenaltyGoals={stats.totalPlayerGoalsExcludingPenalties}
+                    penaltyGoals={stats.totalPenalties}
+                    assists={stats.totalPlayerAssists}
+                    totalTeamGoals={stats.totalTeamGoals}
+                    comparisonPlayerName={comparisonPlayerName}
+                    comparisonNonPenaltyGoals={comparisonStats.totalPlayerGoalsExcludingPenalties}
+                    comparisonPenaltyGoals={comparisonStats.totalPenalties}
+                    comparisonAssists={comparisonStats.totalPlayerAssists}
+                    comparisonTotalTeamGoals={comparisonStats.totalTeamGoals}
+                />
+                <TeamGoalsByGameChart
+                    playerName={playerData.last_name}
+                    teamGoalsByGame={stats.teamGoalsByGame}
+                    comparisonPlayerName={comparisonPlayerName}
+                    comparisonTeamGoalsByGame={comparisonStats.teamGoalsByGame}
+                />
+                <TeamGoalsConcededByGameChart
+                    playerName={playerData.last_name}
+                    teamGoalsConcededByGame={stats.teamGoalsConcededByGame}
+                    comparisonPlayerName={comparisonPlayerName}
+                    comparisonTeamGoalsConcededByGame={comparisonStats.teamGoalsConcededByGame}
+                />
                 <PieChart width={400} height={400}>
                     <Pie
                         activeIndex={activeIndex}

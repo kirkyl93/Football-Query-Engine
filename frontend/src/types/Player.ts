@@ -130,6 +130,7 @@ export interface PlayerTotals {
     penalties: number,
     ownGoals: number,
     assists: number,
+    cleanSheets: number,
     yellows: number,
     reds: number
 }
@@ -139,6 +140,7 @@ export enum EventType {
     Penalties = "Penalties",
     OwnGoals = "OwnGoals",
     Assists = "Assists",
+    CleanSheets = "CleanSheets",
     Yellows = "Yellows",
     Reds = "Reds"
 }
