@@ -1,4 +1,4 @@
-import {HomeOrAwayOptions} from "./SearchOptions";
+import {AppearanceTypeOptions, HomeOrAwayOptions} from "./SearchOptions";
 
 export interface Player {
     player_id: number,
@@ -122,6 +122,9 @@ export interface PlayerFilterState {
     selectedClubsPlayedFor: number[],
     selectedClubsPlayedAgainst: number[],
     selectedHomeOrAway: HomeOrAwayOptions,
+    selectedAppearanceType: AppearanceTypeOptions,
+    selectedMinimumMinutesPlayed?: number,
+    selectedMaximumMinutesPlayed?: number,
     selectedEvents: SelectedEvents
 }
 

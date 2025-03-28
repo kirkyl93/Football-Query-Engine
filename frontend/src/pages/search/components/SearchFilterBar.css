@@ -85,6 +85,11 @@
     margin-bottom: 20px;
 }
 
+.checkbox-group {
+    font-size: 12px;
+    margin-top: 5px;
+}
+
 .dropdown-title, .sub-dropdown-title {
     display: flex;
     font-size: 13px;

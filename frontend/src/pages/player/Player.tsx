@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import './Player.css';
 
 import {useParams} from "react-router-dom";
@@ -13,16 +13,19 @@ import {
     PlayerStreaks,
     Result
 } from "../../types/Player";
-import {Bar, BarChart, Tooltip, XAxis, YAxis, PieChart, Pie, Sector, Cell} from "recharts";
+import {Bar, BarChart, Tooltip, XAxis, YAxis} from "recharts";
 import PlayerSearchBar from "../../components/PlayerSearchBar";
 import TeamStreakChart from "./components/TeamStreakChart";
 import PlayerStreakChart from "./components/PlayerStreakChart";
 import Per90Chart from "./components/Per90Chart";
 import PlayerWinPercentageChart from "./components/PlayerWinPercentageChart";
-import GoalsPerGameChart from "./components/GoalsPerGameChart";
+import GoalsByGameChart from "./components/GoalsByGameChart";
 import GoalAndAssistContributionChart from "./components/GoalAndAssistContributionChart";
 import TeamGoalsByGameChart from "./components/TeamGoalsByGameChart";
 import TeamGoalsConcededByGameChart from "./components/TeamGoalsConcededByGameChart";
+import SubbedOnAndOffChart from "./components/SubbedOnAndOffChart";
+
+const AppearancesChartMemo = React.memo(AppearancesChart);
 
 const Player: React.FC = () => {
     const {playerId} = useParams<{ playerId: string }>();
@@ -38,16 +41,10 @@ const Player: React.FC = () => {
     const [comparisonStats, setComparisonStats] = useState<PlayerStats>(createDefaultPlayerStats);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [activeIndex, setActiveIndex] = useState<number>(0);
-
 
     const handleSelectPlayer = (playerName: string, playerGameData: PlayerAppearance[]) => {
         setComparisonPlayerName(playerName);
         setComparisonPlayerGameData(playerGameData);
-    };
-
-    const onPieEnter = (_, index: number) => {
-        setActiveIndex(index);
     };
 
     useEffect(() => {
@@ -291,13 +288,6 @@ const Player: React.FC = () => {
         return mapStreaks(streaks);
     };
 
-    const minutesPlayed = [
-        {name: "Full game", value: stats.gamesStartedAndFinished, colour: "green"},
-        {name: "Started and subbed", value: stats.gamesStartedAndSubbedOff, colour: "yellow"},
-        {name: "Subbed on and finished", value: stats.gamesSubbedOnAndFinished, colour: "#FFBF00"},
-        {name: "Subbed on and off", value: stats.gamesSubbedOnAndSubbedOff, colour: "red"}
-    ]
-
     const playerGoalsByMinute = [
         {
             name: "First 15mins",
@@ -347,57 +337,6 @@ const Player: React.FC = () => {
         setComparisonStats(playerAndTeamStats(zoomedComparisonPlayerGameData));
     }, [zoomedComparisonPlayerGameData]);
 
-
-    const renderActiveShape = (props) => {
-        const RADIAN = Math.PI / 180;
-        const {cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value} = props;
-        const sin = Math.sin(-RADIAN * midAngle);
-        const cos = Math.cos(-RADIAN * midAngle);
-        const sx = cx + (outerRadius + 10) * cos;
-        const sy = cy + (outerRadius + 10) * sin;
-        const mx = cx + (outerRadius + 30) * cos;
-        const my = cy + (outerRadius + 30) * sin;
-        const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-        const ey = my;
-        const textAnchor = cos >= 0 ? 'start' : 'end';
-
-        return (
-            <g>
-                <text x={cx} y={cy} dy={8} textAnchor="middle" fill={"black"}>
-                    {payload.name}
-                </text>
-                <Sector
-                    cx={cx}
-                    cy={cy}
-                    innerRadius={innerRadius}
-                    outerRadius={outerRadius}
-                    startAngle={startAngle}
-                    endAngle={endAngle}
-                    stroke="black"
-                    strokeWidth={2.5}
-                    fill={fill}
-                />
-                <Sector
-                    cx={cx}
-                    cy={cy}
-                    startAngle={startAngle}
-                    endAngle={endAngle}
-                    innerRadius={outerRadius + 6}
-                    outerRadius={outerRadius + 10}
-                    stroke="black"
-                    strokeWidth={1}
-                    fill={fill}
-                />
-                <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none"/>
-                <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none"/>
-                <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`${value}`}</text>
-                <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
-                    {`(Rate ${(percent * 100).toFixed(2)}%)`}
-                </text>
-            </g>
-        );
-    };
-
     if (loading || !playerData) {
         return <LoadingBar
             loading={loading}
@@ -441,19 +380,43 @@ const Player: React.FC = () => {
                     <p>Position: {playerData?.sub_position}</p>
                     <p>Height: {playerData?.height_in_cm}cm</p>
                 </div>
-                <PlayerSearchBar placeHolderText={"Compare with..."} linkToPlayer={false}
-                                 onSelectPlayer={handleSelectPlayer}/>
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                    <PlayerSearchBar
+                        placeHolderText={"Compare with..."}
+                        linkToPlayer={false}
+                        onSelectPlayer={handleSelectPlayer}
+                    />
+                    {comparisonPlayerName.length > 0 && <button
+                        onClick={() => {
+                            setComparisonPlayerName("");
+                            setComparisonPlayerGameData([]);
+                            setZoomedComparisonPlayerGameData([]);
+                            setComparisonStats(createDefaultPlayerStats);
+                        }}
+                        style={{
+                            marginLeft: '3px',
+                            background: 'none',
+                            fontWeight: '550',
+                            fontSize: '14px',
+                            color: 'black',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        X
+                    </button>
+                    }
+                </div>
             </div>
             <div className="graph">
-                <AppearancesChart
+                <AppearancesChartMemo
                     playerName={""} data={playerGameData} onZoomChange={setZoomedPlayerGameData}/>
                 {comparisonPlayerGameData.length > 0 &&
-                    <AppearancesChart
+                    <AppearancesChartMemo
                         playerName={comparisonPlayerName} data={comparisonPlayerGameData}
                         onZoomChange={setZoomedComparisonPlayerGameData}/>
                 }
             </div>
-            <div style={{display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
+            <div style={{display: "flex", flexWrap: "wrap", justifyContent: "center"}}>
                 <TeamStreakChart
                     playerName={playerData.last_name}
                     playerStreaks={playerStreaks}
@@ -484,7 +447,7 @@ const Player: React.FC = () => {
                     comparisonDraws={comparisonStats.totalDraws}
                     comparisonLosses={comparisonStats.totalLosses}
                 />
-                <GoalsPerGameChart
+                <GoalsByGameChart
                     playerName={playerData.last_name}
                     goalsByGame={stats.playerGoalsByGame}
                     comparisonPlayerName={comparisonPlayerName}
@@ -514,25 +477,18 @@ const Player: React.FC = () => {
                     comparisonPlayerName={comparisonPlayerName}
                     comparisonTeamGoalsConcededByGame={comparisonStats.teamGoalsConcededByGame}
                 />
-                <PieChart width={400} height={400}>
-                    <Pie
-                        activeIndex={activeIndex}
-                        activeShape={renderActiveShape}
-                        data={minutesPlayed}
-                        cx="50%"
-                        cy="50%"
-                        paddingAngle={4}
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        onMouseEnter={onPieEnter}
-                    >
-                        {minutesPlayed.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.colour}/>
-                        ))}
-                    </Pie>
-                </PieChart>
+                <SubbedOnAndOffChart
+                    playerName={playerData.last_name}
+                    startedAndFinished={stats.gamesStartedAndFinished}
+                    startedAndSubbed={stats.gamesStartedAndSubbedOff}
+                    subbedOnAndOff={stats.gamesSubbedOnAndSubbedOff}
+                    subbedOnAndFinished={stats.gamesSubbedOnAndFinished}
+                    comparisonPlayerName={comparisonPlayerName}
+                    comparisonStartedAndFinished={comparisonStats.gamesStartedAndFinished}
+                    comparisonStartedAndSubbed={comparisonStats.gamesStartedAndSubbedOff}
+                    comparisonSubbedOnAndOff={comparisonStats.gamesSubbedOnAndSubbedOff}
+                    comparisonSubbedOnAndFinished={comparisonStats.gamesSubbedOnAndFinished}
+                />
                 <BarChart
                     data={playerGoalsByMinute}
                     width={400}

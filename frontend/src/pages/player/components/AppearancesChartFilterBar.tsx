@@ -3,7 +3,7 @@ import './AppearancesChartFilterBar.css';
 import {formatSeason} from "../../../lib/DateUtils";
 import {competitions} from "../../../data/Competitions";
 import {getColour, hexToRGB} from "../../../lib/ColourUtils";
-import {HomeOrAwayOptions} from "../../../types/SearchOptions";
+import {AppearanceTypeOptions, HomeOrAwayOptions} from "../../../types/SearchOptions";
 import {EventType, PlayerFilterState, PlayerSeasonsCompetitionsAndClubs} from "../../../types/Player";
 
 interface AppearancesChartFilterBarProps {
@@ -13,6 +13,8 @@ interface AppearancesChartFilterBarProps {
     onFilterChange: (filterState: PlayerFilterState) => void;
     onClose: () => void;
 }
+
+const minutesPlayed = Array.from({length: 120}, (_, i) => i + 1);
 
 const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
     {
@@ -34,12 +36,19 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
     const [newClubsPlayedAgainstSuggestions, setNewClubsPlayedAgainstSuggestions] = useState<[number, string][]>([]);
     const [isClubsPlayedAgainstDropdownVisible, setIsClubsPlayedAgainstDropdownVisible] = useState<boolean>(false);
     const [isHomeOrAwayOpen, setIsHomeOrAwayOpen] = useState(false);
+    const [isIncludeGamesOpen, setIsIncludeGamesOpen] = useState(false);
     const [isEventsOpen, setIsEventsOpen] = useState(false);
 
     const homeOrAwayOptions = [
         {name: "Either", id: HomeOrAwayOptions.EITHER},
         {name: "Home", id: HomeOrAwayOptions.HOME},
         {name: "Away", id: HomeOrAwayOptions.AWAY}
+    ]
+
+    const appearanceTypeOptions = [
+        {name: "Either", id: AppearanceTypeOptions.EITHER},
+        {name: "Started", id: AppearanceTypeOptions.STARTED},
+        {name: "Subbed on", id: AppearanceTypeOptions.SUBBED_ON}
     ]
 
     const eventTypeOptions = [
@@ -64,6 +73,9 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
             selectedClubsPlayedFor: [],
             selectedClubsPlayedAgainst: [],
             selectedHomeOrAway: HomeOrAwayOptions.EITHER,
+            selectedAppearanceType: AppearanceTypeOptions.EITHER,
+            selectedMinimumMinutesPlayed: undefined,
+            selectedMaximumMinutesPlayed: undefined,
             selectedEvents: {
                 [EventType.Goals]: false,
                 [EventType.Penalties]: false,
@@ -137,6 +149,14 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
         }));
     }
 
+    const handleAppearanceTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const appearanceType = e.target.value as AppearanceTypeOptions;
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            selectedAppearanceType: appearanceType
+        }));
+    }
+
     const handleClubPlayedAgainstSuggestionClick = (suggestion: number) => {
         setNewClubPlayedAgainst("");
         setNewClubsPlayedAgainstSuggestions([]);
@@ -153,6 +173,20 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
         setLocalFilterState(prevState => ({
             ...prevState,
             selectedClubsPlayedAgainst: prevState.selectedClubsPlayedAgainst.filter(club => club !== clubIdToRemove)
+        }));
+    }
+
+    const handleMinimumMinutesPlayedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            selectedMinimumMinutesPlayed: e.target.value ? parseInt(e.target.value) : undefined
+        }));
+    }
+
+    const handleMaximumMinutesPlayedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLocalFilterState(prevState => ({
+            ...prevState,
+            selectedMaximumMinutesPlayed: e.target.value ? parseInt(e.target.value) : undefined
         }));
     }
 
@@ -295,7 +329,7 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                                 <label className="club-label"
                                        style={{
                                            backgroundColor: hexToRGB(getColour(club[0]), 0.25),
-                                        }}
+                                       }}
                                        key={club[0]}>
                                     <input
                                         type="checkbox"
@@ -379,6 +413,50 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                                 </label>
                             ))}
                         </div>
+                    )}
+                </div>
+                <div className='dropdown-section'>
+                    <div className="dropdown-title" onClick={() => setIsIncludeGamesOpen(!isIncludeGamesOpen)}>
+                        <span className="title-text">ONLY INCLUDE GAMES WHERE</span>
+                        <span className="arrow-icon">{isIncludeGamesOpen ? '▲' : '▼'}</span>
+                    </div>
+                    {isIncludeGamesOpen && (
+                        <div className='checkbox-group'>
+                            <div className='radio-group'>
+                                {appearanceTypeOptions.map(option => (
+                                    <label key={option.id}>
+                                        <input
+                                            type="radio"
+                                            value={option.id}
+                                            checked={localFilterState.selectedAppearanceType === option.id}
+                                            onChange={handleAppearanceTypeChange}
+                                        />
+                                        {option.name}
+                                    </label>
+                                ))}
+                            </div>
+                            <div className="minute-and-age-and-sub-dropdown-group">
+                                <label>minutes played at least: </label>
+                                <select value={localFilterState.selectedMinimumMinutesPlayed ?? ''}
+                                        onChange={handleMinimumMinutesPlayedChange}>
+                                    <option value="">Any</option>
+                                    {minutesPlayed.map(minute => (
+                                        <option key={minute} value={minute}>{minute}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="minute-and-age-and-sub-dropdown-group">
+                                <label>minutes played at most: </label>
+                                <select value={localFilterState.selectedMaximumMinutesPlayed ?? ''}
+                                        onChange={handleMaximumMinutesPlayedChange}>
+                                    <option value="">Any</option>
+                                    {minutesPlayed.map(minute => (
+                                        <option key={minute} value={minute}>{minute}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
                     )}
                 </div>
                 <div className="dropdown-section">

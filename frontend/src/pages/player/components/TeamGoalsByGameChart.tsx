@@ -57,7 +57,7 @@ const TeamGoalsByGameChart: React.FC<TeamGoalsPerGameProps> = (
                 Team goals by game
             </div>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '1100px'}}>
-                <PieChart width={550} height={300}>
+                <PieChart width={550} height={350}>
                     {comparisonPlayerName.length > 0 &&
                         <text x={550 / 2} y={25} fill="black" textAnchor="middle" dominantBaseline="central">
                             <tspan fontSize="14">{playerName}</tspan>
@@ -82,7 +82,7 @@ const TeamGoalsByGameChart: React.FC<TeamGoalsPerGameProps> = (
                     </Pie>
                 </PieChart>
                 {comparisonPlayerName.length > 0 &&
-                    <PieChart width={550} height={300}>
+                    <PieChart width={550} height={350}>
                         <text x={550 / 2} y={25} fill="black" textAnchor="middle" dominantBaseline="central">
                             <tspan fontSize="14">{comparisonPlayerName}</tspan>
                         </text>

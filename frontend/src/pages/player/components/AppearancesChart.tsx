@@ -23,7 +23,7 @@ import {
     PlayerSeasonsCompetitionsAndClubs,
     PlayerTotals
 } from "../../../types/Player";
-import {HomeOrAwayOptions} from "../../../types/SearchOptions";
+import {AppearanceTypeOptions, HomeOrAwayOptions} from "../../../types/SearchOptions";
 
 type AppearancesChartProps = {
     playerName: string;
@@ -52,6 +52,7 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
         selectedClubsPlayedFor: [],
         selectedClubsPlayedAgainst: [],
         selectedHomeOrAway: HomeOrAwayOptions.EITHER,
+        selectedAppearanceType: AppearanceTypeOptions.EITHER,
         selectedEvents: {
             [EventType.Goals]: false,
             [EventType.Penalties]: false,
@@ -117,6 +118,28 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
 
     const filteredData = useMemo(() => {
         const result = data.filter(a => {
+            if (playerFilterState.selectedAppearanceType === AppearanceTypeOptions.STARTED) {
+                if (a.played_from_minute > 1) {
+                    return false;
+                }
+            } else if (playerFilterState.selectedAppearanceType === AppearanceTypeOptions.SUBBED_ON) {
+                if (a.played_from_minute <= 1) {
+                    return false;
+                }
+            }
+
+            if (playerFilterState.selectedMaximumMinutesPlayed || playerFilterState.selectedMinimumMinutesPlayed) {
+                const minutesPlayed = a.minutes_played[1] - a.minutes_played[0];
+
+                if (playerFilterState.selectedMinimumMinutesPlayed && playerFilterState.selectedMinimumMinutesPlayed > minutesPlayed) {
+                    return false;
+                }
+
+                if (playerFilterState.selectedMaximumMinutesPlayed && playerFilterState.selectedMaximumMinutesPlayed < minutesPlayed) {
+                    return false;
+                }
+            }
+
             const matchesSeasons = playerFilterState.selectedSeasons.length === 0 ||
                 playerFilterState.selectedSeasons.includes(a.season);
 

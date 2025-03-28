@@ -2,7 +2,7 @@ import {competitions} from "../../../data/Competitions";
 import {formatSeason} from "../../../lib/DateUtils";
 import {useMemo} from "react";
 import {PlayerFilterState} from "../../../types/Player";
-import {HomeOrAwayOptions} from "../../../types/SearchOptions";
+import {AppearanceTypeOptions, HomeOrAwayOptions} from "../../../types/SearchOptions";
 
 interface GamesPlayedChartTitleProps {
     playerName: string;
@@ -71,11 +71,31 @@ const AppearancesChartTitle: React.FC<GamesPlayedChartTitleProps> = (
         return "";
     }
 
+    const includeOnlyTitle = (): string => {
+        let title = "";
+        if (filterState.selectedAppearanceType === AppearanceTypeOptions.STARTED) {
+            title += " · GAMES STARTED";
+        } else if (filterState.selectedAppearanceType === AppearanceTypeOptions.SUBBED_ON) {
+            title += " · SUBBED ON";
+        }
+
+        if (filterState.selectedMinimumMinutesPlayed && filterState.selectedMinimumMinutesPlayed > 0) {
+            title += " · AT LEAST " + filterState.selectedMinimumMinutesPlayed + " MINS";
+        }
+
+        if (filterState.selectedMaximumMinutesPlayed && filterState.selectedMaximumMinutesPlayed > 0) {
+            title +=" · AT MOST " + filterState.selectedMaximumMinutesPlayed + " MINS";
+        }
+
+        return title;
+    }
+
     const constructTitle = useMemo((): string => {
         let title = playerName.toUpperCase();
         title += (playerName.length > 0 ? " · " : "") + competitionsTitle();
         title += " · " + seasonsTitle();
         title += homeOrAwayTitle();
+        title += includeOnlyTitle();
         return title;
     }, [filterState]);
 

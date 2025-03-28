@@ -27,21 +27,21 @@ const TeamGoalsConcededByGameChart: React.FC<TeamGoalsConcededPerGameProps> = (
     };
 
     const teamGoalsConceded = [
-        {name: "No goals", value: teamGoalsConcededByGame[0], colour: "red"},
-        {name: "1 goal", value: teamGoalsConcededByGame[1], colour: "yellow"},
-        {name: "2 goals", value: teamGoalsConcededByGame[2], colour: "green"},
-        {name: "3 goals", value: teamGoalsConcededByGame[3], colour: "blue"},
-        {name: "4 goals", value: teamGoalsConcededByGame[4], colour: "silver"},
-        {name: "5+ goals", value: teamGoalsConcededByGame[5], colour: "gold"}
+        {name: "No goals", value: teamGoalsConcededByGame[0], colour: "gold"},
+        {name: "1 goal", value: teamGoalsConcededByGame[1], colour: "green"},
+        {name: "2 goals", value: teamGoalsConcededByGame[2], colour: "yellow"},
+        {name: "3 goals", value: teamGoalsConcededByGame[3], colour: "orange"},
+        {name: "4 goals", value: teamGoalsConcededByGame[4], colour: "red"},
+        {name: "5+ goals", value: teamGoalsConcededByGame[5], colour: "black"}
     ]
 
     const comparisonTeamGoalsConceded = [
-        {name: "No goals", value: comparisonTeamGoalsConcededByGame[0], colour: "red"},
-        {name: "1 goal", value: comparisonTeamGoalsConcededByGame[1], colour: "yellow"},
-        {name: "2 goals", value: comparisonTeamGoalsConcededByGame[2], colour: "green"},
-        {name: "3 goals", value: comparisonTeamGoalsConcededByGame[3], colour: "blue"},
-        {name: "4 goals", value: comparisonTeamGoalsConcededByGame[4], colour: "silver"},
-        {name: "5+ goals", value: comparisonTeamGoalsConcededByGame[5], colour: "gold"}
+        {name: "No goals", value: comparisonTeamGoalsConcededByGame[0], colour: "gold"},
+        {name: "1 goal", value: comparisonTeamGoalsConcededByGame[1], colour: "green"},
+        {name: "2 goals", value: comparisonTeamGoalsConcededByGame[2], colour: "yellow"},
+        {name: "3 goals", value: comparisonTeamGoalsConcededByGame[3], colour: "orange"},
+        {name: "4 goals", value: comparisonTeamGoalsConcededByGame[4], colour: "red"},
+        {name: "5+ goals", value: comparisonTeamGoalsConcededByGame[5], colour: "black"}
     ]
 
     return (
@@ -57,7 +57,7 @@ const TeamGoalsConcededByGameChart: React.FC<TeamGoalsConcededPerGameProps> = (
                 Team goals conceded by game
             </div>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '1100px'}}>
-                <PieChart width={550} height={300}>
+                <PieChart width={550} height={350}>
                     {comparisonPlayerName.length > 0 &&
                         <text x={550 / 2} y={25} fill="black" textAnchor="middle" dominantBaseline="central">
                             <tspan fontSize="14">{playerName}</tspan>
@@ -82,7 +82,7 @@ const TeamGoalsConcededByGameChart: React.FC<TeamGoalsConcededPerGameProps> = (
                     </Pie>
                 </PieChart>
                 {comparisonPlayerName.length > 0 &&
-                    <PieChart width={550} height={300}>
+                    <PieChart width={550} height={350}>
                         <text x={550 / 2} y={25} fill="black" textAnchor="middle" dominantBaseline="central">
                             <tspan fontSize="14">{comparisonPlayerName}</tspan>
                         </text>

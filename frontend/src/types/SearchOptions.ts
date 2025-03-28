@@ -10,6 +10,12 @@ export enum HomeOrAwayOptions {
     EITHER = 'e'
 }
 
+export enum AppearanceTypeOptions {
+    STARTED = 'st',
+    SUBBED_ON = 'su',
+    EITHER = 'e'
+}
+
 export enum StatScope {
     OVERALL = 'o',
     SEASON = 's',

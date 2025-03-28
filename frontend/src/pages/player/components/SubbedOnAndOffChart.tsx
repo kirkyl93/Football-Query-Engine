@@ -3,16 +3,23 @@ import {Pie, PieChart, Cell} from "recharts";
 import {renderActiveShape} from "../../../lib/PieChartUtils";
 
 
-interface GoalsPerGameProps {
+interface SubbedOnAndOffProps {
     playerName: string;
-    goalsByGame: number[];
+    startedAndFinished: number;
+    startedAndSubbed: number;
+    subbedOnAndOff: number;
+    subbedOnAndFinished: number;
     comparisonPlayerName: string;
-    comparisonGoalsByGame: number[];
+    comparisonStartedAndFinished: number;
+    comparisonStartedAndSubbed: number;
+    comparisonSubbedOnAndOff: number;
+    comparisonSubbedOnAndFinished: number;
 }
 
-const GoalsPerGameChart: React.FC<GoalsPerGameProps> = (
+const SubbedOnAndOffChart: React.FC<SubbedOnAndOffProps> = (
     {
-        playerName, goalsByGame, comparisonPlayerName, comparisonGoalsByGame
+        playerName, startedAndFinished, startedAndSubbed, subbedOnAndOff, subbedOnAndFinished, comparisonPlayerName,
+        comparisonStartedAndFinished, comparisonStartedAndSubbed, comparisonSubbedOnAndOff, comparisonSubbedOnAndFinished
     }) => {
 
     const [activePlayerIndex, setActivePlayerIndex] = useState<number>(0);
@@ -26,19 +33,19 @@ const GoalsPerGameChart: React.FC<GoalsPerGameProps> = (
         setActiveComparisonPlayerIndex(index);
     };
 
-    const playerGoals = [
-        {name: "No goals", value: goalsByGame[0], colour: "red"},
-        {name: "1 goal", value: goalsByGame[1], colour: "yellow"},
-        {name: "2 goals", value: goalsByGame[2], colour: "green"},
-        {name: "3+ goals", value: goalsByGame[3], colour: "gold"},
-    ];
+    const minutesPlayed = [
+        {name: "Full game", value: startedAndFinished, colour: "green"},
+        {name: "Subbed off", value: startedAndSubbed, colour: "yellow"},
+        {name: "Subbed on", value: subbedOnAndFinished, colour: "#FFBF00"},
+        {name: "On and off", value: subbedOnAndOff, colour: "red"}
+    ]
 
-    const comparisonPlayerGoals = [
-        {name: "No goals", value: comparisonGoalsByGame[0], colour: "red"},
-        {name: "1 goal", value: comparisonGoalsByGame[1], colour: "yellow"},
-        {name: "2 goals", value: comparisonGoalsByGame[2], colour: "green"},
-        {name: "3+ goals", value: comparisonGoalsByGame[3], colour: "gold"},
-    ];
+    const comparisonMinutesPlayed = [
+        {name: "Full game", value: comparisonStartedAndFinished, colour: "green"},
+        {name: "Subbed off", value: comparisonStartedAndSubbed, colour: "yellow"},
+        {name: "Subbed on", value: comparisonSubbedOnAndFinished, colour: "#FFBF00"},
+        {name: "On and off", value: comparisonSubbedOnAndOff, colour: "red"}
+    ]
 
     return (
         <div style={{maxWidth: '1100px'}}>
@@ -50,10 +57,10 @@ const GoalsPerGameChart: React.FC<GoalsPerGameProps> = (
                 fontWeight: '600',
                 marginTop: '5px',
             }}>
-                Goals by game
+                Appearance by type
             </div>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '1100px'}}>
-                <PieChart width={550} height={300}>
+                <PieChart width={550} height={350}>
                     {comparisonPlayerName.length > 0 &&
                         <text x={550 / 2} y={25} fill="black" textAnchor="middle" dominantBaseline="central">
                             <tspan fontSize="14">{playerName}</tspan>
@@ -62,7 +69,7 @@ const GoalsPerGameChart: React.FC<GoalsPerGameProps> = (
                     <Pie
                         activeIndex={activePlayerIndex}
                         activeShape={renderActiveShape}
-                        data={playerGoals}
+                        data={minutesPlayed}
                         cx="50%"
                         cy="50%"
                         paddingAngle={4}
@@ -72,20 +79,20 @@ const GoalsPerGameChart: React.FC<GoalsPerGameProps> = (
                         dataKey="value"
                         onMouseEnter={onPlayerPieEnter}
                     >
-                        {playerGoals.map((entry, index) => (
+                        {minutesPlayed.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.colour}/>
                         ))}
                     </Pie>
                 </PieChart>
                 {comparisonPlayerName.length > 0 &&
-                    <PieChart width={550} height={300}>
+                    <PieChart width={550} height={350}>
                         <text x={550 / 2} y={25} fill="black" textAnchor="middle" dominantBaseline="central">
                             <tspan fontSize="14">{comparisonPlayerName}</tspan>
                         </text>
                         <Pie
                             activeIndex={activeComparisonPlayerIndex}
                             activeShape={renderActiveShape}
-                            data={comparisonPlayerGoals}
+                            data={comparisonMinutesPlayed}
                             cx="50%"
                             cy="50%"
                             paddingAngle={4}
@@ -95,7 +102,7 @@ const GoalsPerGameChart: React.FC<GoalsPerGameProps> = (
                             dataKey="value"
                             onMouseEnter={onComparisonPlayerPieEnter}
                         >
-                            {comparisonPlayerGoals.map((entry, index) => (
+                            {comparisonMinutesPlayed.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.colour}/>
                             ))}
                         </Pie>
@@ -106,4 +113,4 @@ const GoalsPerGameChart: React.FC<GoalsPerGameProps> = (
     )
 }
 
-export default GoalsPerGameChart;
+export default SubbedOnAndOffChart;

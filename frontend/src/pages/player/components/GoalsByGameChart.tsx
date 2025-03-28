@@ -3,23 +3,16 @@ import {Pie, PieChart, Cell} from "recharts";
 import {renderActiveShape} from "../../../lib/PieChartUtils";
 
 
-interface GoalAndAssistContributionProps {
+interface GoalsByGameProps {
     playerName: string;
-    nonPenaltyGoals: number;
-    penaltyGoals: number;
-    assists: number;
-    totalTeamGoals: number;
+    goalsByGame: number[];
     comparisonPlayerName: string;
-    comparisonNonPenaltyGoals: number;
-    comparisonPenaltyGoals: number;
-    comparisonAssists: number;
-    comparisonTotalTeamGoals: number;
+    comparisonGoalsByGame: number[];
 }
 
-const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> = (
+const GoalsByGameChart: React.FC<GoalsByGameProps> = (
     {
-        playerName, nonPenaltyGoals, penaltyGoals, assists, totalTeamGoals, comparisonPlayerName,
-        comparisonNonPenaltyGoals, comparisonPenaltyGoals, comparisonAssists, comparisonTotalTeamGoals
+        playerName, goalsByGame, comparisonPlayerName, comparisonGoalsByGame
     }) => {
 
     const [activePlayerIndex, setActivePlayerIndex] = useState<number>(0);
@@ -33,27 +26,19 @@ const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> =
         setActiveComparisonPlayerIndex(index);
     };
 
-    const playerPercentageOfTeamGoalsContributedTo = [
-        {name: "Open play", value: nonPenaltyGoals, colour: "blue"},
-        {name: "Penalties", value: penaltyGoals, colour: "gold"},
-        {name: "Assists", value: assists, colour: "green"},
-        {
-            name: "Not involved",
-            value: totalTeamGoals - nonPenaltyGoals - penaltyGoals - assists,
-            colour: "red"
-        }
-    ]
+    const playerGoals = [
+        {name: "No goals", value: goalsByGame[0], colour: "red"},
+        {name: "1 goal", value: goalsByGame[1], colour: "yellow"},
+        {name: "2 goals", value: goalsByGame[2], colour: "green"},
+        {name: "3+ goals", value: goalsByGame[3], colour: "gold"},
+    ];
 
-    const comparisonPlayerPercentageOfTeamGoalsContributedTo = [
-        {name: "Open play", value: comparisonNonPenaltyGoals, colour: "blue"},
-        {name: "Penalties", value: comparisonPenaltyGoals, colour: "gold"},
-        {name: "Assists", value: comparisonAssists, colour: "green"},
-        {
-            name: "Not involved",
-            value: comparisonTotalTeamGoals - comparisonNonPenaltyGoals - comparisonPenaltyGoals - comparisonAssists,
-            colour: "red"
-        }
-    ]
+    const comparisonPlayerGoals = [
+        {name: "No goals", value: comparisonGoalsByGame[0], colour: "red"},
+        {name: "1 goal", value: comparisonGoalsByGame[1], colour: "yellow"},
+        {name: "2 goals", value: comparisonGoalsByGame[2], colour: "green"},
+        {name: "3+ goals", value: comparisonGoalsByGame[3], colour: "gold"},
+    ];
 
     return (
         <div style={{maxWidth: '1100px'}}>
@@ -65,7 +50,7 @@ const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> =
                 fontWeight: '600',
                 marginTop: '5px',
             }}>
-                Team goals contributed to
+                Goals by game
             </div>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '1100px'}}>
                 <PieChart width={550} height={350}>
@@ -77,7 +62,7 @@ const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> =
                     <Pie
                         activeIndex={activePlayerIndex}
                         activeShape={renderActiveShape}
-                        data={playerPercentageOfTeamGoalsContributedTo}
+                        data={playerGoals}
                         cx="50%"
                         cy="50%"
                         paddingAngle={4}
@@ -87,7 +72,7 @@ const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> =
                         dataKey="value"
                         onMouseEnter={onPlayerPieEnter}
                     >
-                        {playerPercentageOfTeamGoalsContributedTo.map((entry, index) => (
+                        {playerGoals.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.colour}/>
                         ))}
                     </Pie>
@@ -100,7 +85,7 @@ const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> =
                         <Pie
                             activeIndex={activeComparisonPlayerIndex}
                             activeShape={renderActiveShape}
-                            data={comparisonPlayerPercentageOfTeamGoalsContributedTo}
+                            data={comparisonPlayerGoals}
                             cx="50%"
                             cy="50%"
                             paddingAngle={4}
@@ -110,7 +95,7 @@ const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> =
                             dataKey="value"
                             onMouseEnter={onComparisonPlayerPieEnter}
                         >
-                            {comparisonPlayerPercentageOfTeamGoalsContributedTo.map((entry, index) => (
+                            {comparisonPlayerGoals.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.colour}/>
                             ))}
                         </Pie>
@@ -121,4 +106,4 @@ const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> =
     )
 }
 
-export default GoalAndAssistContributionChart;
+export default GoalsByGameChart;
