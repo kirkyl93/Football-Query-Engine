@@ -12,3 +12,6 @@ dotenv = "0.15"
 sqlx = { version = "0.8.6", features = ["runtime-async-std-native-tls", "postgres", "chrono"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive"] }
+
+[dev-dependencies]
+serde_urlencoded = "0.7.1"
