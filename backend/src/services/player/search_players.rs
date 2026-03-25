@@ -1,6 +1,6 @@
 use actix_web::{get, web, HttpResponse};
 use actix_web::web::Path;
-use sqlx::{query, PgPool, Postgres, QueryBuilder};
+use sqlx::{PgPool, Postgres, QueryBuilder};
 use crate::services::base_query_builder::BaseQueryMethods;
 use crate::services::player::models::ToolbarSearchParams;
 use crate::services::player::sql_models::{Player, PlayerAppearances, PlayerSeasonByCompAndTeam};
@@ -53,7 +53,9 @@ pub async fn get_player_games(pool: web::Data<PgPool>, path: Path<i32>) -> HttpR
         competitions c ON a.competition_id = c.competition_id
     WHERE player_id = ");
 
-    query.push_bind(id).push("
+    query.push_bind(id);
+
+    query.push("
     AND competition_type IN ('domestic_league', 'international_cup')
     ORDER BY g.date");
 

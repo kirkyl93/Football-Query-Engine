@@ -75,7 +75,7 @@ async fn test_number_of_games_overall() {
         PlayerNumberOfGamesOrSeasonsResult::new(
             1, 28003, String::from("Lionel Messi"), Country::Argentina,
             String::from("ar"), PlayerSubPosition::RightWinger,
-            String::from("https://img.a.transfermarkt.technology/portrait/header/28003-1671435885.jpg?lm=1"),
+            String::from("https://img.a.transfermarkt.technology/portrait/header/28003-1771694720.jpg?lm=1"),
             String::from("131"), 0, 84, 0)
     ).await;
 }
@@ -122,7 +122,7 @@ async fn test_number_of_seasons() {
             1, 148455, String::from("Mohamed Salah"), Country::Egypt,
             String::from("eg"), PlayerSubPosition::RightWinger,
             String::from("https://img.a.transfermarkt.technology/portrait/header/148455-1727337594.jpg?lm=1"),
-            String::from("31"), 0, 0, 7)
+            String::from("31"), 0, 0, 8)
     ).await;
 }
 

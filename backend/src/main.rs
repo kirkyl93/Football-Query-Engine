@@ -19,7 +19,7 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = PgPoolOptions::new()
-        .max_connections(5)
+        .max_connections(20)
         .connect(&database_url)
         .await
         .expect("Error building a connection pool");

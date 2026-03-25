@@ -489,49 +489,49 @@ const Player: React.FC = () => {
                     comparisonSubbedOnAndOff={comparisonStats.gamesSubbedOnAndSubbedOff}
                     comparisonSubbedOnAndFinished={comparisonStats.gamesSubbedOnAndFinished}
                 />
-                <BarChart
-                    data={playerGoalsByMinute}
-                    width={400}
-                    height={520}
-                    layout="vertical"
-                    margin={{top: 20, left: 50, right: 20, bottom: 50}}>
-                    <text x={500 / 2} y={10} fill="black" textAnchor="middle" dominantBaseline="central">
-                        <tspan fontSize="14"></tspan>
-                    </text>
-                    <XAxis
-                        type="number"
-                        tick={{fontSize: 13}}
-                        domain={[0, 35]}
-                    />
+                {/*<BarChart*/}
+                {/*    data={playerGoalsByMinute}*/}
+                {/*    width={400}*/}
+                {/*    height={520}*/}
+                {/*    layout="vertical"*/}
+                {/*    margin={{top: 20, left: 50, right: 20, bottom: 50}}>*/}
+                {/*    <text x={500 / 2} y={10} fill="black" textAnchor="middle" dominantBaseline="central">*/}
+                {/*        <tspan fontSize="14"></tspan>*/}
+                {/*    </text>*/}
+                {/*    <XAxis*/}
+                {/*        type="number"*/}
+                {/*        tick={{fontSize: 13}}*/}
+                {/*        domain={[0, 35]}*/}
+                {/*    />*/}
 
-                    <YAxis
-                        dataKey="name"
-                        type="category"
-                        tick={{fontSize: 13}}
-                    />
-                    <Tooltip/>
-                    <Bar
-                        dataKey="minutesPlayed"
-                        barSize={12}
-                        stroke={"black"}
-                        strokeWidth={0.5}
-                        fill="#86f7aa"
-                    />
-                    <Bar
-                        dataKey="goals"
-                        barSize={12}
-                        stroke={"black"}
-                        strokeWidth={0.5}
-                        fill="#ffd19c"
-                    />
-                    <Bar
-                        dataKey="assists"
-                        barSize={12}
-                        stroke={"black"}
-                        strokeWidth={0.5}
-                        fill="aqua"
-                    />
-                </BarChart>
+                {/*    <YAxis*/}
+                {/*        dataKey="name"*/}
+                {/*        type="category"*/}
+                {/*        tick={{fontSize: 13}}*/}
+                {/*    />*/}
+                {/*    <Tooltip/>*/}
+                {/*    <Bar*/}
+                {/*        dataKey="minutesPlayed"*/}
+                {/*        barSize={12}*/}
+                {/*        stroke={"black"}*/}
+                {/*        strokeWidth={0.5}*/}
+                {/*        fill="#86f7aa"*/}
+                {/*    />*/}
+                {/*    <Bar*/}
+                {/*        dataKey="goals"*/}
+                {/*        barSize={12}*/}
+                {/*        stroke={"black"}*/}
+                {/*        strokeWidth={0.5}*/}
+                {/*        fill="#ffd19c"*/}
+                {/*    />*/}
+                {/*    <Bar*/}
+                {/*        dataKey="assists"*/}
+                {/*        barSize={12}*/}
+                {/*        stroke={"black"}*/}
+                {/*        strokeWidth={0.5}*/}
+                {/*        fill="aqua"*/}
+                {/*    />*/}
+                {/*</BarChart>*/}
             </div>
 
         </div>

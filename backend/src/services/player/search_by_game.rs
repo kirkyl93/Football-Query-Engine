@@ -6,12 +6,12 @@ use crate::services::player::player_query_builder::{get_goals_calculation, Playe
 use crate::services::player::sql_models::PlayerGameSearchResult;
 
 trait GameQueryMethods<'a> {
-    fn add_rank(&mut self, sort_by: &SortOption, goals_calculation: &String) -> &mut Self;
-    fn add_order_by(&mut self, sort_by: &SortOption, goals_calculation: &String) -> &mut Self;
+    fn add_rank(&mut self, sort_by: &SortOption, goals_calculation: &str) -> &mut Self;
+    fn add_order_by(&mut self, sort_by: &SortOption, goals_calculation: &str) -> &mut Self;
 }
 
 impl<'a>  GameQueryMethods<'a>  for QueryBuilder<'a, Postgres> {
-    fn add_rank(&mut self, sort_by: &SortOption, goals_calculation: &String) -> &mut Self {
+    fn add_rank(&mut self, sort_by: &SortOption, goals_calculation: &str) -> &mut Self {
         self.push("RANK() OVER (ORDER BY ");
         let rank_order = match sort_by {
             SortOption::Goals => format!("{} DESC", goals_calculation),
@@ -27,7 +27,7 @@ impl<'a>  GameQueryMethods<'a>  for QueryBuilder<'a, Postgres> {
         self
     }
 
-    fn add_order_by(&mut self, sort_by: &SortOption, goals_calculation: &String) -> &mut Self {
+    fn add_order_by(&mut self, sort_by: &SortOption, goals_calculation: &str) -> &mut Self {
         self.push("
         ORDER BY ");
 
@@ -93,10 +93,10 @@ fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuild
     let mut query = QueryBuilder::new("
     SELECT ");
 
-    query.add_rank(params.sort(), &goals_calculation)
+    query.add_rank(params.sort(), goals_calculation)
         .push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, player_club_id AS club_id,
         a.competition_id, c.name AS competition_name, c.country_name AS competition_country, a.date, season, home_club_id, home_club_name, home_club_goals, away_club_id, away_club_name,
-        away_club_goals, minutes_played, ").push(goals_calculation.clone()).push(" AS goals, assists
+        away_club_goals, minutes_played, ").push(goals_calculation).push(" AS goals, assists
         FROM
             appearances_enhanced a
         JOIN
@@ -107,7 +107,7 @@ fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuild
             competitions c ON a.competition_id = c.competition_id
         WHERE 1 = 1")
         .add_player_filters(&params)
-        .add_order_by(params.sort(), &goals_calculation)
+        .add_order_by(params.sort(), goals_calculation)
         .add_limit_and_offset(params.limit(), params.page());
 
     query
@@ -124,7 +124,7 @@ fn build_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a
         .push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, club_id,
         c.competition_id, c.name AS competition_name, c.country_name AS competition_country, date, season, home_club_id, home_club_name,
         home_club_goals, away_club_id, away_club_name, away_club_goals, minutes_played, ")
-        .push(goals_calculation.clone()).push(" AS goals, assists
+        .push(goals_calculation).push(" AS goals, assists
         FROM
             games_minute_appearance_filter a
         JOIN

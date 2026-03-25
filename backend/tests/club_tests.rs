@@ -10,6 +10,6 @@ async fn test_get_clubs() {
             BASE_CLUB_URL,
             "search_name=lee",
             3,
-            Club::new(399, "Leeds United".to_string())).await;
+            Club::new(399, "Leeds United Association Football Club".to_string())).await;
 }
 

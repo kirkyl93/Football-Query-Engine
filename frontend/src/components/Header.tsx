@@ -7,7 +7,7 @@ const Header: React.FC = () => {
     return (
         <header className="header">
             <nav className="nav">
-                <Link to="/?seasons=2024&comps=GB1&penalty=ip&home=e&sort=g&scope=o">
+                <Link to="/?seasons=2025&comps=GB1&penalty=ip&home=e&sort=g&scope=o">
                     <img
                         src={'/src/assets/football.png'}
                         alt={`Football`}

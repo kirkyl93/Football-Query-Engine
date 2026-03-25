@@ -15,16 +15,14 @@ async fn most_goals_in_premier_league_first_half_of_a_game() {
     let query = SearchParamsBuilder::new()
         .page(0)
         .limit(50)
-        .seasons(vec![2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-        2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
-        2022, 2023, 2024])
+        .seasons(vec![])
         .competitions(vec![Competition::PremierLeague])
         .minute_played_from(1)
         .minute_played_to(46)
         .minimum_age(14)
         .maximum_age(40)
         .minimum_height(131)
-        .maximum_height(192)
+        .maximum_height(210)
         .penalty(PenaltyOption::IncludePenalties)
         .home_or_away(HomeAwayOption::Either)
         .sort(SortOption::Goals)

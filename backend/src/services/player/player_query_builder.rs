@@ -356,7 +356,7 @@ impl<'a> PrivatePlayerMinuteFilterMethods<'a> for QueryBuilder<'a, Postgres> {
     }
 }
 
-pub fn get_goals_calculation(penalties: &PenaltyOption, game_scope_query: bool) -> String {
+pub fn get_goals_calculation(penalties: &PenaltyOption, game_scope_query: bool) -> &'static str {
     if game_scope_query {
         match penalties {
             PenaltyOption::ExcludePenalties => "goals - penalty_goals".into(),
