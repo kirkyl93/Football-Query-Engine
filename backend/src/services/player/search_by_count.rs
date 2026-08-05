@@ -11,7 +11,6 @@ pub async fn search_by_count(pool: web::Data<PgPool>, params: web::Query<SearchP
     match params.to_processed() {
         Ok(games_or_seasons_search_params) => {
             let mut query = construct_number_of_games_or_seasons_query_from_params(games_or_seasons_search_params);
-            println!("{}", query.sql());
             match query.build_query_as::<PlayerNumberOfGamesOrSeasonsResult>()
                 .fetch_all(pool.get_ref())
                 .await
@@ -30,7 +29,7 @@ pub async fn search_by_count(pool: web::Data<PgPool>, params: web::Query<SearchP
     }
 }
 
-fn construct_number_of_games_or_seasons_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+fn construct_number_of_games_or_seasons_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     match (params.minute_played_from() == 0 && params.minute_played_to() == 120, params.sort()) {
         (true, NumberOfSeasonsWith) => build_number_of_seasons_query_from_appearances(params),
         (true, _) => build_number_of_games_query_from_appearances(params),
@@ -39,7 +38,7 @@ fn construct_number_of_games_or_seasons_query_from_params<'a>(params: ProcessedS
     }
 }
 
-fn build_number_of_seasons_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+fn build_number_of_seasons_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     let goals_calculation = get_goals_calculation(params.penalties(), false);
 
     let mut query = QueryBuilder::new("");
@@ -78,7 +77,7 @@ fn build_number_of_seasons_query_from_events<'a>(params: ProcessedSearchParams) 
     query
 }
 
-fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     let goals_calculation = get_goals_calculation(params.penalties(), true);
     let mut query = QueryBuilder::new("");
 
@@ -107,7 +106,7 @@ fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParam
     query
 }
 
-fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     let goals_calculation = get_goals_calculation(params.penalties(), true);
 
     let mut query = QueryBuilder::new("");
@@ -136,7 +135,7 @@ fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) ->
     query
 }
 
-fn build_number_of_seasons_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+fn build_number_of_seasons_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     let goals_calculation = get_goals_calculation(params.penalties(), false);
 
     let mut query = QueryBuilder::new("");
@@ -193,7 +192,7 @@ trait GoalsAndAssistsFilters<'a> {
     fn add_maximum_game_goals_and_assists(&mut self, goals_calculation: &str, maximum_game_goals_and_assists: i32) -> &mut Self;
 }
 
-impl<'a>  GoalsAndAssistsFilters<'a>  for QueryBuilder<'a, Postgres> {
+impl<'a>  GoalsAndAssistsFilters<'a>  for QueryBuilder<Postgres> {
     fn add_season_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self {
         self.add_minimum_season_goals(params.minimum_goals())
             .add_maximum_season_goals(params.maximum_goals())

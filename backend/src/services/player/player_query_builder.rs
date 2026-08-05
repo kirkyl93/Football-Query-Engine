@@ -8,7 +8,7 @@ pub trait PlayerFilterMethods<'a> {
     fn add_player_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self;
 }
 
-impl<'a> PlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
+impl<'a> PlayerFilterMethods<'a> for QueryBuilder<Postgres> {
     fn add_player_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self {
         self.add_seasons(params.seasons().clone())
             .add_competitions(params.competitions().clone())
@@ -38,7 +38,7 @@ trait PrivatePlayerFilterMethods<'a> {
     fn add_sub_info(&mut self, subs_only: i32, earliest_sub_on_time: i32, latest_sub_on_time: i32) -> &mut Self;
 }
 
-impl<'a> PrivatePlayerFilterMethods<'a> for QueryBuilder<'a, Postgres> {
+impl<'a> PrivatePlayerFilterMethods<'a> for QueryBuilder<Postgres> {
     fn add_seasons(&mut self, seasons: Vec<i32>) -> &mut Self {
         if !seasons.is_empty() {
             self.push("
@@ -243,7 +243,7 @@ pub trait PlayerMinuteFilterMethods<'a> {
     fn construct_appearances_table_using_minute_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self;
 }
 
-impl<'a> PlayerMinuteFilterMethods<'a> for QueryBuilder<'a, Postgres> {
+impl<'a> PlayerMinuteFilterMethods<'a> for QueryBuilder<Postgres> {
     fn construct_appearances_table_using_minute_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self {
         self.push("
         WITH games_minute_appearance_filter AS
@@ -282,7 +282,7 @@ trait PrivatePlayerMinuteFilterMethods<'a> {
     fn add_minutes_played_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
 }
 
-impl<'a> PrivatePlayerMinuteFilterMethods<'a> for QueryBuilder<'a, Postgres> {
+impl<'a> PrivatePlayerMinuteFilterMethods<'a> for QueryBuilder<Postgres> {
     fn add_all_minute_filters(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
         self.add_appearances_minute_filter(minute_from, minute_to)
             .add_goals_minute_filter(minute_from, minute_to)

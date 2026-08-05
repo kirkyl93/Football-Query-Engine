@@ -10,7 +10,6 @@ pub async fn search_by_season_or_across_seasons(pool: web::Data<PgPool>, params:
     match params.to_processed() {
         Ok(search_params) => {
             let mut query = construct_query_from_params(search_params);
-            println!("{}", query.sql());
             match query.build_query_as::<PlayerSearchResult>()
                 .fetch_all(pool.get_ref())
                 .await
@@ -29,7 +28,7 @@ pub async fn search_by_season_or_across_seasons(pool: web::Data<PgPool>, params:
     }
 }
 
-fn construct_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+fn construct_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     if params.minute_played_from() == 0 && params.minute_played_to() == 120 {
         return build_query_from_appearances(params);
     }
@@ -37,7 +36,7 @@ fn construct_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilde
     return build_query_from_events(params);
 }
 
-fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     let goals_calculation = get_goals_calculation(params.penalties(), false);
 
     let mut query = QueryBuilder::new("
@@ -75,7 +74,7 @@ fn build_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuild
     query
 }
 
-fn build_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<'a, Postgres> {
+fn build_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     let goals_calculation = get_goals_calculation(params.penalties(), false);
     let mut query = QueryBuilder::new("");
 
@@ -111,7 +110,7 @@ trait SeasonOrSeasonsQueryMethods<'a> {
     fn add_group_by(&mut self, season_scope: bool) -> &mut Self;
 }
 
-impl<'a>  SeasonOrSeasonsQueryMethods<'a>  for QueryBuilder<'a, Postgres> {
+impl<'a>  SeasonOrSeasonsQueryMethods<'a>  for QueryBuilder<Postgres> {
     fn add_rank(&mut self, sort_by: &SortOption, goals_calculation: &str, from_events_table: bool) -> &mut Self {
         self.push("RANK() OVER (ORDER BY ");
         let rank_order = match sort_by {

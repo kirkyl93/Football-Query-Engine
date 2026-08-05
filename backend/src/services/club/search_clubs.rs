@@ -15,7 +15,7 @@ trait ClubQueryMethods<'a> {
     fn add_club_name_to_query(&mut self, club_name: &str) -> &mut Self;
 }
 
-impl<'a> ClubQueryMethods<'a> for QueryBuilder<'a, Postgres> {
+impl<'a> ClubQueryMethods<'a> for QueryBuilder<Postgres> {
     fn add_club_name_to_query(&mut self, club_name: &str) -> &mut Self {
         if !club_name.is_empty() {
             let names: Vec<&str> = club_name.split_whitespace().collect();
