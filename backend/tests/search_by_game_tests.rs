@@ -38,8 +38,8 @@ async fn most_goals_in_premier_league_first_half_of_a_game() {
             String::from("https://img.a.transfermarkt.technology/portrait/header/568177-1712320986.jpg?lm=1"),
             631, "GB1".to_string(), Competition::PremierLeague, String::from("gb-eng"),
             NaiveDate::from_ymd_opt(2024, 09, 28).unwrap(), 2024, 631,
-            String::from("Chelsea Football Club"), 4, 1237,
-            String::from("Brighton and Hove Albion Football Club"), 2,
+            String::from("Chelsea FC"), 4, 1237,
+            String::from("Brighton & Hove Albion"), 2,
             46, 4, 0)
     ).await;
 }
