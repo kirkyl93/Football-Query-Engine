@@ -79,14 +79,14 @@ fn construct_query_from_params(params: ProcessedSearchParams) -> QueryBuilder<Po
 }
 
 fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    let goals_calculation = get_goals_calculation(params.penalties(), TotalsKind::PerGame);
+    let goals_calculation = get_goals_calculation(&params.penalty, TotalsKind::PerGame);
 
     let mut query = QueryBuilder::new(
         "
     SELECT ",
     );
 
-    query.add_rank(params.sort(), goals_calculation)
+    query.add_rank(&params.sort, goals_calculation)
         .push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, player_club_id AS club_id,
         a.competition_id, c.name AS competition_name, c.country_name AS competition_country, a.date, season, home_club_id, home_club_name, home_club_goals, away_club_id, away_club_name,
         away_club_goals, minutes_played, ").push(goals_calculation).push(" AS goals, assists
@@ -100,21 +100,21 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
             competitions c ON a.competition_id = c.competition_id
         WHERE 1 = 1")
         .add_player_filters(&params)
-        .add_order_by(params.sort(), goals_calculation)
-        .add_limit_and_offset(params.limit(), params.page());
+        .add_order_by(&params.sort, goals_calculation)
+        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
 }
 
 fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    let goals_calculation = get_goals_calculation(params.penalties(), TotalsKind::PerGame);
+    let goals_calculation = get_goals_calculation(&params.penalty, TotalsKind::PerGame);
 
     let mut query = QueryBuilder::new("");
 
     query.construct_appearances_table_using_minute_filters(&params)
         .push(
         "
-    SELECT ").add_rank(params.sort(), goals_calculation)
+    SELECT ").add_rank(&params.sort, goals_calculation)
         .push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, club_id,
         c.competition_id, c.name AS competition_name, c.country_name AS competition_country, date, season, home_club_id, home_club_name,
         home_club_goals, away_club_id, away_club_name, away_club_goals, minutes_played, ")
@@ -125,8 +125,8 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
             games ON a.game_id = games.game_id
         JOIN
             competitions c ON c.competition_id = games.competition_id")
-        .add_order_by(params.sort(), goals_calculation)
-        .add_limit_and_offset(params.limit(), params.page());
+        .add_order_by(&params.sort, goals_calculation)
+        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
 }

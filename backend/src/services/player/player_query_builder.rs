@@ -20,20 +20,20 @@ pub trait PlayerFilterMethods {
 
 impl PlayerFilterMethods for QueryBuilder<Postgres> {
     fn add_player_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self {
-        self.add_seasons(params.seasons())
-            .add_competitions(params.competitions())
-            .add_positions(params.positions())
-            .add_ages(params.minimum_age(), params.maximum_age())
-            .add_height(params.minimum_height(), params.maximum_height())
-            .add_home_or_away(params.home_or_away())
-            .add_player_names(params.names())
-            .add_player_countries(params.countries())
-            .add_clubs_played_for(params.clubs_played_for())
-            .add_clubs_played_against(params.clubs_played_against())
+        self.add_seasons(&params.seasons)
+            .add_competitions(&params.competitions)
+            .add_positions(&params.positions)
+            .add_ages(params.age.min, params.age.max)
+            .add_height(params.height.min, params.height.max)
+            .add_home_or_away(&params.home_or_away)
+            .add_player_names(&params.names)
+            .add_player_countries(&params.countries)
+            .add_clubs_played_for(&params.clubs_played_for)
+            .add_clubs_played_against(&params.clubs_played_against)
             .add_sub_info(
-                params.subs_only(),
-                params.earliest_sub_on_time(),
-                params.latest_sub_on_time(),
+                params.subs.only,
+                params.subs.earliest_on,
+                params.subs.latest_on,
             )
     }
 }
@@ -319,12 +319,12 @@ impl PlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         WITH games_minute_appearance_filter AS
         (SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, c.club_id, g.game_id,",
         )
-        .push(if *params.scope() == StatScope::Season {
+        .push(if params.scope == StatScope::Season {
             " g.season AS season,"
         } else {
             ""
         })
-        .add_all_minute_filters(params.minute_played_from(), params.minute_played_to())
+        .add_all_minute_filters(params.minute_window.from, params.minute_window.to)
         .push(
             "
             MIN(CASE WHEN a.played_from_minute > 0 THEN 1 ELSE 0 END) AS substitute_appearances
