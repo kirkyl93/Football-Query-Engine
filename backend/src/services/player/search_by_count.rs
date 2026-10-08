@@ -1,45 +1,45 @@
-use actix_web::{get, web, HttpResponse};
-use sqlx::{PgPool, Postgres, QueryBuilder};
 use crate::services::base_query_builder::BaseQueryMethods;
-use crate::services::player::models::{ProcessedSearchParams, SearchParams, StatScope};
+use crate::services::errors::db_list_result;
 use crate::services::player::models::SortOption::NumberOfSeasonsWith;
-use crate::services::player::player_query_builder::{get_goals_calculation, PlayerMinuteFilterMethods, PlayerFilterMethods};
+use crate::services::player::models::{ProcessedSearchParams, SearchParams, StatScope};
+use crate::services::player::player_query_builder::{
+    PlayerFilterMethods, PlayerMinuteFilterMethods, TotalsKind, get_goals_calculation,
+};
 use crate::services::player::sql_models::PlayerNumberOfGamesOrSeasonsResult;
+use actix_web::{HttpResponse, get, web};
+use sqlx::{PgPool, Postgres, QueryBuilder};
 
 #[get("/search/occurrences")]
-pub async fn search_by_count(pool: web::Data<PgPool>, params: web::Query<SearchParams>) -> HttpResponse {
-    match params.to_processed() {
-        Ok(games_or_seasons_search_params) => {
-            let mut query = construct_number_of_games_or_seasons_query_from_params(games_or_seasons_search_params);
-            match query.build_query_as::<PlayerNumberOfGamesOrSeasonsResult>()
-                .fetch_all(pool.get_ref())
-                .await
-            {
-                Ok(games_or_seasons_results) => HttpResponse::Ok().json(games_or_seasons_results),
-                Err(err) => {
-                    println!("{:?}", err.as_database_error());
-                    HttpResponse::InternalServerError().json(err.to_string())
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Error processing search parameters: {}", e);
-            HttpResponse::BadRequest().body(e)
-        }
+pub async fn search_by_count(
+    pool: web::Data<PgPool>,
+    params: web::Query<SearchParams>,
+) -> HttpResponse {
+    let games_or_seasons_search_params = params.to_processed();
+    let mut query =
+        construct_number_of_games_or_seasons_query_from_params(games_or_seasons_search_params);
+    db_list_result(
+        query
+            .build_query_as::<PlayerNumberOfGamesOrSeasonsResult>()
+            .fetch_all(pool.get_ref())
+            .await,
+    )
+}
+
+fn construct_number_of_games_or_seasons_query_from_params(
+    params: ProcessedSearchParams,
+) -> QueryBuilder<Postgres> {
+    match (params.has_minute_filter(), params.sort()) {
+        (false, NumberOfSeasonsWith) => build_number_of_seasons_query_from_appearances(params),
+        (false, _) => build_number_of_games_query_from_appearances(params),
+        (true, NumberOfSeasonsWith) => build_number_of_seasons_query_from_events(params),
+        (true, _) => build_number_of_games_query_from_events(params),
     }
 }
 
-fn construct_number_of_games_or_seasons_query_from_params<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    match (params.minute_played_from() == 0 && params.minute_played_to() == 120, params.sort()) {
-        (true, NumberOfSeasonsWith) => build_number_of_seasons_query_from_appearances(params),
-        (true, _) => build_number_of_games_query_from_appearances(params),
-        (false, NumberOfSeasonsWith) => build_number_of_seasons_query_from_events(params),
-        (false, _) => build_number_of_games_query_from_events(params),
-    }
-}
-
-fn build_number_of_seasons_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    let goals_calculation = get_goals_calculation(params.penalties(), false);
+fn build_number_of_seasons_query_from_events(
+    params: ProcessedSearchParams,
+) -> QueryBuilder<Postgres> {
+    let goals_calculation = get_goals_calculation(params.penalties(), TotalsKind::PerSeason);
 
     let mut query = QueryBuilder::new("");
 
@@ -77,16 +77,27 @@ fn build_number_of_seasons_query_from_events<'a>(params: ProcessedSearchParams) 
     query
 }
 
-fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    let goals_calculation = get_goals_calculation(params.penalties(), true);
+fn build_number_of_games_query_from_appearances(
+    params: ProcessedSearchParams,
+) -> QueryBuilder<Postgres> {
+    let goals_calculation = get_goals_calculation(params.penalties(), TotalsKind::PerGame);
     let mut query = QueryBuilder::new("");
 
-    query.push("SELECT
+    query
+        .push(
+            "SELECT
         RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) DESC) AS rank,
         a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
         STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
-        COUNT(DISTINCT a.game_id) AS number_of_games")
-        .push(if *params.scope() == StatScope::Season {", g.season"} else {""}).push("
+        COUNT(DISTINCT a.game_id) AS number_of_games",
+        )
+        .push(if *params.scope() == StatScope::Season {
+            ", g.season"
+        } else {
+            ""
+        })
+        .push(
+            "
         FROM
             appearances_enhanced a
         JOIN
@@ -95,19 +106,32 @@ fn build_number_of_games_query_from_appearances<'a>(params: ProcessedSearchParam
             players p on p.player_id = a.player_id
         JOIN
             games g ON g.game_id = a.game_id
-        WHERE 1 = 1")
+        WHERE 1 = 1",
+        )
         .add_game_filters(goals_calculation, &params)
-        .add_player_filters(&params).push("
-        GROUP BY a.player_id, player_name, image_url, country_of_citizenship, sub_position")
-        .push(if *params.scope() == StatScope::Season {", g.season"} else {""}).push("
-        ORDER BY number_of_games DESC, player_name")
+        .add_player_filters(&params)
+        .push(
+            "
+        GROUP BY a.player_id, player_name, image_url, country_of_citizenship, sub_position",
+        )
+        .push(if *params.scope() == StatScope::Season {
+            ", g.season"
+        } else {
+            ""
+        })
+        .push(
+            "
+        ORDER BY number_of_games DESC, player_name",
+        )
         .add_limit_and_offset(params.limit(), params.page());
 
     query
 }
 
-fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    let goals_calculation = get_goals_calculation(params.penalties(), true);
+fn build_number_of_games_query_from_events(
+    params: ProcessedSearchParams,
+) -> QueryBuilder<Postgres> {
+    let goals_calculation = get_goals_calculation(params.penalties(), TotalsKind::PerGame);
 
     let mut query = QueryBuilder::new("");
 
@@ -135,8 +159,10 @@ fn build_number_of_games_query_from_events<'a>(params: ProcessedSearchParams) ->
     query
 }
 
-fn build_number_of_seasons_query_from_appearances<'a>(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    let goals_calculation = get_goals_calculation(params.penalties(), false);
+fn build_number_of_seasons_query_from_appearances(
+    params: ProcessedSearchParams,
+) -> QueryBuilder<Postgres> {
+    let goals_calculation = get_goals_calculation(params.penalties(), TotalsKind::PerSeason);
 
     let mut query = QueryBuilder::new("");
 
@@ -175,24 +201,24 @@ fn build_number_of_seasons_query_from_appearances<'a>(params: ProcessedSearchPar
     query
 }
 
-trait GoalsAndAssistsFilters<'a> {
+trait GoalsAndAssistsFilters {
     fn add_season_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self;
     fn add_minimum_season_goals(&mut self, minimum_season_goals: i32) -> &mut Self;
     fn add_maximum_season_goals(&mut self, maximum_season_goals: i32) -> &mut Self;
     fn add_minimum_season_assists(&mut self, minimum_season_assists: i32) -> &mut Self;
     fn add_maximum_season_assists(&mut self, maximum_season_assists: i32) -> &mut Self;
-    fn add_minimum_season_goals_and_assists(&mut self, minimum_season_goals_and_assists: i32) -> &mut Self;
-    fn add_maximum_season_goals_and_assists(&mut self, maximum_season_goals_and_assists: i32) -> &mut Self;
-    fn add_game_filters(&mut self, goals_calculation: &str, params: &ProcessedSearchParams) -> &mut Self;
+    fn add_minimum_season_goals_and_assists(&mut self, minimum_season_goals_and_assists: i32, ) -> &mut Self;
+    fn add_maximum_season_goals_and_assists(&mut self, maximum_season_goals_and_assists: i32, ) -> &mut Self;
+    fn add_game_filters(&mut self, goals_calculation: &str, params: &ProcessedSearchParams, ) -> &mut Self;
     fn add_minimum_game_goals(&mut self, goals_calculation: &str, minimum_goals: i32) -> &mut Self;
     fn add_maximum_game_goals(&mut self, goals_calculation: &str, maximum_goals: i32) -> &mut Self;
     fn add_minimum_game_assists(&mut self, minimum_assists: i32) -> &mut Self;
     fn add_maximum_game_assists(&mut self, maximum_assists: i32) -> &mut Self;
-    fn add_minimum_game_goals_and_assists(&mut self, goals_calculation: &str, minimum_game_goals_and_assists: i32) -> &mut Self;
-    fn add_maximum_game_goals_and_assists(&mut self, goals_calculation: &str, maximum_game_goals_and_assists: i32) -> &mut Self;
+    fn add_minimum_game_goals_and_assists(&mut self, goals_calculation: &str, minimum_game_goals_and_assists: i32, ) -> &mut Self;
+    fn add_maximum_game_goals_and_assists(&mut self, goals_calculation: &str, maximum_game_goals_and_assists: i32, ) -> &mut Self;
 }
 
-impl<'a>  GoalsAndAssistsFilters<'a>  for QueryBuilder<Postgres> {
+impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
     fn add_season_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self {
         self.add_minimum_season_goals(params.minimum_goals())
             .add_maximum_season_goals(params.maximum_goals())
@@ -204,71 +230,99 @@ impl<'a>  GoalsAndAssistsFilters<'a>  for QueryBuilder<Postgres> {
 
     fn add_minimum_season_goals(&mut self, minimum_goals: i32) -> &mut Self {
         if minimum_goals <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND total_goals >= ").push_bind(minimum_goals);
+        self.push(
+            "
+        AND total_goals >= ",
+        )
+        .push_bind(minimum_goals);
 
         self
     }
 
     fn add_maximum_season_goals(&mut self, maximum_goals: i32) -> &mut Self {
         if maximum_goals <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND total_goals <= ").push_bind(maximum_goals);
+        self.push(
+            "
+        AND total_goals <= ",
+        )
+        .push_bind(maximum_goals);
 
         self
     }
 
     fn add_minimum_season_assists(&mut self, minimum_assists: i32) -> &mut Self {
         if minimum_assists <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND total_assists >= ").push_bind(minimum_assists);
+        self.push(
+            "
+        AND total_assists >= ",
+        )
+        .push_bind(minimum_assists);
 
         self
     }
 
     fn add_maximum_season_assists(&mut self, maximum_assists: i32) -> &mut Self {
         if maximum_assists <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND total_assists <= ").push_bind(maximum_assists);
+        self.push(
+            "
+        AND total_assists <= ",
+        )
+        .push_bind(maximum_assists);
 
         self
     }
 
-    fn add_minimum_season_goals_and_assists(&mut self, minimum_goals_and_assists: i32) -> &mut Self {
+    fn add_minimum_season_goals_and_assists(
+        &mut self,
+        minimum_goals_and_assists: i32,
+    ) -> &mut Self {
         if minimum_goals_and_assists <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND total_goals + total_assists >= ").push_bind(minimum_goals_and_assists);
+        self.push(
+            "
+        AND total_goals + total_assists >= ",
+        )
+        .push_bind(minimum_goals_and_assists);
 
         self
     }
 
-    fn add_maximum_season_goals_and_assists(&mut self, maximum_goals_and_assists: i32) -> &mut Self {
+    fn add_maximum_season_goals_and_assists(
+        &mut self,
+        maximum_goals_and_assists: i32,
+    ) -> &mut Self {
         if maximum_goals_and_assists <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND total_goals + total_assists <= ").push_bind(maximum_goals_and_assists);
+        self.push(
+            "
+        AND total_goals + total_assists <= ",
+        )
+        .push_bind(maximum_goals_and_assists);
 
         self
     }
 
-    fn add_game_filters(&mut self, goals_calculation: &str, params: &ProcessedSearchParams) -> &mut Self {
+    fn add_game_filters(
+        &mut self,
+        goals_calculation: &str,
+        params: &ProcessedSearchParams,
+    ) -> &mut Self {
         self.add_minimum_game_goals(goals_calculation, params.minimum_goals())
             .add_maximum_game_goals(goals_calculation, params.maximum_goals())
             .add_minimum_game_assists(params.minimum_assists())
@@ -279,66 +333,100 @@ impl<'a>  GoalsAndAssistsFilters<'a>  for QueryBuilder<Postgres> {
 
     fn add_minimum_game_goals(&mut self, goals_calculation: &str, minimum_goals: i32) -> &mut Self {
         if minimum_goals <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND ").push(goals_calculation).push(" >= ").push_bind(minimum_goals);
+        self.push(
+            "
+        AND ",
+        )
+        .push(goals_calculation)
+        .push(" >= ")
+        .push_bind(minimum_goals);
 
         self
     }
 
     fn add_maximum_game_goals(&mut self, goals_calculation: &str, maximum_goals: i32) -> &mut Self {
         if maximum_goals <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND ").push(goals_calculation).push(" <= ").push_bind(maximum_goals);
+        self.push(
+            "
+        AND ",
+        )
+        .push(goals_calculation)
+        .push(" <= ")
+        .push_bind(maximum_goals);
 
         self
     }
 
     fn add_minimum_game_assists(&mut self, minimum_assists: i32) -> &mut Self {
         if minimum_assists <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND assists >= ").push_bind(minimum_assists);
+        self.push(
+            "
+        AND assists >= ",
+        )
+        .push_bind(minimum_assists);
 
         self
     }
 
     fn add_maximum_game_assists(&mut self, maximum_assists: i32) -> &mut Self {
         if maximum_assists <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND assists <= ").push_bind(maximum_assists);
+        self.push(
+            "
+        AND assists <= ",
+        )
+        .push_bind(maximum_assists);
 
         self
     }
 
-    fn add_minimum_game_goals_and_assists(&mut self, goals_calculation: &str, minimum_goals_and_assists: i32) -> &mut Self {
+    fn add_minimum_game_goals_and_assists(
+        &mut self,
+        goals_calculation: &str,
+        minimum_goals_and_assists: i32,
+    ) -> &mut Self {
         if minimum_goals_and_assists <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND ").push(goals_calculation).push(" + assists >= ").push_bind(minimum_goals_and_assists);
+        self.push(
+            "
+        AND ",
+        )
+        .push(goals_calculation)
+        .push(" + assists >= ")
+        .push_bind(minimum_goals_and_assists);
 
         self
     }
 
-    fn add_maximum_game_goals_and_assists(&mut self, goals_calculation: &str, maximum_goals_and_assists: i32) -> &mut Self {
+    fn add_maximum_game_goals_and_assists(
+        &mut self,
+        goals_calculation: &str,
+        maximum_goals_and_assists: i32,
+    ) -> &mut Self {
         if maximum_goals_and_assists <= 0 {
-            return self
+            return self;
         }
 
-        self.push("
-        AND ").push(goals_calculation).push(" + assists <= ").push_bind(maximum_goals_and_assists);
+        self.push(
+            "
+        AND ",
+        )
+        .push(goals_calculation)
+        .push(" + assists <= ")
+        .push_bind(maximum_goals_and_assists);
 
         self
     }

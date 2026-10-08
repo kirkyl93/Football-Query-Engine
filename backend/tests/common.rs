@@ -1,18 +1,20 @@
-use actix_web::{test, App};
 use actix_web::http::StatusCode;
 use actix_web::test::TestRequest;
+use actix_web::{App, test};
 use dotenv::dotenv;
-use serde::de::DeserializeOwned;
-use sqlx::PgPool;
-use sqlx::postgres::PgPoolOptions;
 use football_game::competitions::Competition;
 use football_game::countries::Country;
 use football_game::services::club::search_clubs::get_clubs;
-use football_game::services::player::models::{HomeAwayOption, PenaltyOption, SearchParams, SortOption, StatScope};
-use football_game::services::player::player_enums::{PlayerSubPosition};
+use football_game::services::player::models::{
+    HomeAwayOption, PenaltyOption, SearchParams, SortOption, StatScope,
+};
+use football_game::services::player::player_enums::PlayerSubPosition;
 use football_game::services::player::search_by_count::search_by_count;
 use football_game::services::player::search_by_game::search_by_game;
 use football_game::services::player::search_by_season_or_across_seasons::search_by_season_or_across_seasons;
+use serde::de::DeserializeOwned;
+use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 
 #[cfg(test)]
 pub async fn setup_test_db() -> PgPool {
@@ -26,7 +28,12 @@ pub async fn setup_test_db() -> PgPool {
 }
 
 #[cfg(test)]
-pub async fn test_search<T: DeserializeOwned + PartialEq + std::fmt::Debug + Clone>(base_search_url: &str, query: &str, result_size: usize, expected_top_result: T) {
+pub async fn test_search<T: DeserializeOwned + PartialEq + std::fmt::Debug + Clone>(
+    base_search_url: &str,
+    query: &str,
+    result_size: usize,
+    expected_top_result: T,
+) {
     let pool = setup_test_db().await;
 
     let app = test::init_service(
@@ -35,13 +42,13 @@ pub async fn test_search<T: DeserializeOwned + PartialEq + std::fmt::Debug + Clo
             .service(search_by_season_or_across_seasons)
             .service(get_clubs)
             .service(search_by_count)
-            .service(search_by_game)
-    ).await;
+            .service(search_by_game),
+    )
+    .await;
 
     let search_uri = format!("{}{}", base_search_url, query);
 
-    let request = TestRequest::get().uri(search_uri.as_str())
-        .to_request();
+    let request = TestRequest::get().uri(search_uri.as_str()).to_request();
 
     let response = test::call_service(&app, request).await;
 
@@ -80,13 +87,21 @@ impl SearchParamsBuilder {
     }
 
     pub fn seasons(mut self, seasons: Vec<i32>) -> Self {
-        self.params.seasons = Some(seasons.iter().map(|&season|
-            season.to_string()).collect::<Vec<String>>().join(","));
+        self.params.seasons = Some(
+            seasons
+                .iter()
+                .map(|&season| season.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+        );
         self
     }
 
     pub fn competitions(mut self, competitions: Vec<Competition>) -> Self {
-        let competition_codes: Vec<&str> = competitions.iter().map(Competition::competition_code).collect();
+        let competition_codes: Vec<&str> = competitions
+            .iter()
+            .map(Competition::competition_code)
+            .collect();
 
         self.params.competitions = Some(competition_codes.join(","));
         self
@@ -248,7 +263,7 @@ pub fn get_code_from_sort_option(sort_option: &SortOption) -> &'static str {
         SortOption::MinutesPerYellow => "mpy",
         SortOption::MinutesPerRed => "mpr",
         SortOption::NumberOfGamesWith => "gw",
-        SortOption::NumberOfSeasonsWith => "sw"
+        SortOption::NumberOfSeasonsWith => "sw",
     }
 }
 
@@ -257,7 +272,7 @@ pub fn get_code_from_penalty_option(penalty_option: &PenaltyOption) -> &'static 
     match penalty_option {
         PenaltyOption::IncludePenalties => "ip",
         PenaltyOption::ExcludePenalties => "ep",
-        PenaltyOption::OnlyPenalties => "op"
+        PenaltyOption::OnlyPenalties => "op",
     }
 }
 
@@ -266,7 +281,7 @@ pub fn get_code_from_home_away_option(home_or_away_option: &HomeAwayOption) -> &
     match home_or_away_option {
         HomeAwayOption::Either => "e",
         HomeAwayOption::Away => "a",
-        HomeAwayOption::Home => "h"
+        HomeAwayOption::Home => "h",
     }
 }
 
@@ -275,7 +290,7 @@ pub fn get_code_from_scope(scope: &StatScope) -> &'static str {
     match scope {
         StatScope::Season => "s",
         StatScope::Overall => "o",
-        StatScope::Game => "g"
+        StatScope::Game => "g",
     }
 }
 
@@ -295,6 +310,6 @@ pub fn get_code_from_sub_position(sub_position: &PlayerSubPosition) -> &'static 
         PlayerSubPosition::AttackingMidfield => "CAM",
         PlayerSubPosition::SecondStriker => "SS",
         PlayerSubPosition::CentreForward => "CF",
-        PlayerSubPosition::Missing => ""
+        PlayerSubPosition::Missing => "",
     }
 }

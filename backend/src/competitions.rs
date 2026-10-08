@@ -136,7 +136,7 @@ impl Competition {
             "ukrainian-cup" => Competition::UkrainianCup,
             "ukrainian-super-cup" => Competition::UkrainianSuperCup,
             "uefa-super-cup" => Competition::UEFASuperCup,
-            _ => Competition::Missing
+            _ => Competition::Missing,
         }
     }
 
@@ -233,7 +233,7 @@ impl Competition {
             "UKRP" => Competition::UkrainianCup,
             "UKRS" => Competition::UkrainianSuperCup,
             "USC" => Competition::UEFASuperCup,
-            _ => Competition::Missing
+            _ => Competition::Missing,
         }
     }
 }
@@ -256,9 +256,7 @@ impl CompetitionType {
             "international_cup" => CompetitionType::Europe,
             "other" => CompetitionType::Other,
             "domestic_league" => CompetitionType::League,
-            _ => CompetitionType::Missing
+            _ => CompetitionType::Missing,
         }
     }
 }
-
-

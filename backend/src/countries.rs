@@ -241,7 +241,7 @@ pub enum Country {
     Wales,
     Zambia,
     Zimbabwe,
-    Missing,  // Represents NULL or missing values
+    Missing, // Represents NULL or missing values
 }
 
 impl Country {
@@ -446,7 +446,7 @@ impl Country {
             "Wales" => Country::Wales,
             "Zambia" => Country::Zambia,
             "Zimbabwe" => Country::Zimbabwe,
-            _ => Country::Missing,  // Default case for NULL or unrecognized values
+            _ => Country::Missing, // Default case for NULL or unrecognized values
         }
     }
 
@@ -650,7 +650,7 @@ impl Country {
             Country::Wales => "Wales",
             Country::Zambia => "Zambia",
             Country::Zimbabwe => "Zimbabwe",
-            Country::Missing => "Missing"
+            Country::Missing => "Missing",
         }
     }
 
@@ -854,7 +854,7 @@ impl Country {
             Country::Wales => "gb-wls",
             Country::Zambia => "zm",
             Country::Zimbabwe => "zw",
-            Country::Missing => ""
+            Country::Missing => "",
         }
     }
     pub fn from_code(code: &str) -> Country {
@@ -1060,4 +1060,3 @@ impl Country {
         }
     }
 }
-

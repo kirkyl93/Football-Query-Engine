@@ -47,7 +47,7 @@ impl PlayerSubPosition {
             PlayerSubPosition::AttackingMidfield => "Attacking Midfield",
             PlayerSubPosition::SecondStriker => "Second Striker",
             PlayerSubPosition::CentreForward => "Centre-Forward",
-            PlayerSubPosition::Missing => ""
+            PlayerSubPosition::Missing => "",
         }
     }
     pub fn from_code(p: &str) -> Self {
