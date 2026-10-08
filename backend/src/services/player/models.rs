@@ -86,7 +86,7 @@ fn parse_csv_strings(raw: Option<&String>) -> Vec<String> {
 }
 
 impl SearchParams {
-    /// Infallible by design (see plan: keep lenient defaults, no new 400s).
+    /// Infallible by design (lenient defaults, no new 400s).
     /// Unknown codes fall back to defaults; bad numbers are skipped.
     pub fn to_processed(&self) -> ProcessedSearchParams {
         let competitions: Vec<Competition> = self
@@ -130,206 +130,138 @@ impl SearchParams {
             .minute_played_to
             .unwrap_or(DEFAULT_MINUTE_TO)
             .clamp(DEFAULT_MINUTE_FROM, DEFAULT_MINUTE_TO);
-        let (minute_played_from, minute_played_to) = if minute_from <= minute_to {
+        let (minute_from, minute_to) = if minute_from <= minute_to {
             (minute_from, minute_to)
         } else {
             (minute_to, minute_from)
         };
 
         ProcessedSearchParams {
-            page: self.page.unwrap_or(0).max(0),
-            limit: self
-                .limit
-                .unwrap_or(DEFAULT_SEARCH_LIMIT)
-                .clamp(1, MAX_SEARCH_LIMIT),
+            pagination: Pagination {
+                page: self.page.unwrap_or(0).max(0),
+                limit: self
+                    .limit
+                    .unwrap_or(DEFAULT_SEARCH_LIMIT)
+                    .clamp(1, MAX_SEARCH_LIMIT),
+            },
+            minute_window: MinuteWindow {
+                from: minute_from,
+                to: minute_to,
+            },
+            age: AgeRange {
+                min: self.minimum_age.unwrap_or(0).max(0),
+                max: self.maximum_age.unwrap_or(0).max(0),
+            },
+            height: HeightRange {
+                min: self.minimum_height.unwrap_or(0).max(0),
+                max: self.maximum_height.unwrap_or(0).max(0),
+            },
+            subs: SubFilter {
+                only: self.subs_only.unwrap_or(0).max(0),
+                earliest_on: self.earliest_sub_on_time.unwrap_or(0).max(0),
+                latest_on: self.latest_sub_on_time.unwrap_or(0).max(0),
+            },
+            thresholds: StatThresholds {
+                min_appearances: self.minimum_appearances.unwrap_or(0).max(0),
+                min_goals: self.minimum_goals.unwrap_or(0).max(0),
+                max_goals: self.maximum_goals.unwrap_or(0).max(0),
+                min_assists: self.minimum_assists.unwrap_or(0).max(0),
+                max_assists: self.maximum_assists.unwrap_or(0).max(0),
+                min_goals_and_assists: self.minimum_goals_and_assists.unwrap_or(0).max(0),
+                max_goals_and_assists: self.maximum_goals_and_assists.unwrap_or(0).max(0),
+            },
             seasons: parse_csv_i32(self.seasons.as_ref()),
             competitions,
             positions,
-            minute_played_from,
-            minute_played_to,
-            minimum_age: self.minimum_age.unwrap_or(0).max(0),
-            maximum_age: self.maximum_age.unwrap_or(0).max(0),
-            minimum_height: self.minimum_height.unwrap_or(0).max(0),
-            maximum_height: self.maximum_height.unwrap_or(0).max(0),
             names: parse_csv_strings(self.names.as_ref()),
             countries,
             clubs_played_for: parse_csv_i32(self.clubs_played_for.as_ref()),
             clubs_played_against: parse_csv_i32(self.clubs_played_against.as_ref()),
-            subs_only: self.subs_only.unwrap_or(0).max(0),
-            earliest_sub_on_time: self.earliest_sub_on_time.unwrap_or(0).max(0),
-            latest_sub_on_time: self.latest_sub_on_time.unwrap_or(0).max(0),
-            penalties: PenaltyOption::from_code(self.penalty.clone().unwrap_or_default().as_str()),
+            penalty: PenaltyOption::from_code(self.penalty.clone().unwrap_or_default().as_str()),
             home_or_away: HomeAwayOption::from_code(
                 self.home_or_away.clone().unwrap_or_default().as_str(),
             ),
             scope: StatScope::from_code(self.scope.clone().unwrap_or_default().as_str()),
             sort: SortOption::from_code(self.sort.clone().unwrap_or_default().as_str()),
-            minimum_appearances: self.minimum_appearances.unwrap_or(0).max(0),
-            minimum_goals: self.minimum_goals.unwrap_or(0).max(0),
-            maximum_goals: self.maximum_goals.unwrap_or(0).max(0),
-            minimum_assists: self.minimum_assists.unwrap_or(0).max(0),
-            maximum_assists: self.maximum_assists.unwrap_or(0).max(0),
-            minimum_goals_and_assists: self.minimum_goals_and_assists.unwrap_or(0).max(0),
-            maximum_goals_and_assists: self.maximum_goals_and_assists.unwrap_or(0).max(0),
         }
     }
 }
-
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProcessedSearchParams {
-    page: i32,
-    limit: i32,
-    seasons: Vec<i32>,
-    competitions: Vec<Competition>,
-    positions: Vec<PlayerSubPosition>,
-    minute_played_from: i32,
-    minute_played_to: i32,
-    minimum_age: i32,
-    maximum_age: i32,
-    minimum_height: i32,
-    maximum_height: i32,
-    names: Vec<String>,
-    countries: Vec<Country>,
-    clubs_played_for: Vec<i32>,
-    clubs_played_against: Vec<i32>,
-    subs_only: i32,
-    earliest_sub_on_time: i32,
-    latest_sub_on_time: i32,
-    penalties: PenaltyOption,
-    home_or_away: HomeAwayOption,
-    scope: StatScope,
-    sort: SortOption,
-    minimum_appearances: i32,
-    minimum_goals: i32,
-    maximum_goals: i32,
-    minimum_assists: i32,
-    maximum_assists: i32,
-    minimum_goals_and_assists: i32,
-    maximum_goals_and_assists: i32,
+    pub pagination: Pagination,
+    pub minute_window: MinuteWindow,
+    pub age: AgeRange,
+    pub height: HeightRange,
+    pub subs: SubFilter,
+    pub thresholds: StatThresholds,
+    pub seasons: Vec<i32>,
+    pub competitions: Vec<Competition>,
+    pub positions: Vec<PlayerSubPosition>,
+    pub names: Vec<String>,
+    pub countries: Vec<Country>,
+    pub clubs_played_for: Vec<i32>,
+    pub clubs_played_against: Vec<i32>,
+    pub penalty: PenaltyOption,
+    pub home_or_away: HomeAwayOption,
+    pub scope: StatScope,
+    pub sort: SortOption,
 }
 
 impl ProcessedSearchParams {
-    pub fn page(&self) -> i32 {
-        self.page
+    pub fn has_minute_filter(&self) -> bool {
+        self.minute_window.is_filtered()
     }
+}
 
-    pub fn limit(&self) -> i32 {
-        self.limit
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Pagination {
+    pub page: i32,
+    pub limit: i32,
+}
 
-    pub fn seasons(&self) -> &[i32] {
-        &self.seasons
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct MinuteWindow {
+    pub from: i32,
+    pub to: i32,
+}
 
-    pub fn competitions(&self) -> &[Competition] {
-        &self.competitions
-    }
-
-    pub fn positions(&self) -> &[PlayerSubPosition] {
-        &self.positions
-    }
-
-    pub fn minute_played_from(&self) -> i32 {
-        self.minute_played_from
-    }
-
-    pub fn minute_played_to(&self) -> i32 {
-        self.minute_played_to
-    }
-
+impl MinuteWindow {
     /// True when the caller narrowed the default 0-120 window,
     /// i.e. queries must aggregate from `game_events` instead of
     /// using the precomputed `appearances_enhanced` table.
-    pub fn has_minute_filter(&self) -> bool {
-        self.minute_played_from != DEFAULT_MINUTE_FROM || self.minute_played_to != DEFAULT_MINUTE_TO
+    pub fn is_filtered(&self) -> bool {
+        self.from != DEFAULT_MINUTE_FROM || self.to != DEFAULT_MINUTE_TO
     }
+}
 
-    pub fn minimum_age(&self) -> i32 {
-        self.minimum_age
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct AgeRange {
+    pub min: i32,
+    pub max: i32,
+}
 
-    pub fn maximum_age(&self) -> i32 {
-        self.maximum_age
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct HeightRange {
+    pub min: i32,
+    pub max: i32,
+}
 
-    pub fn minimum_height(&self) -> i32 {
-        self.minimum_height
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct SubFilter {
+    pub only: i32,
+    pub earliest_on: i32,
+    pub latest_on: i32,
+}
 
-    pub fn maximum_height(&self) -> i32 {
-        self.maximum_height
-    }
-
-    pub fn names(&self) -> &[String] {
-        &self.names
-    }
-
-    pub fn countries(&self) -> &[Country] {
-        &self.countries
-    }
-
-    pub fn clubs_played_for(&self) -> &[i32] {
-        &self.clubs_played_for
-    }
-
-    pub fn clubs_played_against(&self) -> &[i32] {
-        &self.clubs_played_against
-    }
-
-    pub fn subs_only(&self) -> i32 {
-        self.subs_only
-    }
-
-    pub fn earliest_sub_on_time(&self) -> i32 {
-        self.earliest_sub_on_time
-    }
-
-    pub fn latest_sub_on_time(&self) -> i32 {
-        self.latest_sub_on_time
-    }
-
-    pub fn penalties(&self) -> &PenaltyOption {
-        &self.penalties
-    }
-
-    pub fn home_or_away(&self) -> &HomeAwayOption {
-        &self.home_or_away
-    }
-
-    pub fn scope(&self) -> &StatScope {
-        &self.scope
-    }
-
-    pub fn sort(&self) -> &SortOption {
-        &self.sort
-    }
-
-    pub fn minimum_appearances(&self) -> i32 {
-        self.minimum_appearances
-    }
-
-    pub fn minimum_goals(&self) -> i32 {
-        self.minimum_goals
-    }
-
-    pub fn maximum_goals(&self) -> i32 {
-        self.maximum_goals
-    }
-
-    pub fn minimum_assists(&self) -> i32 {
-        self.minimum_assists
-    }
-
-    pub fn maximum_assists(&self) -> i32 {
-        self.maximum_assists
-    }
-
-    pub fn minimum_goals_and_assists(&self) -> i32 {
-        self.minimum_goals_and_assists
-    }
-
-    pub fn maximum_goals_and_assists(&self) -> i32 {
-        self.maximum_goals_and_assists
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct StatThresholds {
+    pub min_appearances: i32,
+    pub min_goals: i32,
+    pub max_goals: i32,
+    pub min_assists: i32,
+    pub max_assists: i32,
+    pub min_goals_and_assists: i32,
+    pub max_goals_and_assists: i32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -347,6 +279,14 @@ impl PenaltyOption {
             _ => Self::IncludePenalties,
         }
     }
+
+    pub fn as_code(&self) -> &'static str {
+        match self {
+            Self::IncludePenalties => "ip",
+            Self::ExcludePenalties => "ep",
+            Self::OnlyPenalties => "op",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -362,6 +302,14 @@ impl HomeAwayOption {
             "h" => Self::Home,
             "a" => Self::Away,
             _ => Self::Either,
+        }
+    }
+
+    pub fn as_code(&self) -> &'static str {
+        match self {
+            Self::Home => "h",
+            Self::Away => "a",
+            Self::Either => "e",
         }
     }
 }
@@ -403,6 +351,25 @@ impl SortOption {
             _ => Self::Goals,
         }
     }
+
+    pub fn as_code(&self) -> &'static str {
+        match self {
+            Self::Goals => "g",
+            Self::Assists => "a",
+            Self::GoalsAndAssists => "ga",
+            Self::Appearances => "ap",
+            Self::MinutesPlayed => "m",
+            Self::YellowCards => "y",
+            Self::RedCards => "r",
+            Self::MinutesPerGoal => "mpg",
+            Self::MinutesPerAssist => "mpa",
+            Self::MinutesPerGoalOrAssist => "mpga",
+            Self::MinutesPerYellow => "mpy",
+            Self::MinutesPerRed => "mpr",
+            Self::NumberOfGamesWith => "gw",
+            Self::NumberOfSeasonsWith => "sw",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -418,6 +385,14 @@ impl StatScope {
             "s" => Self::Season,
             "g" => Self::Game,
             _ => Self::Overall,
+        }
+    }
+
+    pub fn as_code(&self) -> &'static str {
+        match self {
+            Self::Overall => "o",
+            Self::Season => "s",
+            Self::Game => "g",
         }
     }
 }
@@ -464,9 +439,8 @@ mod tests {
 
         let result = params.to_processed();
 
-        // Assertions
-        assert_eq!(result.page, 2);
-        assert_eq!(result.limit, 30);
+        assert_eq!(result.pagination.page, 2);
+        assert_eq!(result.pagination.limit, 30);
         assert_eq!(result.seasons, vec![2020, 2021]);
         assert_eq!(
             result.competitions,
@@ -480,64 +454,63 @@ mod tests {
         assert_eq!(result.countries, vec![Country::Argentina, Country::Poland]);
         assert_eq!(result.clubs_played_for, vec![1, 2]);
         assert_eq!(result.clubs_played_against, vec![3, 4]);
-        assert_eq!(result.minute_played_from, 10);
-        assert_eq!(result.minute_played_to, 90);
-        assert_eq!(result.minimum_age, 18);
-        assert_eq!(result.maximum_age, 35);
-        assert_eq!(result.minimum_height, 160);
-        assert_eq!(result.maximum_height, 200);
-        assert_eq!(result.subs_only, 1);
-        assert_eq!(result.earliest_sub_on_time, 20);
-        assert_eq!(result.latest_sub_on_time, 70);
-        assert_eq!(result.penalties, PenaltyOption::ExcludePenalties);
+        assert_eq!(result.minute_window.from, 10);
+        assert_eq!(result.minute_window.to, 90);
+        assert!(result.has_minute_filter());
+        assert_eq!(result.age.min, 18);
+        assert_eq!(result.age.max, 35);
+        assert_eq!(result.height.min, 160);
+        assert_eq!(result.height.max, 200);
+        assert_eq!(result.subs.only, 1);
+        assert_eq!(result.subs.earliest_on, 20);
+        assert_eq!(result.subs.latest_on, 70);
+        assert_eq!(result.penalty, PenaltyOption::ExcludePenalties);
         assert_eq!(result.home_or_away, HomeAwayOption::Away);
         assert_eq!(result.scope, StatScope::Game);
         assert_eq!(result.sort, SortOption::GoalsAndAssists);
-        assert_eq!(result.minimum_appearances, 10);
-        assert_eq!(result.minimum_goals, 5);
-        assert_eq!(result.maximum_goals, 20);
-        assert_eq!(result.minimum_assists, 3);
-        assert_eq!(result.maximum_assists, 15);
-        assert_eq!(result.minimum_goals_and_assists, 8);
-        assert_eq!(result.maximum_goals_and_assists, 25);
+        assert_eq!(result.thresholds.min_appearances, 10);
+        assert_eq!(result.thresholds.min_goals, 5);
+        assert_eq!(result.thresholds.max_goals, 20);
+        assert_eq!(result.thresholds.min_assists, 3);
+        assert_eq!(result.thresholds.max_assists, 15);
+        assert_eq!(result.thresholds.min_goals_and_assists, 8);
+        assert_eq!(result.thresholds.max_goals_and_assists, 25);
     }
 
     #[test]
     fn test_to_processed_defaults() {
-        let params = SearchParams::default();
+        let result = SearchParams::default().to_processed();
 
-        let result = params.to_processed();
-
-        // Assertions for defaults
-        assert_eq!(result.seasons, Vec::<i32>::new());
-        assert_eq!(result.competitions, Vec::<Competition>::new());
-        assert_eq!(result.positions, Vec::<PlayerSubPosition>::new());
-        assert_eq!(result.names, Vec::<String>::new());
-        assert_eq!(result.countries, Vec::<Country>::new());
-        assert_eq!(result.clubs_played_for, Vec::<i32>::new());
-        assert_eq!(result.clubs_played_against, Vec::<i32>::new());
-        assert_eq!(result.page, 0);
-        assert_eq!(result.limit, 50);
-        assert_eq!(result.minute_played_from, 0);
-        assert_eq!(result.minute_played_to, 120);
-        assert_eq!(result.minimum_age, 0);
-        assert_eq!(result.maximum_age, 0);
-        assert_eq!(result.minimum_height, 0);
-        assert_eq!(result.maximum_height, 0);
-        assert_eq!(result.subs_only, 0);
-        assert_eq!(result.earliest_sub_on_time, 0);
-        assert_eq!(result.latest_sub_on_time, 0);
-        assert_eq!(result.penalties, PenaltyOption::IncludePenalties);
+        assert!(result.seasons.is_empty());
+        assert!(result.competitions.is_empty());
+        assert!(result.positions.is_empty());
+        assert!(result.names.is_empty());
+        assert!(result.countries.is_empty());
+        assert!(result.clubs_played_for.is_empty());
+        assert!(result.clubs_played_against.is_empty());
+        assert_eq!(result.pagination.page, 0);
+        assert_eq!(result.pagination.limit, 50);
+        assert_eq!(result.minute_window.from, 0);
+        assert_eq!(result.minute_window.to, 120);
+        assert!(!result.has_minute_filter());
+        assert_eq!(result.age.min, 0);
+        assert_eq!(result.age.max, 0);
+        assert_eq!(result.height.min, 0);
+        assert_eq!(result.height.max, 0);
+        assert_eq!(result.subs.only, 0);
+        assert_eq!(result.subs.earliest_on, 0);
+        assert_eq!(result.subs.latest_on, 0);
+        assert_eq!(result.penalty, PenaltyOption::IncludePenalties);
         assert_eq!(result.home_or_away, HomeAwayOption::Either);
         assert_eq!(result.scope, StatScope::Overall);
         assert_eq!(result.sort, SortOption::Goals);
-        assert_eq!(result.minimum_appearances, 0);
-        assert_eq!(result.minimum_goals, 0);
-        assert_eq!(result.maximum_goals, 0);
-        assert_eq!(result.minimum_assists, 0);
-        assert_eq!(result.maximum_assists, 0);
-        assert_eq!(result.minimum_goals_and_assists, 0);
-        assert_eq!(result.maximum_goals_and_assists, 0);
+        assert_eq!(result.thresholds.min_appearances, 0);
+        assert_eq!(result.thresholds.min_goals, 0);
+        assert_eq!(result.thresholds.max_goals, 0);
+        assert_eq!(result.thresholds.min_assists, 0);
+        assert_eq!(result.thresholds.max_assists, 0);
+        assert_eq!(result.thresholds.min_goals_and_assists, 0);
+        assert_eq!(result.thresholds.max_goals_and_assists, 0);
     }
 
     #[test]
@@ -554,6 +527,28 @@ mod tests {
         assert_eq!(result.seasons, vec![2020, 2021]);
         assert_eq!(result.sort, SortOption::Goals);
         assert!(result.has_minute_filter());
-        assert!(result.minute_played_from <= result.minute_played_to);
+        assert!(result.minute_window.from <= result.minute_window.to);
+    }
+
+    #[test]
+    fn can_process_bad_input() {
+        // Plain serde_urlencoded parsing, no flatten or custom field
+        // deserializers: this is the exact path actix uses for frontend
+        // requests.
+        let params: ProcessedSearchParams = serde_urlencoded::from_str::<SearchParams>(
+            "seasons=2020,foo,2021&comps=GB1,XX&positions=LW,ZZZ&sort=unknown&minfrom=100&minto=10&penalty=ep&home=a&scope=g",
+        )
+        .unwrap()
+        .to_processed();
+
+        assert_eq!(params.seasons, vec![2020, 2021]);
+        assert_eq!(params.competitions, vec![Competition::PremierLeague]);
+        assert_eq!(params.positions, vec![PlayerSubPosition::LeftWinger]);
+        assert_eq!(params.sort, SortOption::Goals);
+        assert_eq!(params.penalty, PenaltyOption::ExcludePenalties);
+        assert_eq!(params.home_or_away, HomeAwayOption::Away);
+        assert_eq!(params.scope, StatScope::Game);
+        assert!(params.has_minute_filter());
+        assert!(params.minute_window.from <= params.minute_window.to);
     }
 }

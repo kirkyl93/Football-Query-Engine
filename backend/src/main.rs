@@ -1,21 +1,16 @@
-mod club;
-mod competitions;
-mod countries;
-mod services;
-
-use crate::services::club::search_clubs::get_clubs;
-use crate::services::player::search_by_count::search_by_count;
-use crate::services::player::search_by_game::search_by_game;
-use crate::services::player::search_by_season_or_across_seasons::search_by_season_or_across_seasons;
-use crate::services::player::search_players::{
-    fetch_player, fetch_player_stats_by_season, get_player_games, get_players,
-};
 use actix_cors::Cors;
 use actix_web::{
     App, HttpServer,
     web::{self},
 };
 use dotenv::dotenv;
+use football_game::services::club::search_clubs::get_clubs;
+use football_game::services::player::search_by_count::search_by_count;
+use football_game::services::player::search_by_game::search_by_game;
+use football_game::services::player::search_by_season_or_across_seasons::search_by_season_or_across_seasons;
+use football_game::services::player::search_players::{
+    fetch_player, fetch_player_stats_by_season, get_player_games, get_players,
+};
 use sqlx::postgres::PgPoolOptions;
 
 #[actix_web::main]

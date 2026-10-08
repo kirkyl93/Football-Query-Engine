@@ -182,22 +182,22 @@ impl SearchParamsBuilder {
     }
 
     pub fn penalty(mut self, penalty: PenaltyOption) -> Self {
-        self.params.penalty = Some(get_code_from_penalty_option(&penalty).to_string());
+        self.params.penalty = Some(penalty.as_code().to_string());
         self
     }
 
     pub fn home_or_away(mut self, home_or_away: HomeAwayOption) -> Self {
-        self.params.home_or_away = Some(get_code_from_home_away_option(&home_or_away).to_string());
+        self.params.home_or_away = Some(home_or_away.as_code().to_string());
         self
     }
 
     pub fn scope(mut self, scope: StatScope) -> Self {
-        self.params.scope = Some(get_code_from_scope(&scope).to_string());
+        self.params.scope = Some(scope.as_code().to_string());
         self
     }
 
     pub fn sort(mut self, sort: SortOption) -> Self {
-        self.params.sort = Some(get_code_from_sort_option(&sort).to_string());
+        self.params.sort = Some(sort.as_code().to_string());
         self
     }
 
@@ -242,55 +242,7 @@ impl SearchParamsBuilder {
 
     pub fn build_query(self) -> String {
         let params = self.params;
-        let query_string = serde_urlencoded::to_string(&params).unwrap();
-        query_string
-    }
-}
-
-#[cfg(test)]
-pub fn get_code_from_sort_option(sort_option: &SortOption) -> &'static str {
-    match sort_option {
-        SortOption::Goals => "g",
-        SortOption::Assists => "a",
-        SortOption::GoalsAndAssists => "ga",
-        SortOption::Appearances => "ap",
-        SortOption::MinutesPlayed => "m",
-        SortOption::YellowCards => "y",
-        SortOption::RedCards => "r",
-        SortOption::MinutesPerGoal => "mpg",
-        SortOption::MinutesPerAssist => "mpa",
-        SortOption::MinutesPerGoalOrAssist => "mpga",
-        SortOption::MinutesPerYellow => "mpy",
-        SortOption::MinutesPerRed => "mpr",
-        SortOption::NumberOfGamesWith => "gw",
-        SortOption::NumberOfSeasonsWith => "sw",
-    }
-}
-
-#[cfg(test)]
-pub fn get_code_from_penalty_option(penalty_option: &PenaltyOption) -> &'static str {
-    match penalty_option {
-        PenaltyOption::IncludePenalties => "ip",
-        PenaltyOption::ExcludePenalties => "ep",
-        PenaltyOption::OnlyPenalties => "op",
-    }
-}
-
-#[cfg(test)]
-pub fn get_code_from_home_away_option(home_or_away_option: &HomeAwayOption) -> &'static str {
-    match home_or_away_option {
-        HomeAwayOption::Either => "e",
-        HomeAwayOption::Away => "a",
-        HomeAwayOption::Home => "h",
-    }
-}
-
-#[cfg(test)]
-pub fn get_code_from_scope(scope: &StatScope) -> &'static str {
-    match scope {
-        StatScope::Season => "s",
-        StatScope::Overall => "o",
-        StatScope::Game => "g",
+        serde_urlencoded::to_string(&params).unwrap()
     }
 }
 

@@ -51,8 +51,8 @@ fn construct_query_from_params(params: ProcessedSearchParams) -> QueryBuilder<Po
 }
 
 fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    let goals_calculation = get_goals_calculation(params.penalties(), TotalsKind::PerSeason);
-    let season_scoped = *params.scope() == StatScope::Season;
+    let goals_calculation = get_goals_calculation(&params.penalty, TotalsKind::PerSeason);
+    let season_scoped = params.scope == StatScope::Season;
 
     let mut query = QueryBuilder::new(
         "
@@ -60,7 +60,7 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
     );
 
     query
-        .add_rank(params.sort(), goals_calculation, AppearancesSource::Direct)
+        .add_rank(&params.sort, goals_calculation, AppearancesSource::Direct)
         .push(
             "
         a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
@@ -98,21 +98,21 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
         )
         .add_player_filters(&params)
         .add_group_by(season_scoped)
-        .add_minimum_appearances_to_query(params.minimum_appearances())
+        .add_minimum_appearances_to_query(params.thresholds.min_appearances)
         .add_order_by(
-            params.sort(),
+            &params.sort,
             goals_calculation,
             AppearancesSource::Direct,
             season_scoped,
         )
-        .add_limit_and_offset(params.limit(), params.page());
+        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
 }
 
 fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
-    let goals_calculation = get_goals_calculation(params.penalties(), TotalsKind::PerSeason);
-    let season_scoped = *params.scope() == StatScope::Season;
+    let goals_calculation = get_goals_calculation(&params.penalty, TotalsKind::PerSeason);
+    let season_scoped = params.scope == StatScope::Season;
     let mut query = QueryBuilder::new("");
 
     query
@@ -122,7 +122,7 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
     SELECT ",
         )
         .add_rank(
-            params.sort(),
+            &params.sort,
             goals_calculation,
             AppearancesSource::FromEvents,
         )
@@ -154,14 +154,14 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
             WHERE appearances > 0",
         )
         .add_group_by(season_scoped)
-        .add_minimum_appearances_to_query(params.minimum_appearances())
+        .add_minimum_appearances_to_query(params.thresholds.min_appearances)
         .add_order_by(
-            params.sort(),
+            &params.sort,
             goals_calculation,
             AppearancesSource::FromEvents,
             season_scoped,
         )
-        .add_limit_and_offset(params.limit(), params.page());
+        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
 }
