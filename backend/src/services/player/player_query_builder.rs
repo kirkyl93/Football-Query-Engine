@@ -418,7 +418,7 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         .push(" AND ")
         .push_bind(minute_to)
         .push(
-            " AND e.description ILIKE '%penalty%' THEN 1 ELSE 0 END) AS integer) AS penalty_goals,",
+            " AND e.is_penalty THEN 1 ELSE 0 END) AS integer) AS penalty_goals,",
         );
 
         self
@@ -448,7 +448,7 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         .push(" AND ")
         .push_bind(minute_to)
         .push(
-            " AND e.description ILIKE '%yellow%' THEN 1 ELSE 0 END) AS integer) AS yellow_cards,",
+            " AND e.is_yellow THEN 1 ELSE 0 END) AS integer) AS yellow_cards,",
         );
 
         self
@@ -463,19 +463,19 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         .push(" AND ")
         .push_bind(minute_to)
         .push(
-            " AND e.description ILIKE '%red%' THEN 1 ELSE 0 END)
+            " AND e.is_red THEN 1 ELSE 0 END)
                 + CASE WHEN SUM(CASE WHEN e.type = 'Cards' AND e.player_id = a.player_id AND e.minute BETWEEN 0 AND ",
         )
         .push_bind(minute_to)
         .push(
-            " AND e.description ILIKE '%yellow%' THEN 1 ELSE 0 END) >= 2
+            " AND e.is_yellow THEN 1 ELSE 0 END) >= 2
                 AND SUM(CASE WHEN e.type = 'Cards' AND e.player_id = a.player_id AND e.minute BETWEEN ",
         )
         .push_bind(minute_from)
         .push(" AND ")
         .push_bind(minute_to)
         .push(
-            " AND e.description ILIKE '%yellow%' THEN 1 ELSE 0 END) >= 1 THEN 1 ELSE 0 END AS integer) AS red_cards,",
+            " AND e.is_yellow THEN 1 ELSE 0 END) >= 1 THEN 1 ELSE 0 END AS integer) AS red_cards,",
         );
 
         self

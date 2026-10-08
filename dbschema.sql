@@ -60,7 +60,10 @@ CREATE TABLE public.game_events (
     player_id integer,
     description text,
     player_in_id integer,
-    player_assist_id integer
+    player_assist_id integer,
+    is_penalty boolean GENERATED ALWAYS AS (description ILIKE '%penalty%') STORED,
+    is_yellow boolean GENERATED ALWAYS AS (description ILIKE '%yellow%') STORED,
+    is_red boolean GENERATED ALWAYS AS (description ILIKE '%red%') STORED
 );
 
 
@@ -472,7 +475,7 @@ CREATE INDEX IF NOT EXISTS idx_enh_comp ON public.appearances_enhanced USING btr
 CREATE INDEX IF NOT EXISTS idx_enh_club ON public.appearances_enhanced USING btree (player_club_id);
 CREATE INDEX IF NOT EXISTS idx_evt_times_player ON public.appearances_with_event_times USING btree (player_id);
 CREATE INDEX IF NOT EXISTS idx_season_comp_player ON public.player_season_by_comp_view USING btree (player_id);
-CREATE INDEX IF NOT EXISTS idx_events_game_cover ON public.game_events USING btree (game_id) INCLUDE (player_id, player_assist_id, type, minute, description);
+CREATE INDEX IF NOT EXISTS idx_events_game_cover ON public.game_events USING btree (game_id) INCLUDE (player_id, player_assist_id, type, minute, is_penalty, is_yellow, is_red);
 
 
 -- Completed on 2026-08-21 11:27:03
