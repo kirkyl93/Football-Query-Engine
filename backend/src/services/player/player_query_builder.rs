@@ -160,17 +160,19 @@ impl PrivatePlayerFilterMethods for QueryBuilder<Postgres> {
         if min_age > 0 {
             self.push(
                 "
-            AND EXTRACT (YEAR FROM age(a.date, p.date_of_birth)) >= ",
+            AND p.date_of_birth <= (a.date - make_interval(years => ",
             )
-            .push_bind(min_age);
+            .push_bind(min_age)
+            .push("))");
         }
 
         if max_age > 0 {
             self.push(
                 "
-            AND EXTRACT (YEAR FROM age(a.date, p.date_of_birth)) <= ",
+            AND p.date_of_birth > (a.date - make_interval(years => ",
             )
-            .push_bind(max_age);
+            .push_bind(max_age + 1)
+            .push("))");
         }
 
         self
@@ -337,7 +339,11 @@ impl PlayerMinuteFilterMethods for QueryBuilder<Postgres> {
             JOIN
                 games g ON g.game_id = a.game_id
             LEFT JOIN
-                game_events e ON e.game_id = a.game_id AND (e.player_id = a.player_id OR e.player_assist_id = a.player_id)
+                game_events e ON e.game_id = a.game_id AND (e.player_id = a.player_id OR e.player_assist_id = a.player_id) AND e.type IN ('Goals', 'Cards') AND e.minute <= ",
+        )
+        .push_bind(params.minute_window.to)
+        .push(
+            "
             WHERE 1 = 1",
         )
         .add_player_filters(params)

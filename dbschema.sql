@@ -458,6 +458,23 @@ ALTER TABLE ONLY public.players
     ADD CONSTRAINT players_pkey PRIMARY KEY (player_id);
 
 
+--
+-- Performance indexes for the query engine.
+--
+
+CREATE INDEX IF NOT EXISTS idx_games_season ON public.games USING btree (season);
+CREATE INDEX IF NOT EXISTS idx_games_home ON public.games USING btree (home_club_id);
+CREATE INDEX IF NOT EXISTS idx_games_away ON public.games USING btree (away_club_id);
+CREATE INDEX IF NOT EXISTS idx_players_position ON public.players USING btree (sub_position);
+CREATE INDEX IF NOT EXISTS idx_players_country ON public.players USING btree (country_of_citizenship);
+CREATE INDEX IF NOT EXISTS idx_enh_player_game ON public.appearances_enhanced USING btree (player_id, game_id);
+CREATE INDEX IF NOT EXISTS idx_enh_comp ON public.appearances_enhanced USING btree (competition_id);
+CREATE INDEX IF NOT EXISTS idx_enh_club ON public.appearances_enhanced USING btree (player_club_id);
+CREATE INDEX IF NOT EXISTS idx_evt_times_player ON public.appearances_with_event_times USING btree (player_id);
+CREATE INDEX IF NOT EXISTS idx_season_comp_player ON public.player_season_by_comp_view USING btree (player_id);
+CREATE INDEX IF NOT EXISTS idx_events_game_cover ON public.game_events USING btree (game_id) INCLUDE (player_id, player_assist_id, type, minute, description);
+
+
 -- Completed on 2026-08-21 11:27:03
 
 --
