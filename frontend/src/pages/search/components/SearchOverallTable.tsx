@@ -1,80 +1,20 @@
-import {useInfiniteScroll} from "./SearchBaseTable";
+import {useInfiniteScroll} from "../hooks/useInfiniteScroll";
 import './SearchBaseTable.css';
 import './SearchOverallTable.css';
 import {formatSeason} from "../../../lib/DateUtils";
 import React from "react";
-import {Link} from "react-router-dom";
 import {fetchPlayerOverallOrSeasonData} from "../../../lib/SearchUrlUtils";
 import {LoadingBar} from "../../../components/LoadingBar";
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import {SortOptions, StatScope} from "../../../types/SearchOptions";
 import {PlayerSearchResult} from "../../../types/Player";
+import {PlayerCell} from "./PlayerCell";
+import {ClubBadgesCell} from "./ClubBadgesCell";
+import {getDisplayStatForSmallScreen, getDisplayTitleForSmallScreen} from "../lib/smallScreenStat";
 
 interface SearchOverallTableProps {
     filterState: SearchFilterState;
 }
-
-const getDisplayTitleForSmallScreen = (sortBy: SortOptions) => {
-    switch (sortBy) {
-        case SortOptions.GOALS:
-            return "Goals";
-        case SortOptions.ASSISTS:
-            return "Assists";
-        case SortOptions.GOALS_AND_ASSISTS:
-            return "Goals and assists";
-        case SortOptions.YELLOW_CARDS:
-            return "Yellows";
-        case SortOptions.RED_CARDS:
-            return "Reds";
-        case SortOptions.MINUTES_PLAYED:
-            return "Mins";
-        case SortOptions.APPEARANCES:
-            return "Apps";
-        case SortOptions.MINUTES_PER_GOAL:
-            return "Mins per goal";
-        case SortOptions.MINUTES_PER_ASSIST:
-            return "Mins per assist";
-        case SortOptions.MINUTES_PER_GOAL_OR_ASSIST:
-            return "Mins per goal or assist";
-        case SortOptions.MINUTES_PER_YELLOW:
-            return "Mins per yellow";
-        case SortOptions.MINUTES_PER_RED:
-            return "Mins per red";
-        default:
-            return null;
-    }
-};
-
-const getDisplayStatForSmallScreen = (sortBy: SortOptions, player: PlayerSearchResult) => {
-    switch (sortBy) {
-        case SortOptions.GOALS:
-            return player.total_goals;
-        case SortOptions.ASSISTS:
-            return player.total_assists;
-        case SortOptions.GOALS_AND_ASSISTS:
-            return player.total_goals + player.total_assists;
-        case SortOptions.YELLOW_CARDS:
-            return player.total_yellow_cards;
-        case SortOptions.RED_CARDS:
-            return player.total_red_cards;
-        case SortOptions.MINUTES_PLAYED:
-            return player.total_minutes_played;
-        case SortOptions.APPEARANCES:
-            return player.total_appearances;
-        case SortOptions.MINUTES_PER_GOAL:
-            return player.mins_per_goal;
-        case SortOptions.MINUTES_PER_ASSIST:
-            return player.mins_per_assist;
-        case SortOptions.MINUTES_PER_GOAL_OR_ASSIST:
-            return player.mins_per_goal_or_assist;
-        case SortOptions.MINUTES_PER_YELLOW:
-            return player.mins_per_yellow;
-        case SortOptions.MINUTES_PER_RED:
-            return player.mins_per_red;
-        default:
-            return null;
-    }
-};
 
 export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterState}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef} =
@@ -122,39 +62,18 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                     {player.rank}.
                                 </td>
                                 <td>
-                                    <img
-                                        src={`https://flagicons.lipis.dev/flags/4x3/${player.country_code}.svg`}
-                                        alt={`${player.country_code}`}
-                                        style={{width: '20px', height: '14px', marginRight: '10px'}}
+                                    <PlayerCell
+                                        playerId={player.player_id}
+                                        playerName={player.player_name}
+                                        countryCode={player.country_code}
+                                        imageUrl={player.image_url}
+                                        avatarClassName="second-columns-to-hide"
                                     />
-                                    <img
-                                        className="second-columns-to-hide"
-                                        src={player.image_url}
-                                        alt={player.player_name}
-                                        width="50"
-                                        style={{marginRight: '10px', borderRadius: '50%'}}
-                                    />
-                                    <Link
-                                        to={`/player/${player.player_id}`}
-                                        style={{textDecoration: 'none', color: 'inherit'}}
-                                    >
-                                        {player.player_name}
-                                    </Link>
                                 </td>
-                                <td className="first-columns-to-hide">
-                                    {player.clubs_played_for.split(',').map(clubId => {
-                                        const trimmedClubId = clubId.trim();
-                                        return (
-                                            <img
-                                                key={trimmedClubId}
-                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(trimmedClubId)}.png`}
-                                                alt={`Club ${trimmedClubId}`}
-                                                width="20px"
-                                                style={{marginRight: '5px'}}
-                                            />
-                                        );
-                                    })}
-                                </td>
+                                <ClubBadgesCell
+                                    cellClassName="first-columns-to-hide"
+                                    clubIds={player.clubs_played_for.split(',')}
+                                />
                                 {filterState.statScope === StatScope.SEASON && <td>{formatSeason(player.season)}</td>}
                                 <td className="second-columns-to-hide">{player.sub_position}</td>
                                 <td className="third-columns-to-hide"><strong>{player.total_appearances}</strong>
