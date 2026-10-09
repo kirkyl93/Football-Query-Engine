@@ -1,7 +1,8 @@
 import React, {useEffect, useMemo, useState} from "react";
 import AppearancesChartTitle from "./AppearancesChartTitle";
 import AppearancesChartFilterBar from "./AppearancesChartFilterBar";
-import './AppearancesChart.css';
+import styles from '../Player.module.css';
+import shared from "../../../styles/shared.module.css";
 import {PlayerAppearance} from "../../../types/Player";
 import {useAppearancesFilter} from "../hooks/useAppearancesFilter";
 import {useChartZoom} from "../hooks/useChartZoom";
@@ -72,21 +73,21 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
     }
 
     return (
-        <div className="chart-container">
-            <div className="header-container">
+        <div className={styles['chart-container']}>
+            <div className={shared['header-container']}>
                 <AppearancesChartTitle
                     playerName={name}
                     filterState={playerFilterState}
                 />
-                <div className="button-container">
-                    <button onClick={handleZoomOut} disabled={!startGame && !endGame} className="filter-button-player">
+                <div className={styles['button-container']}>
+                    <button onClick={handleZoomOut} disabled={!startGame && !endGame} className={styles['filter-button-player']}>
                         <img
                             src={'/magnifying-glass.png'}
                             alt={`Zoom out`}
                             style={{width: '20px', height: '20px'}}
                         />
                     </button>
-                    <button onClick={toggleDrawer} className="filter-button-player">
+                    <button onClick={toggleDrawer} className={styles['filter-button-player']}>
                         Filter
                     </button>
                 </div>

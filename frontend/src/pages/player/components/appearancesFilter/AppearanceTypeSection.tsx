@@ -2,6 +2,7 @@ import React from "react";
 import {AppearanceTypeOptions} from "../../../../types/SearchOptions";
 import {appearanceTypeOptions, minutesPlayed} from "../../lib/appearancesFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface AppearanceTypeSectionProps {
     selectedAppearanceType: AppearanceTypeOptions;
@@ -36,7 +37,7 @@ const AppearanceTypeSection: React.FC<AppearanceTypeSectionProps> = ({
                         </label>
                     ))}
                 </div>
-                <div className="minute-and-age-and-sub-dropdown-group">
+                <div className={shared['minute-and-age-and-sub-dropdown-group']}>
                     <label>minutes played at least: </label>
                     <select value={minimumMinutesPlayed ?? ''}
                             onChange={onMinimumMinutesPlayedChange}>
@@ -46,7 +47,7 @@ const AppearanceTypeSection: React.FC<AppearanceTypeSectionProps> = ({
                         ))}
                     </select>
                 </div>
-                <div className="minute-and-age-and-sub-dropdown-group">
+                <div className={shared['minute-and-age-and-sub-dropdown-group']}>
                     <label>minutes played at most: </label>
                     <select value={maximumMinutesPlayed ?? ''}
                             onChange={onMaximumMinutesPlayedChange}>

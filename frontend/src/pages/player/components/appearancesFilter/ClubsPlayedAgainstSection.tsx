@@ -1,5 +1,6 @@
 import React from "react";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface ClubsPlayedAgainstSectionProps {
     selectedClubIds: number[];
@@ -22,7 +23,7 @@ const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
 }) => {
     return (
         <FilterSection title="CLUBS PLAYED AGAINST">
-            <div className="player-name-and-club-dropdown-content">
+            <div className={shared['player-name-and-club-dropdown-content']}>
                 <input
                     type="text"
                     placeholder="Clubs played against"
@@ -30,10 +31,10 @@ const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
                     onChange={onQueryChange}
                 />
                 {isDropdownVisible && suggestions.length > 0 && (
-                    <ul className="suggestions-dropdown">
+                    <ul className={shared['suggestions-dropdown']}>
                         {suggestions.map((suggestion, index) => (
                             <li key={index}
-                                className="suggestion-item"
+                                className={shared['suggestion-item']}
                                 onClick={() => onSuggestionClick(suggestion[0])}
                             >
                                 <img
@@ -46,9 +47,9 @@ const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
                         ))}
                     </ul>
                 )}
-                <div className="club-names-list">
+                <div className={shared['club-names-list']}>
                     {(selectedClubIds || []).map((club, index) => (
-                        <span key={index} className="club-name-item">
+                        <span key={index} className={shared['club-name-item']}>
                             <img
                                 style={{width: 30}}
                                 alt="Badge of football team selected"

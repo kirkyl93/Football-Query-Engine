@@ -1,30 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+/**
+ * Shared design-system primitives (CSS Module).
+ *
+ * Every class here is used by two or more components — previously via the
+ * global namespace, which caused collisions (e.g. three different
+ * `.second-columns-to-hide` breakpoints) and invisible cross-file
+ * dependencies. Rules are moved verbatim: scoping changes, values don't.
+ * Single-component styles stay in their feature modules.
+ */
 
-/* Drawer container */
-.filter-drawer {
-    position: fixed;
-    top: 0;
-    right: -400px;
-    width: 350px;
-    height: 100vh;
-    background-color: #ffffff;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    transition: right 0.3s ease;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    font-family: "Inter", serif;
-    font-optical-sizing: auto;
-    font-weight: 400;
-    font-size: 16px;
-    font-style: normal;
-}
-
-.filter-drawer.open {
-    right: 0;
-}
-
+/* ---- Drawer chrome (search + player filter drawers) ---- */
 .filter-header {
     display: flex;
     justify-content: space-between;
@@ -64,30 +48,33 @@
     cursor: pointer;
 }
 
-
-.drawer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px;
-    z-index: 1;
-    font-size: 14px;
-    border-bottom: 1px solid #ddd;
-}
-
 .filter-drawer-content {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
 }
 
-.dropdown-section {
-    margin-bottom: 20px;
+.apply-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #121212;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    bottom: 20px; /* Adjust bottom margin */
+    margin-bottom: 40px;
 }
 
-.checkbox-group {
-    font-size: 12px;
-    margin-top: 5px;
+.apply-button:hover {
+    background-color: #0056b3;
+}
+
+/* ---- Collapsible section chrome (FilterSection + all filter sections) ---- */
+.dropdown-section {
+    margin-bottom: 20px;
 }
 
 .dropdown-title, .sub-dropdown-title {
@@ -115,83 +102,10 @@
     margin-left: auto;
 }
 
-.apply-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #121212;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    bottom: 20px; /* Adjust bottom margin */
-    margin-bottom: 40px;
-}
-
-.apply-button:hover {
-    background-color: #0056b3;
-}
-
-.season-group {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0;
-    margin-top: 10px;
-    padding: 6px;
+/* ---- Option groups ---- */
+.checkbox-group {
     font-size: 12px;
-    max-width: 290px;
-}
-
-.season-checkbox-label, .position-checkbox-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-    border: 1px solid #dadada;
-    cursor: pointer;
-    text-align: center;
-}
-
-.season-checkbox-input, .position-checkbox-input {
-    display: none;
-}
-
-.season-checkbox-label:hover, .position-checkbox-label:hover {
-    border: 1px solid black;
-}
-
-.season-checkbox-input:checked + span, .position-checkbox-input:checked + span {
-    font-weight: bold;
-}
-
-.season-checkbox-label:has(input:checked), .position-checkbox-label:has(input:checked) {
-    border: 1px solid black;
-    font-weight: bold;
-    background-color: #f6f4f4;
-}
-
-.position-group {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0;
-    max-width: 290px;
-    margin-top: 10px;
-    padding: 6px;
-    font-size: 12px;
-}
-
-.label {
-    font-size: 14px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-}
-
-.flag-icon {
-    width: 15px;
-    height: auto;
-    margin-right: 5px;
+    margin-top: 5px;
 }
 
 .radio-group {
@@ -377,6 +291,53 @@
     font-size: 14px;
 }
 
+/* ---- Season checkbox grid (search + player filters) ---- */
+.season-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 10px;
+    padding: 6px;
+    font-size: 12px;
+    max-width: 290px;
+}
+
+.season-checkbox-label, .position-checkbox-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border: 1px solid #dadada;
+    cursor: pointer;
+    text-align: center;
+}
+
+.season-checkbox-input, .position-checkbox-input {
+    display: none;
+}
+
+.season-checkbox-label:hover, .position-checkbox-label:hover {
+    border: 1px solid black;
+}
+
+.season-checkbox-input:checked + span, .position-checkbox-input:checked + span {
+    font-weight: bold;
+}
+
+.season-checkbox-label:has(input:checked), .position-checkbox-label:has(input:checked) {
+    border: 1px solid black;
+    font-weight: bold;
+    background-color: #f6f4f4;
+}
+
+/* ---- Flags ---- */
+.flag-icon {
+    width: 15px;
+    height: auto;
+    margin-right: 5px;
+}
+
+/* ---- Name/club pickers (search + player club filters) ---- */
 .player-name-and-club-dropdown-content {
     margin-top: 8px;
     width: 70%;
@@ -403,53 +364,6 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 8px;
-}
-
-.games_or_seasons-dropdown-group {
-    margin-top: 8px;
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-}
-
-.games_or_seasons-dropdown-group label {
-    font-size: 12px;
-    color: #666;
-    text-align: right;
-}
-
-.games_or_seasons-dropdown-group select {
-    appearance: none;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 6px 14px 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
-    width: 100%;
-    max-width: 80px;
-
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 16px;
-}
-
-.games_or_seasons-dropdown-group select:hover {
-    border-color: #302f2f;
-}
-
-.games_or_seasons-dropdown-group select:focus {
-    outline: none;
-    border-color: #0066cc;
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
-}
-
-.games_or_seasons-dropdown-group select option {
-    padding: 8px;
-    font-size: 14px;
 }
 
 .player-name-item {
@@ -479,14 +393,6 @@
 .player-name-item button:hover {
     background-color: rgba(0, 0, 0, 0.1);
     color: #333;
-}
-
-.dropdown-group label {
-    margin: 0;
-}
-
-.dropdown-group select {
-    margin-left: 8px; /* Optional: Add space between label and select */
 }
 
 .suggestions-dropdown {
@@ -567,4 +473,53 @@
 
 .club-name-item:hover {
     background-color: #e8e8e8;
+}
+
+/* ---- Legend swatches ---- */
+.square {
+    display: inline-block;
+    width: 8px;
+    height: 10px;
+    border: 2px solid black;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.square-title {
+    display: inline-block;
+    width: 8px;
+    height: 10px;
+    border: 2px solid black;
+    margin-left: 15px;
+    margin-right: 5px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* ---- Page titles + club badges (search + player) ---- */
+.title {
+    font-family: "Inter", serif;
+    font-optical-sizing: auto;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: bold;
+    word-wrap: break-word;
+    white-space: normal;
+    max-width: 800px;
+    box-sizing: border-box;
+}
+
+.title-badge {
+    vertical-align: middle;
+    width: 20px;
+    margin: 0 5px;
+}
+
+/* ---- Shared page header row (search header + chart header) ---- */
+.header-container {
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }

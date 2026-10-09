@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import {competitions} from "../../../../data/Competitions";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface CompetitionFilterSectionProps {
     selectedCompetitions: string[];
@@ -17,12 +18,12 @@ const CompetitionFilterSection: React.FC<CompetitionFilterSectionProps> = ({
     return (
         <FilterSection title="COMPETITIONS">
             <div>
-                <div className="sub-dropdown-title" onClick={() => setIsLeaguesOpen(!isLeaguesOpen)}>
-                    <span className="title-text">DOMESTIC</span>
-                    <span className="arrow-icon">{isLeaguesOpen ? '▲' : '▼'}</span>
+                <div className={shared['sub-dropdown-title']} onClick={() => setIsLeaguesOpen(!isLeaguesOpen)}>
+                    <span className={shared['title-text']}>DOMESTIC</span>
+                    <span className={shared['arrow-icon']}>{isLeaguesOpen ? '▲' : '▼'}</span>
                 </div>
                 {isLeaguesOpen && (
-                    <div className="checkbox-group-vertical">
+                    <div className={shared['checkbox-group-vertical']}>
                         {competitions.leagues.map(league => (
                             <label className="competition-label" key={league.competitionId}>
                                 <input
@@ -34,7 +35,7 @@ const CompetitionFilterSection: React.FC<CompetitionFilterSectionProps> = ({
                                 <img
                                     src={`https://flagcdn.com/w20/${league.countryCode}.png`}
                                     alt={league.name}
-                                    className="flag-icon"
+                                    className={shared['flag-icon']}
                                 />
                                 {league.name}
                             </label>
@@ -42,13 +43,13 @@ const CompetitionFilterSection: React.FC<CompetitionFilterSectionProps> = ({
                     </div>
                 )}
 
-                <div className="sub-dropdown-title"
+                <div className={shared['sub-dropdown-title']}
                      onClick={() => setIsEuropeanCompetitionsOpen(!isEuropeanCompetitionsOpen)}>
-                    <span className="title-text">EUROPE</span>
-                    <span className="arrow-icon">{isEuropeanCompetitionsOpen ? '▲' : '▼'}</span>
+                    <span className={shared['title-text']}>EUROPE</span>
+                    <span className={shared['arrow-icon']}>{isEuropeanCompetitionsOpen ? '▲' : '▼'}</span>
                 </div>
                 {isEuropeanCompetitionsOpen && (
-                    <div className="checkbox-group-vertical">
+                    <div className={shared['checkbox-group-vertical']}>
                         {competitions.europeanCompetitions.map(competition => (
                             <label className="competition-label" key={competition.competitionId}>
                                 <input
@@ -60,7 +61,7 @@ const CompetitionFilterSection: React.FC<CompetitionFilterSectionProps> = ({
                                 <img
                                     src={`https://tmssl.akamaized.net/images/logo/header/${encodeURIComponent(competition.competitionId.toLowerCase())}.png`}
                                     alt={competition.name}
-                                    className="flag-icon"
+                                    className={shared['flag-icon']}
                                 />
                                 {competition.name}
                             </label>

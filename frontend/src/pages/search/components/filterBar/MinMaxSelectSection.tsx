@@ -1,5 +1,6 @@
 import React from "react";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface MinMaxSelectSectionProps {
     title: string;
@@ -25,7 +26,7 @@ const MinMaxSelectSection: React.FC<MinMaxSelectSectionProps> = ({
 }) => {
     return (
         <FilterSection title={title}>
-            <div className="minute-and-age-and-sub-dropdown-group">
+            <div className={shared['minute-and-age-and-sub-dropdown-group']}>
                 <label>{minLabel}</label>
                 <select value={minValue ?? ''} onChange={onMinChange}>
                     <option value="">Any</option>

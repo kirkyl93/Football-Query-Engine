@@ -1,6 +1,7 @@
 import React from "react";
 import {getColour, hexToRGB} from "../../../../lib/ColourUtils";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface ClubsPlayedForSectionProps {
     clubs: [number, string][];
@@ -11,7 +12,7 @@ interface ClubsPlayedForSectionProps {
 const ClubsPlayedForSection: React.FC<ClubsPlayedForSectionProps> = ({clubs, selectedClubIds, onClubChange}) => {
     return (
         <FilterSection title="CLUBS PLAYED FOR">
-            <div className="checkbox-group-vertical">
+            <div className={shared['checkbox-group-vertical']}>
                 {clubs.map(club => (
                     <label className="club-label"
                            style={{

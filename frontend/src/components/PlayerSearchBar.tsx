@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
 import {Player, PlayerAppearance} from "../types/Player";
 import {API_BASE_URL} from "../config";
-import './PlayerSearchBar.css'
+import styles from './PlayerSearchBar.module.css'
 
 interface PlayerSearchBarProps {
     placeHolderText: string;
@@ -88,21 +88,21 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
     };
 
     return (
-        <form ref={dropdownRef} className="search-form">
+        <form ref={dropdownRef} className={styles['search-form']}>
             <input
                 type="text"
                 placeholder={placeHolderText}
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="search-input"
+                className={styles['search-input']}
             />
 
             {isDropdownVisible && suggestions.length > 0 && (
-                <ul className="header-suggestions-dropdown">
+                <ul className={styles['header-suggestions-dropdown']}>
                     {suggestions.map((suggestion, index) => (
                         <li
                             key={index}
-                            className="header-suggestion-item"
+                            className={styles['header-suggestion-item']}
                             onClick={() => handleSuggestionClick(suggestion.last_name, suggestion.player_id)}
                         >
                             {linkToPlayer ? (

@@ -7,6 +7,7 @@ import Per90Chart from "./Per90Chart";
 import PlayerWinPercentageChart from "./PlayerWinPercentageChart";
 import GoalsByGameChart from "./GoalsByGameChart";
 import GoalAndAssistContributionChart from "./GoalAndAssistContributionChart";
+import styles from '../Player.module.css';
 import TeamGoalsByGameChart from "./TeamGoalsByGameChart";
 import TeamGoalsConcededByGameChart from "./TeamGoalsConcededByGameChart";
 import SubbedOnAndOffChart from "./SubbedOnAndOffChart";
@@ -40,7 +41,7 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
 }) => {
     return (
         <>
-            <div className="graph">
+            <div className={styles['graph']}>
                 <AppearancesChartMemo
                     playerName={""} data={playerGameData} onZoomChange={onZoomChange}/>
                 {comparisonPlayerGameData.length > 0 &&

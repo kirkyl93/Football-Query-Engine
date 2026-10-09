@@ -16,6 +16,8 @@ import {
     statScopes,
 } from "../../lib/searchFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
+import filterStyles from '../SearchFilterBar.module.css';
 
 interface SortByFilterSectionProps {
     filterState: SearchFilterState;
@@ -48,7 +50,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
 
     return (
         <FilterSection title="SORT BY">
-            <div className="radio-group">
+            <div className={shared['radio-group']}>
                 {statScopes.map(score => (
                     <label key={score.id}>
                         <input
@@ -61,7 +63,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                     </label>
                 ))}
             </div>
-            <div className="radio-group-vertical">
+            <div className={shared['radio-group-vertical']}>
                 {sortTypes
                     .filter(sort => filterState.statScope === StatScope.OVERALL ||
                         (filterState.statScope === StatScope.SEASON && !overallOnlySortOptions.includes(sort.id)) || gameOnlySortOptions.includes(sort.id))
@@ -79,7 +81,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
             </div>
 
             {minuteBasedSortOptions.includes(filterState.sortBy as SortOptions) && (
-                <div className="minute-and-age-and-sub-dropdown-group">
+                <div className={shared['minute-and-age-and-sub-dropdown-group']}>
                     <label>Minimum Appearances: </label>
                     <select value={filterState.minimumAppearances ?? ''}
                             onChange={onMinimumAppearanceChange}>
@@ -93,7 +95,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
 
             {numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy as SortOptions) && (
                 <>
-                    <div className="games_or_seasons-dropdown-group">
+                    <div className={filterStyles['games_or_seasons-dropdown-group']}>
                         <label>Minimum Goals: </label>
                         <select value={filterState.minimumGoals ?? ''}
                                 onChange={onMinimumGoalsChange}>
@@ -102,7 +104,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                                 <option key={goal} value={goal}>{goal}</option>))}
                         </select>
                     </div>
-                    <div className="games_or_seasons-dropdown-group">
+                    <div className={filterStyles['games_or_seasons-dropdown-group']}>
                         <label>Maximum Goals: </label>
                         <select value={filterState.maximumGoals ?? ''}
                                 onChange={onMaximumGoalsChange}>
@@ -111,7 +113,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                                 <option key={goal} value={goal}>{goal}</option>))}
                         </select>
                     </div>
-                    <div className="games_or_seasons-dropdown-group">
+                    <div className={filterStyles['games_or_seasons-dropdown-group']}>
                         <label>Minimum Assists: </label>
                         <select value={filterState.minimumAssists ?? ''}
                                 onChange={onMinimumAssistsChange}>
@@ -121,7 +123,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                         </select>
                     </div>
 
-                    <div className="games_or_seasons-dropdown-group">
+                    <div className={filterStyles['games_or_seasons-dropdown-group']}>
                         <label>Maximum Assists: </label>
                         <select value={filterState.maximumAssists ?? ''}
                                 onChange={onMaximumAssistsChange}>
@@ -131,7 +133,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                         </select>
                     </div>
 
-                    <div className="games_or_seasons-dropdown-group">
+                    <div className={filterStyles['games_or_seasons-dropdown-group']}>
                         <label>Minimum Goals and Assists: </label>
                         <select value={filterState.minimumGoalsAndAssists ?? ''}
                                 onChange={onMinimumGoalsAndAssistsChange}>
@@ -141,7 +143,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                         </select>
                     </div>
 
-                    <div className="games_or_seasons-dropdown-group">
+                    <div className={filterStyles['games_or_seasons-dropdown-group']}>
                         <label>Maximum Goals and Assists: </label>
                         <select value={filterState.maximumGoalsAndAssists ?? ''}
                                 onChange={onMaximumGoalsAndAssistsChange}>

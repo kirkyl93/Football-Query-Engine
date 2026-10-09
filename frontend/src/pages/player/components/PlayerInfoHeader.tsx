@@ -1,6 +1,7 @@
 import React from "react";
 import {convertDateStringToDate, dateFormatter} from "../../../lib/DateUtils";
 import {Player} from "../../../types/Player";
+import tableStyles from '../../search/components/SearchByCountTable.module.css';
 
 interface PlayerInfoHeaderProps {
     playerData: Player;
@@ -21,8 +22,8 @@ const PlayerInfoHeader: React.FC<PlayerInfoHeaderProps> = ({playerData}) => {
                 <h3>{playerData?.first_name + " " + playerData?.last_name}</h3>
                 <p>
                     Nation:
-                    <img
-                        className="second-gs-columns-to-hide"
+                        <img
+                            className={tableStyles['second-gs-columns-to-hide']}
                         src={`https://flagicons.lipis.dev/flags/4x3/${playerData?.country_code}.svg`}
                         alt={`${playerData?.country_code}`}
                         style={{width: '17px', height: '13px', marginRight: '5px', marginLeft: '5px'}}

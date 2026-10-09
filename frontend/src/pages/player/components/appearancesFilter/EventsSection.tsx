@@ -3,6 +3,7 @@ import {EventType} from "../../../../types/Player";
 import {eventTypeOptions} from "../../lib/appearancesFilterOptions";
 import {EventSelection} from "../../lib/appearancesEventMapper";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface EventsSectionProps {
     selectedEvents: EventSelection;
@@ -12,7 +13,7 @@ interface EventsSectionProps {
 const EventsSection: React.FC<EventsSectionProps> = ({selectedEvents, onEventSelectionChange}) => {
     return (
         <FilterSection title="EVENTS">
-            <div className="checkbox-group-vertical">
+            <div className={shared['checkbox-group-vertical']}>
                 {eventTypeOptions.map(event => (
                     <label className="club-label" key={event.eventType}>
                         <input
@@ -22,7 +23,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({selectedEvents, onEventSel
                             onChange={onEventSelectionChange}
                         />
                         {event.eventType !== EventType.CleanSheets ?
-                            <span className="square" style={{backgroundColor: event.colour}}></span> :
+                            <span className={shared['square']} style={{backgroundColor: event.colour}}></span> :
                             <img
                                 src={'/light-bulb.png'}
                                 alt={`Light bulb`}

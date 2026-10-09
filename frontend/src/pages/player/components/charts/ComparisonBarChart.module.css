@@ -1,0 +1,9 @@
+.team-streak-custom-tooltip {
+    font-size: 15px;
+    font-weight: 500;
+    outline: #2e89a5 1px solid;
+    background-color: white;
+    align-items: center;
+    position: relative;
+    padding: 10px;
+}
