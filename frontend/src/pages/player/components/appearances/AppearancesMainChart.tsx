@@ -1,7 +1,6 @@
-import React, {useMemo, useRef} from "react";
+import React, {useMemo} from "react";
 import {
     Bar,
-    Cell,
     ComposedChart,
     ReferenceArea,
     ResponsiveContainer,
@@ -10,11 +9,10 @@ import {
     XAxis,
     YAxis
 } from "recharts";
-import {getColour} from "../../../../lib/ColourUtils";
 import {PlayerAppearance} from "../../../../types/Player";
 import {ChartSizing} from "../../lib/chartSizing";
 import {ScatterEvent} from "../../lib/appearancesEventMapper";
-import {getBarOutlineColour} from "../../lib/barOutlineColour";
+import {createAppearanceBarShape} from "./appearanceBarShape";
 
 interface AppearancesMainChartProps {
     zoomedData: PlayerAppearance[];
@@ -53,10 +51,12 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
 }) => {
     const syncId = useMemo(() => `chart-${Math.random().toString(36).substring(2, 10)}`, []);
 
-    const currentClubIdRef = useRef<number>(-1);
-    const currentClubColour = useRef<string>("");
-
     const {barChartWidth, strokeWidth, scatterDotRadius, rectangleWidth, rectangleHeight, barChartOpacity} = sizing;
+
+    const barShape = useMemo(
+        () => createAppearanceBarShape({zoomedData, showCleanSheets, barChartOpacity, strokeWidth}),
+        [zoomedData, showCleanSheets, barChartOpacity, strokeWidth],
+    );
 
     return (
         <div className="h-full"
@@ -125,32 +125,8 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
                             stroke={"black"}
                             strokeWidth={strokeWidth}
                             isAnimationActive={false}
-                        >
-                            {
-                                zoomedData.map((entry, index) => {
-                                    if (entry.club_id !== currentClubIdRef.current) {
-                                        currentClubIdRef.current = entry.club_id;
-                                        currentClubColour.current = getColour(currentClubIdRef.current);
-                                    }
-
-                                    const cleanSheet =
-                                        showCleanSheets &&
-                                        (entry.club_id === entry.home_club_id
-                                            ? entry.away_club_goals === 0
-                                            : entry.home_club_goals === 0);
-                                    const adjustedOpacity = cleanSheet ? barChartOpacity + 0.35 : barChartOpacity;
-
-                                    return (
-                                        <Cell
-                                            key={index}
-                                            fill={currentClubColour.current}
-                                            fillOpacity={adjustedOpacity}
-                                            stroke={getBarOutlineColour(entry)}
-                                        />
-                                    );
-                                })
-                            }
-                        </Bar>
+                            shape={barShape}
+                        />
 
                         <Scatter
                             name="d"

@@ -1,10 +1,22 @@
 import {
-    Sector
+    Sector,
+    type PieSectorShapeProps
 } from "recharts";
 
-export const renderActiveShape = (props) => {
+// Recharts types payload/percent/value at runtime (see computePieSectors)
+// but does not declare them, so they are added here.
+type ActiveSectorProps = PieSectorShapeProps & {
+    payload?: { name?: string };
+    percent?: number;
+    value?: number | string;
+};
+
+export const renderActiveShape = (props: ActiveSectorProps) => {
     const RADIAN = Math.PI / 180;
-    const {cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value} = props;
+    const {
+        cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0,
+        startAngle = 0, endAngle = 0, fill = "#8884d8", payload, percent = 0, value = 0,
+    } = props;
     const sin = Math.sin(-RADIAN * midAngle);
     const cos = Math.cos(-RADIAN * midAngle);
     const sx = cx + (outerRadius + 10) * cos;
@@ -18,7 +30,7 @@ export const renderActiveShape = (props) => {
     return (
         <g>
             <text x={cx} y={cy} dy={8} textAnchor="middle" fill={"black"}>
-                {payload.name}
+                {payload?.name}
             </text>
             <Sector
                 cx={cx}
@@ -51,3 +63,6 @@ export const renderActiveShape = (props) => {
         </g>
     );
 };
+
+export const renderPieSector = (props: PieSectorShapeProps) =>
+    props.isActive ? renderActiveShape(props) : <Sector {...props} />;
