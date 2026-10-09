@@ -2,7 +2,7 @@ use crate::competitions::Competition;
 use crate::countries::Country;
 use crate::services::base_query_builder::escape_like_pattern;
 use crate::services::player::models::{
-    HomeAwayOption, PenaltyOption, ProcessedSearchParams, StatScope,
+    AgeRange, HeightRange, HomeAwayOption, MinuteWindow, PenaltyOption, ProcessedSearchParams, StatScope, SubFilter
 };
 use crate::services::player::player_enums::PlayerSubPosition;
 use sqlx::{Postgres, QueryBuilder};
@@ -23,18 +23,14 @@ impl PlayerFilterMethods for QueryBuilder<Postgres> {
         self.add_seasons(&params.seasons)
             .add_competitions(&params.competitions)
             .add_positions(&params.positions)
-            .add_ages(params.age.min, params.age.max)
-            .add_height(params.height.min, params.height.max)
+            .add_ages(params.age)
+            .add_height(params.height)
             .add_home_or_away(&params.home_or_away)
             .add_player_names(&params.names)
             .add_player_countries(&params.countries)
             .add_clubs_played_for(&params.clubs_played_for)
             .add_clubs_played_against(&params.clubs_played_against)
-            .add_sub_info(
-                params.subs.only,
-                params.subs.earliest_on,
-                params.subs.latest_on,
-            )
+            .add_sub_info(params.subs)
     }
 }
 
@@ -43,18 +39,13 @@ trait PrivatePlayerFilterMethods {
     fn add_competitions(&mut self, competitions: &[Competition]) -> &mut Self;
     fn add_positions(&mut self, positions: &[PlayerSubPosition]) -> &mut Self;
     fn add_home_or_away(&mut self, home_or_away: &HomeAwayOption) -> &mut Self;
-    fn add_height(&mut self, min_height: i32, max_height: i32) -> &mut Self;
-    fn add_ages(&mut self, min_age: i32, max_age: i32) -> &mut Self;
+    fn add_height(&mut self, height: HeightRange) -> &mut Self;
+    fn add_ages(&mut self, age: AgeRange) -> &mut Self;
     fn add_player_names(&mut self, player_names: &[String]) -> &mut Self;
     fn add_player_countries(&mut self, player_countries: &[Country]) -> &mut Self;
     fn add_clubs_played_for(&mut self, clubs_played_for: &[i32]) -> &mut Self;
     fn add_clubs_played_against(&mut self, clubs_played_against: &[i32]) -> &mut Self;
-    fn add_sub_info(
-        &mut self,
-        subs_only: i32,
-        earliest_sub_on_time: i32,
-        latest_sub_on_time: i32,
-    ) -> &mut Self;
+    fn add_sub_info(&mut self, subs: SubFilter) -> &mut Self;
 }
 
 impl PrivatePlayerFilterMethods for QueryBuilder<Postgres> {
@@ -136,42 +127,42 @@ impl PrivatePlayerFilterMethods for QueryBuilder<Postgres> {
         self
     }
 
-    fn add_height(&mut self, min_height: i32, max_height: i32) -> &mut Self {
-        if min_height > 0 {
+    fn add_height(&mut self, height: HeightRange) -> &mut Self {
+        if height.min > 0 {
             self.push(
                 "
             AND height_in_cm >= ",
             )
-            .push_bind(min_height);
+            .push_bind(height.min);
         }
 
-        if max_height > 0 {
+        if height.max > 0 {
             self.push(
                 "
             AND height_in_cm <= ",
             )
-            .push_bind(max_height);
+            .push_bind(height.max);
         }
 
         self
     }
 
-    fn add_ages(&mut self, min_age: i32, max_age: i32) -> &mut Self {
-        if min_age > 0 {
+    fn add_ages(&mut self, age: AgeRange) -> &mut Self {
+        if age.min > 0 {
             self.push(
                 "
             AND p.date_of_birth <= (a.date - make_interval(years => ",
             )
-            .push_bind(min_age)
+            .push_bind(age.min)
             .push("))");
         }
 
-        if max_age > 0 {
+        if age.max > 0 {
             self.push(
                 "
             AND p.date_of_birth > (a.date - make_interval(years => ",
             )
-            .push_bind(max_age + 1)
+            .push_bind(age.max + 1)
             .push("))");
         }
 
@@ -274,29 +265,24 @@ impl PrivatePlayerFilterMethods for QueryBuilder<Postgres> {
         self
     }
 
-    fn add_sub_info(
-        &mut self,
-        subs_only: i32,
-        earliest_sub_on_time: i32,
-        latest_sub_on_time: i32,
-    ) -> &mut Self {
-        if subs_only > 0 {
+    fn add_sub_info(&mut self, subs: SubFilter) -> &mut Self {
+        if subs.only > 0 {
             self.push(
                 "
             AND a.played_from_minute > ",
             )
-            .push_bind(if earliest_sub_on_time > 0 {
-                earliest_sub_on_time - 1
+            .push_bind(if subs.earliest_on > 0 {
+                subs.earliest_on - 1
             } else {
                 0
             });
 
-            if latest_sub_on_time > 0 {
+            if subs.latest_on > 0 {
                 self.push(
                     "
                 AND a.played_from_minute <= ",
                 )
-                .push_bind(latest_sub_on_time);
+                .push_bind(subs.latest_on);
             }
         }
 
@@ -326,7 +312,7 @@ impl PlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         } else {
             ""
         })
-        .add_all_minute_filters(params.minute_window.from, params.minute_window.to)
+        .add_all_minute_filters(params.minute_window)
         .push(
             "
             MIN(CASE WHEN a.played_from_minute > 0 THEN 1 ELSE 0 END) AS substitute_appearances
@@ -357,66 +343,66 @@ impl PlayerMinuteFilterMethods for QueryBuilder<Postgres> {
 }
 
 trait PrivatePlayerMinuteFilterMethods {
-    fn add_all_minute_filters(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
-    fn add_appearances_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
-    fn add_goals_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
-    fn add_penalties_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
-    fn add_assists_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
-    fn add_yellows_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
-    fn add_reds_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
-    fn add_minutes_played_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self;
+    fn add_all_minute_filters(&mut self, window: MinuteWindow) -> &mut Self;
+    fn add_appearances_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
+    fn add_goals_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
+    fn add_penalties_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
+    fn add_assists_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
+    fn add_yellows_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
+    fn add_reds_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
+    fn add_minutes_played_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
 }
 
 impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
-    fn add_all_minute_filters(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
-        self.add_appearances_minute_filter(minute_from, minute_to)
-            .add_goals_minute_filter(minute_from, minute_to)
-            .add_penalties_minute_filter(minute_from, minute_to)
-            .add_assists_minute_filter(minute_from, minute_to)
-            .add_yellows_minute_filter(minute_from, minute_to)
-            .add_reds_minute_filter(minute_from, minute_to)
-            .add_minutes_played_minute_filter(minute_from, minute_to)
+    fn add_all_minute_filters(&mut self, window: MinuteWindow) -> &mut Self {
+        self.add_appearances_minute_filter(window)
+            .add_goals_minute_filter(window)
+            .add_penalties_minute_filter(window)
+            .add_assists_minute_filter(window)
+            .add_yellows_minute_filter(window)
+            .add_reds_minute_filter(window)
+            .add_minutes_played_minute_filter(window)
     }
 
-    fn add_appearances_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
+    fn add_appearances_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
         self.push(
             "
             MIN(CASE WHEN a.played_from_minute <= ",
         )
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(" AND (subbed_off_minute IS NULL OR subbed_off_minute > ")
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(
             ")
                 AND played_from_minute + minutes_played >= ",
         )
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(" THEN 1 ELSE 0 END) AS appearances,");
 
         self
     }
 
-    fn add_goals_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
+    fn add_goals_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
         self.push(
             "
             CAST(SUM(CASE WHEN e.type = 'Goals' AND e.player_id = a.player_id AND e.minute BETWEEN ",
         )
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(" AND ")
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(" THEN 1 ELSE 0 END) AS integer) AS goals,");
 
         self
     }
 
-    fn add_penalties_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
+    fn add_penalties_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
         self.push(
             "
             CAST(SUM(CASE WHEN e.type = 'Goals' AND e.player_id = a.player_id AND e.minute BETWEEN ",
         )
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(" AND ")
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(
             " AND e.is_penalty THEN 1 ELSE 0 END) AS integer) AS penalty_goals,",
         );
@@ -424,14 +410,14 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         self
     }
 
-    fn add_assists_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
+    fn add_assists_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
         self.push(
             "
             CAST(SUM(CASE WHEN e.type = 'Goals' AND e.player_assist_id = a.player_id AND e.minute BETWEEN ",
         )
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(" AND ")
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(
             " AND e.player_id != e.player_assist_id THEN 1 ELSE 0 END) AS integer) AS assists,",
         );
@@ -439,14 +425,14 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         self
     }
 
-    fn add_yellows_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
+    fn add_yellows_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
         self.push(
             "
             CAST(SUM(CASE WHEN e.type = 'Cards' AND e.player_id = a.player_id AND e.minute BETWEEN ",
         )
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(" AND ")
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(
             " AND e.is_yellow THEN 1 ELSE 0 END) AS integer) AS yellow_cards,",
         );
@@ -454,26 +440,26 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         self
     }
 
-    fn add_reds_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
+    fn add_reds_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
         self.push(
             "
             CAST(SUM(CASE WHEN e.type = 'Cards' AND e.player_id = a.player_id AND e.minute BETWEEN ",
         )
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(" AND ")
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(
             " AND e.is_red THEN 1 ELSE 0 END)
                 + CASE WHEN SUM(CASE WHEN e.type = 'Cards' AND e.player_id = a.player_id AND e.minute BETWEEN 0 AND ",
         )
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(
             " AND e.is_yellow THEN 1 ELSE 0 END) >= 2
                 AND SUM(CASE WHEN e.type = 'Cards' AND e.player_id = a.player_id AND e.minute BETWEEN ",
         )
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(" AND ")
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(
             " AND e.is_yellow THEN 1 ELSE 0 END) >= 1 THEN 1 ELSE 0 END AS integer) AS red_cards,",
         );
@@ -481,14 +467,14 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         self
     }
 
-    fn add_minutes_played_minute_filter(&mut self, minute_from: i32, minute_to: i32) -> &mut Self {
+    fn add_minutes_played_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
         self.push(
             "
             GREATEST(MIN(LEAST(",
         )
-        .push_bind(minute_to)
+        .push_bind(window.to)
         .push(", subbed_off_minute, played_from_minute + minutes_played) - GREATEST(")
-        .push_bind(minute_from)
+        .push_bind(window.from)
         .push(", played_from_minute)) + 1, 0) AS minutes_played,");
 
         self
