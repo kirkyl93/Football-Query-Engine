@@ -12,6 +12,7 @@ import {
 } from "../../../types/SearchOptions";
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import {Club} from "../../../types/Club";
+import {API_BASE_URL} from "../../../config";
 
 interface SearchFilterBarProps {
     isOpen: boolean;
@@ -149,7 +150,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
             if (newClub.length < 3) {
                 return;
             }
-            const response = await fetch(`http://localhost:8080/clubs?search_name=${newClub}&page=0&limit=10`);
+            const response = await fetch(`${API_BASE_URL}/clubs?search_name=${newClub}&page=0&limit=10`);
             const data: Club[] = await response.json();
             playedFor ? setNewClubsPlayedForSuggestions(data) : setNewClubsPlayedAgainstSuggestions(data);
             playedFor ? setIsClubsPlayedForDropdownVisible(true) : setIsClubsPlayedAgainstDropdownVisible(true);

@@ -2,6 +2,7 @@ import {FetchParams} from "../pages/search/components/SearchBaseTable";
 import {UrlFilters} from "../types/UrlFilters";
 import {StatScope} from "../types/SearchOptions";
 import {PlayerGameSearchResult, PlayerNumberOfGamesOrSeasonsResult, PlayerSearchResult} from "../types/Player";
+import {API_BASE_URL} from "../config";
 
 export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams }: FetchParams): string => {
     let url = `${baseUrl}?page=${page}&limit=${limit}`;
@@ -45,7 +46,7 @@ export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams 
 };
 
 export const fetchNumberOfGamesOrSeasonsResult = async (params: FetchParams): Promise<PlayerNumberOfGamesOrSeasonsResult[]> => {
-    let url = constructSearchUrl('http://localhost:8080/search/occurrences', params);
+    let url = constructSearchUrl(`${API_BASE_URL}/search/occurrences`, params);
 
     const response = await fetch(url, { signal: params.signal });
     if (!response.ok) {
@@ -55,7 +56,7 @@ export const fetchNumberOfGamesOrSeasonsResult = async (params: FetchParams): Pr
 }
 
 export const fetchPlayerOverallOrSeasonData = async (params: FetchParams): Promise<PlayerSearchResult[]> => {
-    let url = constructSearchUrl('http://localhost:8080/search', params);
+    let url = constructSearchUrl(`${API_BASE_URL}/search`, params);
 
     const response = await fetch(url, { signal: params.signal });
     if (!response.ok) {
@@ -65,7 +66,7 @@ export const fetchPlayerOverallOrSeasonData = async (params: FetchParams): Promi
 }
 
 export const fetchPlayerGameData = async (params: FetchParams): Promise<PlayerGameSearchResult[]> => {
-    let url = constructSearchUrl('http://localhost:8080/search/game', params);
+    let url = constructSearchUrl(`${API_BASE_URL}/search/game`, params);
 
     const response = await fetch(url, { signal: params.signal });
     if (!response.ok) {

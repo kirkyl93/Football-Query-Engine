@@ -9,7 +9,7 @@ const Header: React.FC = () => {
             <nav className="nav">
                 <Link to="/?seasons=2025&comps=GB1&penalty=ip&home=e&sort=g&scope=o">
                     <img
-                        src={'/src/assets/football.png'}
+                        src={'/football.png'}
                         alt={`Football`}
                         style={{
                             width: '40px',
