@@ -1,4 +1,5 @@
 import React from "react";
+import shared from "../styles/shared.module.css";
 
 interface TitleClubBadgesProps {
     label: string;
@@ -21,8 +22,8 @@ const TitleClubBadges: React.FC<TitleClubBadgesProps> = ({label, clubIds}) => {
                 <span style={{marginLeft: '5px'}}>{clubIds.length} CLUBS SELECTED</span>
             ) : (
                 clubIds.map(clubId => (
-                    <img
-                        className="title-badge"
+                                <img
+                                        className={shared['title-badge']}
                         key={clubId}
                         src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(clubId)}.png`}
                         alt={`Club ${clubId}`}

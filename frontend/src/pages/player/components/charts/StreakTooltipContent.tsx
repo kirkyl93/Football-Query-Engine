@@ -1,6 +1,8 @@
 import React from "react";
 import {convertDateStringToDate, dateFormatter} from "../../../../lib/DateUtils";
 import {Streak} from "../../../../types/Player";
+import shared from "../../../../styles/shared.module.css";
+import styles from './ComparisonBarChart.module.css';
 
 interface StreakTooltipContentProps {
     playerStreak: Streak;
@@ -23,10 +25,10 @@ const StreakTooltipContent: React.FC<StreakTooltipContentProps> = ({
 
     if (comparisonPlayerName.length === 0) {
         return (
-            <p style={{fontWeight: 600}}>
+            <p className={styles['tooltip-value']}>
                 {playerStreak.count}
                 {playerStreak.count > 0 && (
-                    <span style={{fontWeight: 400, fontSize: 12}}> ({playerStartDate} - {playerEndDate})</span>
+                    <span className={styles['tooltip-dates']}> ({playerStartDate} - {playerEndDate})</span>
                 )}
             </p>
         );
@@ -34,16 +36,16 @@ const StreakTooltipContent: React.FC<StreakTooltipContentProps> = ({
 
     return (
         <>
-            <p style={{fontWeight: 600}}>
-                <span className="square-title" style={{backgroundColor: PLAYER_COLOUR}}></span> {playerStreak.count}
+            <p className={styles['tooltip-value']}>
+                <span className={shared['square-title']} style={{backgroundColor: PLAYER_COLOUR}}></span> {playerStreak.count}
                 {playerStreak.count > 0 && (
-                    <span style={{fontWeight: 400, fontSize: 12}}> ({playerStartDate} - {playerEndDate})</span>
+                    <span className={styles['tooltip-dates']}> ({playerStartDate} - {playerEndDate})</span>
                 )}
             </p>
-            <p style={{fontWeight: 600}}>
-                <span className="square-title" style={{backgroundColor: COMPARISON_COLOUR}}></span> {comparisonStreak.count}
+            <p className={styles['tooltip-value']}>
+                <span className={shared['square-title']} style={{backgroundColor: COMPARISON_COLOUR}}></span> {comparisonStreak.count}
                 {comparisonStreak.count > 0 && (
-                    <span style={{fontWeight: 400, fontSize: 12}}> ({comparisonStartDate} - {comparisonEndDate})</span>
+                    <span className={styles['tooltip-dates']}> ({comparisonStartDate} - {comparisonEndDate})</span>
                 )}
             </p>
         </>

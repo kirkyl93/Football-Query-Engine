@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import {competitions} from "../../../../data/Competitions";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface PlayerCompetitionSectionProps {
     leagueCompetitions: string[];
@@ -22,13 +23,13 @@ const PlayerCompetitionSection: React.FC<PlayerCompetitionSectionProps> = ({
         <FilterSection title="COMPETITIONS">
             <div>
                 {leagueCompetitions.length > 0 && (
-                    <div className="sub-dropdown-title" onClick={() => setIsLeaguesOpen(!isLeaguesOpen)}>
-                        <span className="title-text">DOMESTIC</span>
-                        <span className="arrow-icon">{isLeaguesOpen ? '▲' : '▼'}</span>
+                    <div className={shared['sub-dropdown-title']} onClick={() => setIsLeaguesOpen(!isLeaguesOpen)}>
+                        <span className={shared['title-text']}>DOMESTIC</span>
+                        <span className={shared['arrow-icon']}>{isLeaguesOpen ? '▲' : '▼'}</span>
                     </div>
                 )}
                 {isLeaguesOpen && leagueCompetitions.length > 0 && (
-                    <div className="checkbox-group-vertical">
+                    <div className={shared['checkbox-group-vertical']}>
                         {leagueCompetitions.map(league => {
                             const leagueComp = competitions.leagues.find(comp => comp.name === league);
                             if (!leagueComp) {
@@ -45,7 +46,7 @@ const PlayerCompetitionSection: React.FC<PlayerCompetitionSectionProps> = ({
                                     <img
                                         src={`https://flagcdn.com/w20/${leagueComp.countryCode}.png`}
                                         alt={leagueComp.name}
-                                        className="flag-icon"
+                                        className={shared['flag-icon']}
                                     />
                                     {leagueComp.name}
                                 </label>
@@ -55,14 +56,14 @@ const PlayerCompetitionSection: React.FC<PlayerCompetitionSectionProps> = ({
                 )}
 
                 {europeanCompetitions.length > 0 && (
-                    <div className="sub-dropdown-title"
+                    <div className={shared['sub-dropdown-title']}
                          onClick={() => setIsEuropeanCompetitionsOpen(!isEuropeanCompetitionsOpen)}>
-                        <span className="title-text">EUROPE</span>
-                        <span className="arrow-icon">{isEuropeanCompetitionsOpen ? '▲' : '▼'}</span>
+                        <span className={shared['title-text']}>EUROPE</span>
+                        <span className={shared['arrow-icon']}>{isEuropeanCompetitionsOpen ? '▲' : '▼'}</span>
                     </div>
                 )}
                 {isEuropeanCompetitionsOpen && europeanCompetitions.length > 0 && (
-                    <div className="checkbox-group-vertical">
+                    <div className={shared['checkbox-group-vertical']}>
                         {europeanCompetitions.map(comp => {
                             const europeComp = competitions.europeanCompetitions.find(euroComp => euroComp.name === comp);
                             if (!europeComp) {
@@ -79,7 +80,7 @@ const PlayerCompetitionSection: React.FC<PlayerCompetitionSectionProps> = ({
                                     <img
                                         src={`https://tmssl.akamaized.net/images/logo/header/${encodeURIComponent(europeComp.competitionId.toLowerCase())}.png`}
                                         alt={europeComp.name}
-                                        className="flag-icon"
+                                        className={shared['flag-icon']}
                                     />
                                     {europeComp.name}
                                 </label>

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import SearchFilterBar from "./components/SearchFilterBar";
-import './Search.css';
+import styles from './Search.module.css';
 import {useLocation, useNavigate} from "react-router-dom";
 import {SearchOverallTable} from "./components/SearchOverallTable";
 import {SearchByGameTable} from "./components/SearchByGameTable";
@@ -54,8 +54,8 @@ const Search: React.FC = () => {
     }
 
     return (
-        <div className="player-filter-screen">
-            <div className="content-wrapper">
+        <div className={styles['player-filter-screen']}>
+            <div className={styles['content-wrapper']}>
                 <SearchHeader filterState={filterState} onOpenFilters={toggleDrawer} />
 
                 {selectedScope !== StatScope.GAME &&

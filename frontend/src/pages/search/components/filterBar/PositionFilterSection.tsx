@@ -1,6 +1,8 @@
 import React from "react";
 import {positions} from "../../lib/searchFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
+import filterStyles from '../SearchFilterBar.module.css';
 
 interface PositionFilterSectionProps {
     selectedPositions: string[];
@@ -10,15 +12,15 @@ interface PositionFilterSectionProps {
 const PositionFilterSection: React.FC<PositionFilterSectionProps> = ({selectedPositions, onPositionChange}) => {
     return (
         <FilterSection title="POSITIONS">
-            <div className="position-group">
+            <div className={filterStyles['position-group']}>
                 {positions.map(position => (
-                    <label className="position-checkbox-label" key={position}>
+                    <label className={shared['position-checkbox-label']} key={position}>
                         <input
                             type="checkbox"
                             value={position}
                             checked={selectedPositions.includes(position)}
                             onChange={onPositionChange}
-                            className="position-checkbox-input"
+                            className={shared['position-checkbox-input']}
                         />
                         {position}
                     </label>

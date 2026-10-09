@@ -1,6 +1,7 @@
 import React from "react";
 import {Bar, BarChart, Tooltip, XAxis, YAxis} from "recharts";
-import "../TeamStreakChart.css";
+import styles from './ComparisonBarChart.module.css';
+import shared from "../../../../styles/shared.module.css";
 import {BarRow} from "../../lib/barChartData";
 import {COMPARISON_COLOUR, PLAYER_COLOUR} from "./StreakTooltipContent";
 
@@ -26,26 +27,13 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({
     const hasComparison = comparisonPlayerName.length > 0;
 
     return (
-        <div style={{width: 500}}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                fontSize: '14px',
-                fontWeight: '600',
-                marginTop: '5px'
-            }}>
+        <div className={styles['chart-shell']}>
+            <div className={styles['chart-title']}>
                 {title}
             </div>
-            {hasComparison && (<div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    marginTop: '4px',
-                    marginBottom: '4px',
-                    fontSize: '13.5px',
-                }}>
-                    <span className="square-title" style={{backgroundColor: PLAYER_COLOUR}}></span> {playerName}
-                    <span className="square-title" style={{backgroundColor: COMPARISON_COLOUR}}></span> {comparisonPlayerName}
+            {hasComparison && (<div className={styles['chart-legend']}>
+                    <span className={shared['square-title']} style={{backgroundColor: PLAYER_COLOUR}}></span> {playerName}
+                    <span className={shared['square-title']} style={{backgroundColor: COMPARISON_COLOUR}}></span> {comparisonPlayerName}
                 </div>
             )}
 
@@ -73,7 +61,7 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({
                             return null;
                         }
                         return (
-                            <div className="team-streak-custom-tooltip">
+                            <div className={styles['team-streak-custom-tooltip']}>
                                 {renderTooltipContent(row)}
                             </div>
                         );

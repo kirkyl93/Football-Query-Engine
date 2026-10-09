@@ -1,5 +1,5 @@
 import React from "react";
-import './LoadingBar.css';
+import styles from './LoadingBar.module.css';
 
 interface LoadingProps {
     loading: boolean;
@@ -17,15 +17,15 @@ export const LoadingBar: React.FC<LoadingProps> = (
     }) => {
     return (
         <div>
-            {loading && !hasData && error == null && <div className="loader-container">
-                <div className="bouncing-dots">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
+            {loading && !hasData && error == null && <div className={styles['loader-container']}>
+                <div className={styles['bouncing-dots']}>
+                    <div className={styles['dot']}></div>
+                    <div className={styles['dot']}></div>
+                    <div className={styles['dot']}></div>
                 </div>
             </div>}
-            {loading && hasData && hasMore && <div className="loading">Loading more players...</div>}
-            {error && <div className="error">{error}</div>}
+            {loading && hasData && hasMore && <div className={styles['loading']}>Loading more players...</div>}
+            {error && <div className={styles['error']}>{error}</div>}
         </div>
     )
 }

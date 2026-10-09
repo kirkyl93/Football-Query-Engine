@@ -2,6 +2,7 @@ import {useMemo} from "react";
 import {PlayerFilterState} from "../../../types/Player";
 import {constructAppearancesTitle} from "../lib/appearancesTitleBuilders";
 import TitleClubBadges from "../../../components/TitleClubBadges";
+import shared from "../../../styles/shared.module.css";
 
 interface GamesPlayedChartTitleProps {
     playerName: string;
@@ -19,7 +20,7 @@ const AppearancesChartTitle: React.FC<GamesPlayedChartTitleProps> = (
     }, [filterState, playerName]);
 
     return (
-        <h4 className="title">
+        <h4 className={shared['title']}>
             {constructTitle}
             <TitleClubBadges label=" · PLAYING FOR:" clubIds={filterState.selectedClubsPlayedFor} />
             <TitleClubBadges label="· PLAYING AGAINST:" clubIds={filterState.selectedClubsPlayedAgainst} />

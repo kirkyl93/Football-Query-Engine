@@ -1,6 +1,8 @@
 import React from "react";
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import SearchTitle from "./SearchTitle";
+import shared from "../../../styles/shared.module.css";
+import styles from '../Search.module.css';
 
 interface SearchHeaderProps {
     filterState: SearchFilterState;
@@ -9,11 +11,11 @@ interface SearchHeaderProps {
 
 const SearchHeader: React.FC<SearchHeaderProps> = ({filterState, onOpenFilters}) => {
     return (
-        <div className="header-container">
+        <div className={shared['header-container']}>
             <SearchTitle
                 filterState={filterState}
             />
-            <button className="filter-button" onClick={onOpenFilters}>
+            <button className={styles['filter-button']} onClick={onOpenFilters}>
                 Filter & Sort
             </button>
         </div>

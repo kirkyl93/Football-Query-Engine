@@ -1,7 +1,7 @@
 import {useInfiniteScroll} from "../hooks/useInfiniteScroll";
-import './SearchBaseTable.css';
-import './SearchByCountTable.css';
 import {fetchNumberOfGamesOrSeasonsResult} from "../../../lib/SearchUrlUtils";
+import baseStyles from './SearchBaseTable.module.css';
+import styles from './SearchByCountTable.module.css';
 import React from "react";
 import {formatSeason} from "../../../lib/DateUtils";
 import {LoadingBar} from "../../../components/LoadingBar";
@@ -21,16 +21,16 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
     useInfiniteScroll<PlayerNumberOfGamesOrSeasonsResult>(fetchNumberOfGamesOrSeasonsResult);
 
     return (
-        <div className="table-container">
+        <div className={baseStyles['table-container']}>
             {hasData && (
                 <>
-                    <table className="generic-table">
+                    <table className={baseStyles['generic-table']}>
                         <thead>
                         <tr>
                             <th>Rank</th>
-                            <th className="player-name">Player</th>
-                            <th className="first-gs-columns-to-hide">Clubs</th>
-                            <th className="first-gs-columns-to-hide">Position</th>
+                            <th className={baseStyles['player-name']}>Player</th>
+                            <th className={styles['first-gs-columns-to-hide']}>Clubs</th>
+                            <th className={styles['first-gs-columns-to-hide']}>Position</th>
                             {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Season</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th>Number of seasons</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Number of games</th>}
@@ -50,15 +50,15 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                                         playerName={player.player_name}
                                         countryCode={player.country_code}
                                         imageUrl={player.image_url}
-                                        flagClassName="second-gs-columns-to-hide"
-                                        avatarClassName="second-gs-columns-to-hide"
+                                        flagClassName={styles['second-gs-columns-to-hide']}
+                                        avatarClassName={styles['second-gs-columns-to-hide']}
                                     />
                                 </td>
                                 <ClubBadgesCell
-                                    cellClassName="first-gs-columns-to-hide"
+                                    cellClassName={styles['first-gs-columns-to-hide']}
                                     clubIds={player.clubs_played_for.split(',')}
                                 />
-                                <td className="first-gs-columns-to-hide">{player.sub_position}</td>
+                                <td className={styles['first-gs-columns-to-hide']}>{player.sub_position}</td>
                                 {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{formatSeason(player.season)}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td>{player.number_of_seasons}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{player.number_of_games}</td>}

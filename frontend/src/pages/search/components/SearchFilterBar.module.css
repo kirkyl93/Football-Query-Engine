@@ -1,0 +1,80 @@
+.filter-drawer {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 350px;
+    height: 100vh;
+    background-color: #ffffff;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    transition: right 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    font-family: "Inter", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-size: 16px;
+    font-style: normal;
+}
+
+.filter-drawer.open {
+    right: 0;
+}
+
+.position-group {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    max-width: 290px;
+    margin-top: 10px;
+    padding: 6px;
+    font-size: 12px;
+}
+
+.games_or_seasons-dropdown-group {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+}
+
+.games_or_seasons-dropdown-group label {
+    font-size: 12px;
+    color: #666;
+    text-align: right;
+}
+
+.games_or_seasons-dropdown-group select {
+    appearance: none;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 14px 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 80px;
+
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+}
+
+.games_or_seasons-dropdown-group select:hover {
+    border-color: #302f2f;
+}
+
+.games_or_seasons-dropdown-group select:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.games_or_seasons-dropdown-group select option {
+    padding: 8px;
+    font-size: 14px;
+}

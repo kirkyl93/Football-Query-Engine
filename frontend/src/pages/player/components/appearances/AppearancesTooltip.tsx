@@ -1,6 +1,7 @@
 import React from "react";
 import {convertDateStringToDate, dateFormatter, formatSeason} from "../../../../lib/DateUtils";
 import {PlayerAppearance} from "../../../../types/Player";
+import styles from './AppearancesTooltip.module.css';
 
 interface AppearancesTooltipProps {
     active?: boolean;
@@ -14,7 +15,7 @@ const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload,
         const appearance = filteredData[gameNumber - 1];
 
         return (
-            <div className="custom-tooltip">
+            <div className={styles['custom-tooltip']}>
                 <p>Season: {formatSeason(appearance.season)}</p>
                 <p>Date: {dateFormatter.format(convertDateStringToDate(appearance.date))}</p>
                 <div style={{

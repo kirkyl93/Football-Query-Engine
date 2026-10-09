@@ -1,5 +1,6 @@
 import React from "react";
 import FilterSection from "./FilterSection";
+import shared from "../styles/shared.module.css";
 
 interface RadioOption {
     name: string;
@@ -17,7 +18,7 @@ interface RadioGroupSectionProps {
 const RadioGroupSection: React.FC<RadioGroupSectionProps> = ({title, options, selectedId, onChange}) => {
     return (
         <FilterSection title={title}>
-            <div className='radio-group'>
+            <div className={shared['radio-group']}>
                 {options.map(option => (
                     <label key={option.id}>
                         <input

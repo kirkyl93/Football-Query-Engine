@@ -1,12 +1,12 @@
 import {Link} from 'react-router-dom';
-import './Header.css';
+import styles from './Header.module.css';
 import PlayerSearchBar from "./PlayerSearchBar";
 
 const Header: React.FC = () => {
 
     return (
-        <header className="header">
-            <nav className="nav">
+        <header className={styles['header']}>
+            <nav className={styles['nav']}>
                 <Link to="/?seasons=2025&comps=GB1&penalty=ip&home=e&sort=g&scope=o">
                     <img
                         src={'/football.png'}

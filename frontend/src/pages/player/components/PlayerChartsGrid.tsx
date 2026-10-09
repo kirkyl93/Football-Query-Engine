@@ -7,6 +7,7 @@ import Per90Chart from "./Per90Chart";
 import PlayerWinPercentageChart from "./PlayerWinPercentageChart";
 import GoalsByGameChart from "./GoalsByGameChart";
 import GoalAndAssistContributionChart from "./GoalAndAssistContributionChart";
+import styles from '../Player.module.css';
 import TeamGoalsByGameChart from "./TeamGoalsByGameChart";
 import TeamGoalsConcededByGameChart from "./TeamGoalsConcededByGameChart";
 import SubbedOnAndOffChart from "./SubbedOnAndOffChart";
@@ -40,7 +41,7 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
 }) => {
     return (
         <>
-            <div className="graph">
+            <div className={styles['graph']}>
                 <AppearancesChartMemo
                     playerName={""} data={playerGameData} onZoomChange={onZoomChange}/>
                 {comparisonPlayerGameData.length > 0 &&
@@ -49,7 +50,7 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
                         onZoomChange={onComparisonZoomChange}/>
                 }
             </div>
-            <div style={{display: "flex", flexWrap: "wrap", justifyContent: "center"}}>
+            <div className={styles['charts-row']}>
                 <TeamStreakChart
                     playerName={playerLastName}
                     playerStreaks={playerStreaks}
@@ -69,7 +70,7 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
                     comparisonPlayerStats={comparisonStats}
                 />
             </div>
-            <div style={{display: "flex", flexWrap: "wrap", justifyContent: "center"}}>
+            <div className={styles['charts-row']}>
                 <PlayerWinPercentageChart
                     playerName={playerLastName}
                     wins={stats.totalWins}

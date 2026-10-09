@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import './Player.css';
+import styles from './Player.module.css';
 
 import {useParams} from "react-router-dom";
 import {LoadingBar} from "../../components/LoadingBar";
@@ -65,8 +65,8 @@ const Player: React.FC = () => {
     }
 
     return (
-        <div className="player-page-container">
-            <div className={"player-info"}>
+        <div className={styles['player-page-container']}>
+            <div className={styles['player-info']}>
                 <PlayerInfoHeader playerData={playerData} />
                 <PlayerComparisonBar
                     comparisonPlayerName={comparisonPlayerName}

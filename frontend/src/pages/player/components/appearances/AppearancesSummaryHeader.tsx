@@ -2,6 +2,7 @@ import React from "react";
 import {convertDateStringToDate, dateFormatter} from "../../../../lib/DateUtils";
 import {PlayerAppearance, PlayerTotals} from "../../../../types/Player";
 import {EventSelection} from "../../lib/appearancesEventMapper";
+import shared from "../../../../styles/shared.module.css";
 
 interface AppearancesSummaryHeaderProps {
     zoomedData: PlayerAppearance[];
@@ -41,21 +42,21 @@ const AppearancesSummaryHeader: React.FC<AppearancesSummaryHeaderProps> = ({
 
                 {(noEventFiltersSelected || selectedEvents.Goals) ? (
                     <>
-                        <span className="square-title" style={{backgroundColor: "blue"}}></span>
+                        <span className={shared['square-title']} style={{backgroundColor: "blue"}}></span>
                         {totals.goals !== 1 ? `${totals.goals} Goals` : `1 Goal`}
                     </>
                 ) : null}
 
                 {(noEventFiltersSelected || selectedEvents.Penalties) ? (
                     <>
-                        <span className="square-title" style={{backgroundColor: "gold"}}></span>
+                        <span className={shared['square-title']} style={{backgroundColor: "gold"}}></span>
                         {totals.penalties !== 1 ? `${totals.penalties} Pens` : `1 Pen`}
                     </>
                 ) : null}
 
                 {(noEventFiltersSelected || selectedEvents.Assists) ? (
                     <>
-                        <span className="square-title" style={{backgroundColor: "green"}}></span>
+                        <span className={shared['square-title']} style={{backgroundColor: "green"}}></span>
                         {totals.assists !== 1 ? `${totals.assists} Assists` : `1 Assist`}
                     </>
                 ) : null}
@@ -81,21 +82,21 @@ const AppearancesSummaryHeader: React.FC<AppearancesSummaryHeaderProps> = ({
 
                 {(noEventFiltersSelected || selectedEvents.OwnGoals) ? (
                     <>
-                        <span className="square-title" style={{backgroundColor: "pink"}}></span>
+                        <span className={shared['square-title']} style={{backgroundColor: "pink"}}></span>
                         {totals.ownGoals !== 1 ? `${totals.ownGoals} Own goals` : `1 Own goal`}
                     </>
                 ) : null}
 
                 {(noEventFiltersSelected || selectedEvents.Yellows) ? (
                     <>
-                        <span className="square-title" style={{backgroundColor: "yellow"}}></span>
+                        <span className={shared['square-title']} style={{backgroundColor: "yellow"}}></span>
                         {totals.yellows !== 1 ? `${totals.yellows} Yellows` : `1 Yellow`}
                     </>
                 ) : null}
 
                 {(noEventFiltersSelected || selectedEvents.Reds) ? (
                     <>
-                        <span className="square-title" style={{backgroundColor: "red"}}></span>
+                        <span className={shared['square-title']} style={{backgroundColor: "red"}}></span>
                         {totals.reds !== 1 ? `${totals.reds} Reds` : `1 Red`}
                     </>
                 ) : null}

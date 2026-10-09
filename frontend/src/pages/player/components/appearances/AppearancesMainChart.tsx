@@ -59,7 +59,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     );
 
     return (
-        <div className="h-full"
+        <div
              onWheel={onZoom}
              onTouchMove={onZoom}
              onMouseEnter={onEnter}

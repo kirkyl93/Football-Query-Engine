@@ -1,6 +1,7 @@
 import {useInfiniteScroll} from "../hooks/useInfiniteScroll";
 import {fetchPlayerGameData} from "../../../lib/SearchUrlUtils";
-import './SearchByGameTable.css';
+import baseStyles from './SearchBaseTable.module.css';
+import styles from './SearchByGameTable.module.css';
 import React from "react";
 import {convertDateStringToDate, dateFormatter, formatSeason} from "../../../lib/DateUtils";
 import {LoadingBar} from "../../../components/LoadingBar";
@@ -8,6 +9,7 @@ import {SearchFilterState} from "../../../types/SearchFilterState";
 import {PlayerGameSearchResult} from "../../../types/Player";
 import {PlayerCell} from "./PlayerCell";
 import {ClubBadgesCell} from "./ClubBadgesCell";
+import shared from "../../../styles/shared.module.css";
 
 
 interface SearchByGameTableProps {
@@ -19,21 +21,21 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
         useInfiniteScroll<PlayerGameSearchResult>(fetchPlayerGameData);
 
     return (
-        <div className="table-container">
+        <div className={baseStyles['table-container']}>
             {hasData && (
                 <>
-                    <table className="generic-table">
+                    <table className={baseStyles['generic-table']}>
                         <thead>
                         <tr>
                             <th>Rank</th>
-                            <th className="player-name">Player</th>
-                            <th className="first-columns-to-hide">Club</th>
-                            <th className="second-columns-to-hide">Competition</th>
-                            <th className="second-columns-to-hide">Season</th>
-                            <th className="third-columns-to-hide">Date</th>
-                            <th className="first-columns-to-hide">Position</th>
+                            <th className={baseStyles['player-name']}>Player</th>
+                            <th className={styles['first-columns-to-hide']}>Club</th>
+                            <th className={styles['second-columns-to-hide']}>Competition</th>
+                            <th className={styles['second-columns-to-hide']}>Season</th>
+                            <th className={styles['third-columns-to-hide']}>Date</th>
+                            <th className={styles['first-columns-to-hide']}>Position</th>
                             <th>Result</th>
-                            <th className="first-columns-to-hide">Mins Played</th>
+                            <th className={styles['first-columns-to-hide']}>Mins Played</th>
                             <th>Goals</th>
                             <th>Assists</th>
                         </tr>
@@ -52,15 +54,15 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                         playerName={playerGame.player_name}
                                         countryCode={playerGame.country_code}
                                         imageUrl={playerGame.image_url}
-                                        flagClassName="third-columns-to-hide"
-                                        avatarClassName="third-columns-to-hide"
+                                        flagClassName={styles['third-columns-to-hide']}
+                                        avatarClassName={styles['third-columns-to-hide']}
                                     />
                                 </td>
                                 <ClubBadgesCell
-                                    cellClassName="first-columns-to-hide"
+                                    cellClassName={styles['first-columns-to-hide']}
                                     clubIds={[playerGame.club_id]}
                                 />
-                                <td className="second-columns-to-hide">
+                                <td className={styles['second-columns-to-hide']}>
                                     <img
                                         src={`https://flagcdn.com/w20/${playerGame.competition_country_code}.png`}
                                         alt={playerGame.competition_name}
@@ -68,25 +70,25 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                     />
                                     {playerGame.competition_name}
                                 </td>
-                                <td className="second-columns-to-hide">{formatSeason(playerGame.season)}</td>
-                                <td className="third-columns-to-hide">{dateFormatter.format(convertDateStringToDate(playerGame.date))}</td>
-                                <td className="first-columns-to-hide">{playerGame.sub_position}</td>
+                                <td className={styles['second-columns-to-hide']}>{formatSeason(playerGame.season)}</td>
+                                <td className={styles['third-columns-to-hide']}>{dateFormatter.format(convertDateStringToDate(playerGame.date))}</td>
+                                <td className={styles['first-columns-to-hide']}>{playerGame.sub_position}</td>
                                 <td style={{display: 'flex', gap: '7px'}}>
                                     <img
                                         src={`https://tmssl.akamaized.net/images/wappen/head/${playerGame.home_club_id}.png`}
                                         alt={playerGame.home_club_name}
-                                        style={{width: '30px'}}
+                                        className={shared['club-badge']}
                                         title={playerGame.home_club_name}
                                     />
                                     <span>{playerGame.home_club_goals} - {playerGame.away_club_goals}</span>
                                     <img
                                         src={`https://tmssl.akamaized.net/images/wappen/head/${playerGame.away_club_id}.png`}
                                         alt={playerGame.away_club_name}
-                                        style={{width: '30px'}}
+                                        className={shared['club-badge']}
                                         title={playerGame.away_club_name}
                                     />
                                 </td>
-                                <td className="first-columns-to-hide">{playerGame.minutes_played}</td>
+                                <td className={styles['first-columns-to-hide']}>{playerGame.minutes_played}</td>
                                 <td>{playerGame.goals}</td>
                                 <td>{playerGame.assists}</td>
                             </tr>

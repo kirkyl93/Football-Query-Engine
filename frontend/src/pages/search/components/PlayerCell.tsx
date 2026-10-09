@@ -1,5 +1,6 @@
 import React from "react";
 import {Link} from "react-router-dom";
+import baseStyles from './SearchBaseTable.module.css';
 
 interface PlayerCellProps {
     playerId: number;
@@ -21,21 +22,19 @@ export const PlayerCell: React.FC<PlayerCellProps> = ({
 }) => (
     <>
         <img
-            className={flagClassName}
+            className={`${baseStyles['flag-sm']} ${flagClassName ?? ''}`}
             src={`https://flagicons.lipis.dev/flags/4x3/${countryCode}.svg`}
             alt={`${countryCode}`}
-            style={{width: '20px', height: '14px', marginRight: '10px'}}
         />
         <img
-            className={avatarClassName}
+            className={`${baseStyles['avatar-sm']} ${avatarClassName ?? ''}`}
             src={imageUrl}
             alt={playerName}
             width="50"
-            style={{marginRight: '10px', borderRadius: '50%'}}
         />
         <Link
             to={`/player/${playerId}`}
-            style={{textDecoration: 'none', color: 'inherit'}}
+            className={baseStyles['table-link']}
         >
             {playerName}
         </Link>

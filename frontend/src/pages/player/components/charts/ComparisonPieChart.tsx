@@ -2,6 +2,7 @@ import React from "react";
 import {Pie, PieChart} from "recharts";
 import {renderPieSector} from "../../../../lib/PieChartUtils";
 import {PieSlice} from "../../lib/pieChartData";
+import styles from './ComparisonPieChart.module.css';
 
 interface ComparisonPieChartProps {
     title: string;
@@ -48,18 +49,11 @@ const ComparisonPieChart: React.FC<ComparisonPieChartProps> = ({
     const hasComparison = comparisonPlayerName.length > 0;
 
     return (
-        <div style={{maxWidth: '1100px'}}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                fontSize: '14px',
-                fontWeight: '600',
-                marginTop: '5px',
-            }}>
+        <div className={styles['chart-shell']}>
+            <div className={styles['chart-title']}>
                 {title}
             </div>
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '1100px'}}>
+            <div className={styles['chart-row']}>
                 {renderPie(playerName, playerSlices, hasComparison)}
                 {hasComparison && renderPie(comparisonPlayerName, comparisonSlices, hasComparison)}
             </div>

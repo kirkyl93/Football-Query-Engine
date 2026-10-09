@@ -1,8 +1,8 @@
 import React, {useMemo} from "react";
-import './SearchTitle.css'
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import {constructSearchTitle} from "../lib/searchTitleBuilders";
 import TitleClubBadges from "../../../components/TitleClubBadges";
+import shared from "../../../styles/shared.module.css";
 
 interface SearchTitleProps {
     filterState: SearchFilterState;
@@ -17,7 +17,7 @@ const SearchTitle: React.FC<SearchTitleProps> = (
     }, [filterState]);
 
     return (
-        <h4 className="title">
+        <h4 className={shared['title']}>
             {constructTitle}
             <TitleClubBadges label=" · PLAYING FOR:" clubIds={filterState.clubsPlayedFor} />
             <TitleClubBadges label="· PLAYING AGAINST:" clubIds={filterState.clubsPlayedAgainst} />

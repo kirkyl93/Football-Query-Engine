@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+import shared from "../styles/shared.module.css";
 
 interface FilterSectionProps {
     title: string;
@@ -9,10 +10,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({title, children}) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="dropdown-section">
-            <div className="dropdown-title" onClick={() => setIsOpen(!isOpen)}>
-                <span className="title-text">{title}</span>
-                <span className="arrow-icon">{isOpen ? '▲' : '▼'}</span>
+        <div className={shared['dropdown-section']}>
+            <div className={shared['dropdown-title']} onClick={() => setIsOpen(!isOpen)}>
+                <span className={shared['title-text']}>{title}</span>
+                <span className={shared['arrow-icon']}>{isOpen ? '▲' : '▼'}</span>
             </div>
             {isOpen && children}
         </div>

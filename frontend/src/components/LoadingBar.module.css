@@ -39,3 +39,16 @@
         transform: translateY(-20px);
     }
 }
+
+.loading {
+    text-align: center;
+    font-size: 16px;
+    color: #555;
+}
+
+.error {
+    text-align: center;
+    color: red;
+    font-size: 16px;
+    margin-top: 10px;
+}

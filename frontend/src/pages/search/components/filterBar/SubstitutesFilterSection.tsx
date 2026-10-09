@@ -1,6 +1,7 @@
 import React from "react";
 import {minutes} from "../../lib/searchFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface SubstitutesFilterSectionProps {
     subsOnly: boolean;
@@ -21,7 +22,7 @@ const SubstitutesFilterSection: React.FC<SubstitutesFilterSectionProps> = ({
 }) => {
     return (
         <FilterSection title="SUBSTITUTES">
-            <div className="checkbox-group">
+            <div className={shared['checkbox-group']}>
                 <label key="subsOnly">
                     <input
                         type="checkbox"
@@ -33,7 +34,7 @@ const SubstitutesFilterSection: React.FC<SubstitutesFilterSectionProps> = ({
                 </label>
             </div>
             {subsOnly && (
-                <div className="minute-and-age-and-sub-dropdown-group">
+                <div className={shared['minute-and-age-and-sub-dropdown-group']}>
                     <label>Earliest minute:</label>
                     <select value={earliestSubOnTime ?? ''}
                             onChange={onEarliestSubOnTimeChange}>

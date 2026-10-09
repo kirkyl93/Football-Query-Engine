@@ -1,6 +1,7 @@
 import React from "react";
 import {Club} from "../../../../types/Club";
 import FilterSection from "../../../../components/FilterSection";
+import shared from '../../../../styles/shared.module.css';
 
 interface ClubAutocompleteProps {
     query: string;
@@ -29,7 +30,7 @@ const clubInputBlock = (
     selectedListClassName: string,
     onRemoveClub: (clubId: number) => void,
 ) => (
-    <div className="player-name-and-club-dropdown-content">
+    <div className={shared['player-name-and-club-dropdown-content']}>
         <input
             type="text"
             placeholder={placeholder}
@@ -37,17 +38,17 @@ const clubInputBlock = (
             onChange={autocomplete.onQueryChange}
         />
         {autocomplete.isDropdownVisible && autocomplete.suggestions.length > 0 && (
-            <ul className="suggestions-dropdown">
+            <ul className={shared['suggestions-dropdown']}>
                 {autocomplete.suggestions.map((suggestion, index) => (
                     <li key={index}
-                        className="suggestion-item"
+                        className={shared['suggestion-item']}
                         onClick={() => autocomplete.onSuggestionClick(suggestion.club_id)}
                     >
-                        <img
-                            style={{width: 30, fontSize: 15}}
-                            alt="Badge of football team selected"
-                            src={badgeUrl(suggestion.club_id)}
-                        />
+                                <img
+                                    className={shared['club-badge']}
+                                    alt="Badge of football team selected"
+                                    src={badgeUrl(suggestion.club_id)}
+                                />
                         {suggestion.name}
                     </li>
                 ))}
@@ -55,12 +56,12 @@ const clubInputBlock = (
         )}
         <div className={selectedListClassName}>
             {(selectedClubIds || []).map((club, index) => (
-                <span key={index} className="club-name-item">
-                    <img
-                        style={{width: 30}}
-                        alt="Badge of football team selected"
-                        src={badgeUrl(club)}
-                    />
+                <span key={index} className={shared['club-name-item']}>
+                            <img
+                                className={shared['club-badge']}
+                                alt="Badge of football team selected"
+                                src={badgeUrl(club)}
+                            />
                     <button onClick={() => onRemoveClub(club)}>x</button>
                 </span>
             ))}

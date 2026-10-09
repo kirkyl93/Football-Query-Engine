@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
-import './AppearancesChartFilterBar.css';
+import styles from './AppearancesChartFilterBar.module.css';
+import shared from "../../../styles/shared.module.css";
 import {AppearanceTypeOptions, HomeOrAwayOptions} from "../../../types/SearchOptions";
 import {EventType, PlayerFilterState, PlayerSeasonsCompetitionsAndClubs} from "../../../types/Player";
 import {homeOrAwayOptions} from "../lib/appearancesFilterOptions";
@@ -132,16 +133,16 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
     };
 
     return (
-        <div className={`player-filter-drawer ${isOpen ? 'open' : ''}`}>
-            <div className="filter-header">
-                <div className="filter-title"><h2>Filter</h2></div>
-                <div className="filter-actions">
-                    <button className="reset-button" onClick={resetFilters}>Reset</button>
-                    <button className="close-button" onClick={onClose}>&#10006;</button>
+        <div className={`${styles['player-filter-drawer']} ${isOpen ? styles['open'] : ''}`}>
+            <div className={shared['filter-header']}>
+                <div className={shared['filter-title']}><h2>Filter</h2></div>
+                <div className={shared['filter-actions']}>
+                    <button className={shared['reset-button']} onClick={resetFilters}>Reset</button>
+                    <button className={shared['close-button']} onClick={onClose}>&#10006;</button>
                 </div>
             </div>
 
-            <div className="filter-drawer-content">
+            <div className={shared['filter-drawer-content']}>
                 <PlayerSeasonSection
                     seasons={playerSeasonsCompetitionsAndClubs.seasons}
                     selectedSeasons={localFilterState.selectedSeasons}
@@ -187,7 +188,7 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                 />
             </div>
 
-            <button className="apply-button" onClick={applyFilters}>APPLY</button>
+            <button className={shared['apply-button']} onClick={applyFilters}>APPLY</button>
 
         </div>
     )
