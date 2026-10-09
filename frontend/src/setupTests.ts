@@ -3,6 +3,12 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+afterEach(() => {
+    cleanup();
+});
 
 // jsdom does not implement IntersectionObserver (used by useInfiniteScroll).
 // Provide a minimal no-op mock so table components can render in tests.

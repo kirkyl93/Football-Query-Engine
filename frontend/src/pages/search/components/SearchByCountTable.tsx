@@ -1,14 +1,15 @@
-import {useInfiniteScroll} from "./SearchBaseTable";
+import {useInfiniteScroll} from "../hooks/useInfiniteScroll";
 import './SearchBaseTable.css';
 import './SearchByCountTable.css';
 import {fetchNumberOfGamesOrSeasonsResult} from "../../../lib/SearchUrlUtils";
-import {Link} from "react-router-dom";
 import React from "react";
 import {formatSeason} from "../../../lib/DateUtils";
 import {LoadingBar} from "../../../components/LoadingBar";
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import {PlayerNumberOfGamesOrSeasonsResult} from "../../../types/Player";
 import {SortOptions, StatScope} from "../../../types/SearchOptions";
+import {PlayerCell} from "./PlayerCell";
+import {ClubBadgesCell} from "./ClubBadgesCell";
 
 
 interface SearchByCountTableProps {
@@ -44,40 +45,19 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                                     {player.rank}.
                                 </td>
                                 <td>
-                                    <img
-                                        className="second-gs-columns-to-hide"
-                                        src={`https://flagicons.lipis.dev/flags/4x3/${player.country_code}.svg`}
-                                        alt={`${player.country_code}`}
-                                        style={{width: '20px', height: '14px', marginRight: '10px'}}
+                                    <PlayerCell
+                                        playerId={player.player_id}
+                                        playerName={player.player_name}
+                                        countryCode={player.country_code}
+                                        imageUrl={player.image_url}
+                                        flagClassName="second-gs-columns-to-hide"
+                                        avatarClassName="second-gs-columns-to-hide"
                                     />
-                                    <img
-                                        className="second-gs-columns-to-hide"
-                                        src={player.image_url}
-                                        alt={player.player_name}
-                                        width="50"
-                                        style={{marginRight: '10px', borderRadius: '50%'}}
-                                    />
-                                    <Link
-                                        to={`/player/${player.player_id}`}
-                                        style={{textDecoration: 'none', color: 'inherit'}}
-                                    >
-                                        {player.player_name}
-                                    </Link>
                                 </td>
-                                <td className="first-gs-columns-to-hide">
-                                    {player.clubs_played_for.split(',').map(clubId => {
-                                        const trimmedClubId = clubId.trim();
-                                        return (
-                                            <img
-                                                key={trimmedClubId}
-                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(trimmedClubId)}.png`}
-                                                alt={`Club ${trimmedClubId}`}
-                                                width="20px"
-                                                style={{marginRight: '5px'}}
-                                            />
-                                        );
-                                    })}
-                                </td>
+                                <ClubBadgesCell
+                                    cellClassName="first-gs-columns-to-hide"
+                                    clubIds={player.clubs_played_for.split(',')}
+                                />
                                 <td className="first-gs-columns-to-hide">{player.sub_position}</td>
                                 {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{formatSeason(player.season)}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td>{player.number_of_seasons}</td>}

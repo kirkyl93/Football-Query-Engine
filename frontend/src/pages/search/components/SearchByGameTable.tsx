@@ -1,12 +1,13 @@
-import {useInfiniteScroll} from "./SearchBaseTable";
+import {useInfiniteScroll} from "../hooks/useInfiniteScroll";
 import {fetchPlayerGameData} from "../../../lib/SearchUrlUtils";
 import './SearchByGameTable.css';
 import React from "react";
-import {Link} from "react-router-dom";
 import {convertDateStringToDate, dateFormatter, formatSeason} from "../../../lib/DateUtils";
 import {LoadingBar} from "../../../components/LoadingBar";
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import {PlayerGameSearchResult} from "../../../types/Player";
+import {PlayerCell} from "./PlayerCell";
+import {ClubBadgesCell} from "./ClubBadgesCell";
 
 
 interface SearchByGameTableProps {
@@ -46,35 +47,19 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                     {playerGame.rank}.
                                 </td>
                                 <td>
-                                    <img
-                                        className="third-columns-to-hide"
-                                        src={`https://flagicons.lipis.dev/flags/4x3/${playerGame.country_code}.svg`}
-                                        alt={`${playerGame.country_code}`}
-                                        style={{width: '20px', height: '14px', marginRight: '10px'}}
-                                    />
-                                    <img
-                                        className="third-columns-to-hide"
-                                        src={playerGame.image_url}
-                                        alt={playerGame.player_name}
-                                        width="50"
-                                        style={{marginRight: '10px', borderRadius: '50%'}}
-                                    />
-                                    <Link
-                                        to={`/player/${playerGame.player_id}`}
-                                        style={{textDecoration: 'none', color: 'inherit'}}
-                                    >
-                                        {playerGame.player_name}
-                                    </Link>
-                                </td>
-                                <td className="first-columns-to-hide">
-                                    <img
-                                        key={playerGame.club_id}
-                                        src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(playerGame.club_id)}.png`}
-                                        alt={`Club ${playerGame.club_id}`}
-                                        width="20px"
-                                        style={{marginRight: '5px'}}
+                                    <PlayerCell
+                                        playerId={playerGame.player_id}
+                                        playerName={playerGame.player_name}
+                                        countryCode={playerGame.country_code}
+                                        imageUrl={playerGame.image_url}
+                                        flagClassName="third-columns-to-hide"
+                                        avatarClassName="third-columns-to-hide"
                                     />
                                 </td>
+                                <ClubBadgesCell
+                                    cellClassName="first-columns-to-hide"
+                                    clubIds={[playerGame.club_id]}
+                                />
                                 <td className="second-columns-to-hide">
                                     <img
                                         src={`https://flagcdn.com/w20/${playerGame.competition_country_code}.png`}

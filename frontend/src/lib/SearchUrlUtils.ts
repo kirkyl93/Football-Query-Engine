@@ -1,4 +1,4 @@
-import {FetchParams} from "../pages/search/components/SearchBaseTable";
+import {FetchParams} from "../pages/search/hooks/useInfiniteScroll";
 import {UrlFilters} from "../types/UrlFilters";
 import {StatScope} from "../types/SearchOptions";
 import {PlayerGameSearchResult, PlayerNumberOfGamesOrSeasonsResult, PlayerSearchResult} from "../types/Player";
