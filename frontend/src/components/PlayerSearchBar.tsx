@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
 import {Player, PlayerAppearance} from "../types/Player";
+import {API_BASE_URL} from "../config";
 import './PlayerSearchBar.css'
 
 interface PlayerSearchBarProps {
@@ -60,7 +61,7 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
 
     const fetchSuggestions = async (query: string) => {
         try {
-            const response = await fetch(`http://localhost:8080/players?search_name=${searchTerm}&page=0&limit=10`);
+            const response = await fetch(`${API_BASE_URL}/players?search_name=${searchTerm}&page=0&limit=10`);
             const data = await response.json();
             setSuggestions(data);
             setIsDropdownVisible(true);
@@ -78,7 +79,7 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
         setSearchTerm('');
         setIsDropdownVisible(false);
         if (!linkToPlayer) {
-            const playerGameData = await fetch(`http://localhost:8080/players/${playerId}/games`);
+            const playerGameData = await fetch(`${API_BASE_URL}/players/${playerId}/games`);
             const data: PlayerAppearance[] = await playerGameData.json();
             if (onSelectPlayer) {
                 onSelectPlayer(suggestion, data);
@@ -132,7 +133,7 @@ const renderPlayerContent = (player: Player) => (
              alt={player.country_of_citizenship}
              style={{ width: '20px', height: '13px', marginRight: '6px', marginLeft: '6px', borderRadius: 1 }}
         />
-        <img src={player.image_url || 'fake_image.jpg'}
+        <img src={player.image_url || '/football.png'}
              alt={`${player.first_name} ${player.last_name}`}
              style={{ width: '30px', height: '37px', marginRight: '10px', borderRadius: '50%' }}
         />

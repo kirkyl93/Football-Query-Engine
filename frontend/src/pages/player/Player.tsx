@@ -8,7 +8,7 @@ import {AppearancesChart} from "./components/AppearancesChart";
 import {
     createDefaultPlayerStats,
     createDefaultPlayerStreaks,
-    Player,
+    type Player,
     PlayerAppearance, PlayerStats,
     PlayerStreaks,
     Result
@@ -24,6 +24,7 @@ import GoalAndAssistContributionChart from "./components/GoalAndAssistContributi
 import TeamGoalsByGameChart from "./components/TeamGoalsByGameChart";
 import TeamGoalsConcededByGameChart from "./components/TeamGoalsConcededByGameChart";
 import SubbedOnAndOffChart from "./components/SubbedOnAndOffChart";
+import {API_BASE_URL} from "../../config";
 
 const AppearancesChartMemo = React.memo(AppearancesChart);
 
@@ -54,8 +55,8 @@ const Player: React.FC = () => {
             setComparisonPlayerName("");
             try {
                 const [playerResponse, playerGameDataResponse] = await Promise.all([
-                    fetch(`http://localhost:8080/players/${playerId}`),
-                    fetch(`http://localhost:8080/players/${playerId}/games`)
+                    fetch(`${API_BASE_URL}/players/${playerId}`),
+                    fetch(`${API_BASE_URL}/players/${playerId}/games`)
                 ]);
 
                 if (!playerResponse.ok || !playerGameDataResponse.ok) {
