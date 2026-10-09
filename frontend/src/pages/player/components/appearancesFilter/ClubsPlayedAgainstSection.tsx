@@ -38,7 +38,7 @@ const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
                                 onClick={() => onSuggestionClick(suggestion[0])}
                             >
                                 <img
-                                    style={{width: 30, fontSize: 15}}
+                                    className={shared['club-badge']}
                                     alt="Badge of football team selected"
                                     src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion[0])}.png`}
                                 />
@@ -51,7 +51,7 @@ const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
                     {(selectedClubIds || []).map((club, index) => (
                         <span key={index} className={shared['club-name-item']}>
                             <img
-                                style={{width: 30}}
+                                className={shared['club-badge']}
                                 alt="Badge of football team selected"
                                 src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(club)}.png`}
                             />

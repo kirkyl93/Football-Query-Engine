@@ -475,6 +475,11 @@
     background-color: #e8e8e8;
 }
 
+/* ---- Club badges (fixed 30px footprint) ---- */
+.club-badge {
+    width: 30px;
+}
+
 /* ---- Legend swatches ---- */
 .square {
     display: inline-block;

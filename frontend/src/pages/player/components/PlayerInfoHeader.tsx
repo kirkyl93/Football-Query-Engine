@@ -10,7 +10,7 @@ interface PlayerInfoHeaderProps {
 const PlayerInfoHeader: React.FC<PlayerInfoHeaderProps> = ({playerData}) => {
     return (
         <>
-            <div style={{fontWeight: "800", fontSize: "14"}}>
+            <div style={{fontWeight: "800", fontSize: "14px"}}>
                 <img
                     src={playerData?.image_url}
                     alt={playerData?.first_name + " " + playerData?.last_name}

@@ -50,7 +50,7 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
                         onZoomChange={onComparisonZoomChange}/>
                 }
             </div>
-            <div style={{display: "flex", flexWrap: "wrap", justifyContent: "center"}}>
+            <div className={styles['charts-row']}>
                 <TeamStreakChart
                     playerName={playerLastName}
                     playerStreaks={playerStreaks}
@@ -70,7 +70,7 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
                     comparisonPlayerStats={comparisonStats}
                 />
             </div>
-            <div style={{display: "flex", flexWrap: "wrap", justifyContent: "center"}}>
+            <div className={styles['charts-row']}>
                 <PlayerWinPercentageChart
                     playerName={playerLastName}
                     wins={stats.totalWins}

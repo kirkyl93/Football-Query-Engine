@@ -7,3 +7,33 @@
     position: relative;
     padding: 10px;
 }
+
+.chart-shell {
+    width: 500px;
+}
+
+.chart-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    font-size: 13.5px;
+}
+
+.tooltip-value {
+    font-weight: 600;
+}
+
+.tooltip-dates {
+    font-weight: 400;
+    font-size: 12px;
+}

@@ -52,3 +52,19 @@
 .table-header {
     min-width: 50px;
 }
+
+.flag-sm {
+    width: 20px;
+    height: 14px;
+    margin-right: 10px;
+}
+
+.avatar-sm {
+    margin-right: 10px;
+    border-radius: 50%;
+}
+
+.table-link {
+    text-decoration: none;
+    color: inherit;
+}

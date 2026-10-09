@@ -9,6 +9,7 @@ import {SearchFilterState} from "../../../types/SearchFilterState";
 import {PlayerGameSearchResult} from "../../../types/Player";
 import {PlayerCell} from "./PlayerCell";
 import {ClubBadgesCell} from "./ClubBadgesCell";
+import shared from "../../../styles/shared.module.css";
 
 
 interface SearchByGameTableProps {
@@ -76,14 +77,14 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                     <img
                                         src={`https://tmssl.akamaized.net/images/wappen/head/${playerGame.home_club_id}.png`}
                                         alt={playerGame.home_club_name}
-                                        style={{width: '30px'}}
+                                        className={shared['club-badge']}
                                         title={playerGame.home_club_name}
                                     />
                                     <span>{playerGame.home_club_goals} - {playerGame.away_club_goals}</span>
                                     <img
                                         src={`https://tmssl.akamaized.net/images/wappen/head/${playerGame.away_club_id}.png`}
                                         alt={playerGame.away_club_name}
-                                        style={{width: '30px'}}
+                                        className={shared['club-badge']}
                                         title={playerGame.away_club_name}
                                     />
                                 </td>

@@ -4,6 +4,7 @@ import ComparisonBarChart from "./charts/ComparisonBarChart";
 import {COMPARISON_COLOUR, PLAYER_COLOUR} from "./charts/StreakTooltipContent";
 import {per90Rows} from "../lib/barChartData";
 import shared from "../../../styles/shared.module.css";
+import styles from './charts/ComparisonBarChart.module.css';
 
 
 interface Per90Props {
@@ -26,17 +27,17 @@ const Per90Chart: React.FC<Per90Props> = (
             renderTooltipContent={(row) => {
                 if (comparisonPlayerName.length === 0) {
                     return (
-                        <p style={{fontWeight: 600}}>
+                        <p className={styles['tooltip-value']}>
                             {row.player1}
                         </p>
                     );
                 }
                 return (
                     <>
-                        <p style={{fontWeight: 600}}>
+                        <p className={styles['tooltip-value']}>
                             <span className={shared['square-title']} style={{backgroundColor: PLAYER_COLOUR}}></span> {row.player1}
                         </p>
-                        <p style={{fontWeight: 600}}>
+                        <p className={styles['tooltip-value']}>
                             <span className={shared['square-title']} style={{backgroundColor: COMPARISON_COLOUR}}></span> {row.player2}
                         </p>
                     </>

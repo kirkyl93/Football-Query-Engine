@@ -27,24 +27,11 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({
     const hasComparison = comparisonPlayerName.length > 0;
 
     return (
-        <div style={{width: 500}}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                fontSize: '14px',
-                fontWeight: '600',
-                marginTop: '5px'
-            }}>
+        <div className={styles['chart-shell']}>
+            <div className={styles['chart-title']}>
                 {title}
             </div>
-            {hasComparison && (<div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    marginTop: '4px',
-                    marginBottom: '4px',
-                    fontSize: '13.5px',
-                }}>
+            {hasComparison && (<div className={styles['chart-legend']}>
                     <span className={shared['square-title']} style={{backgroundColor: PLAYER_COLOUR}}></span> {playerName}
                     <span className={shared['square-title']} style={{backgroundColor: COMPARISON_COLOUR}}></span> {comparisonPlayerName}
                 </div>

@@ -27,6 +27,12 @@
     width: 92%;
 }
 
+.charts-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
 .filter-button-player {
     font-optical-sizing: auto;
     font-weight: 400;
