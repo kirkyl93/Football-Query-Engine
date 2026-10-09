@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {competitions} from "../../../../data/Competitions";
-import FilterSection from "./FilterSection";
+import FilterSection from "../../../../components/FilterSection";
 
 interface CompetitionFilterSectionProps {
     selectedCompetitions: string[];

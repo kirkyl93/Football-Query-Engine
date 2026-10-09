@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseOptionalNumber, toggleArrayValue } from './searchFilterUpdaters';
+import { parseOptionalNumber, toggleArrayValue } from '../../../lib/filterStateUtils';
 
 describe('toggleArrayValue', () => {
     it('adds a missing value', () => {

@@ -1,6 +1,6 @@
 import React from "react";
 import {Club} from "../../../../types/Club";
-import FilterSection from "./FilterSection";
+import FilterSection from "../../../../components/FilterSection";
 
 interface ClubAutocompleteProps {
     query: string;

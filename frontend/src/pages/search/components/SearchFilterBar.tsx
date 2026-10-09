@@ -12,7 +12,7 @@ import {SearchFilterState} from "../../../types/SearchFilterState";
 import {ages, heights, homeOrAwayOptions, minutes, penaltyOptions} from "../lib/searchFilterOptions";
 import {createDefaultSearchFilterState} from "../lib/defaultSearchFilter";
 import {validateSearchFilters} from "../lib/searchFilterValidation";
-import {parseOptionalNumber, toggleArrayValue} from "../lib/searchFilterUpdaters";
+import {parseOptionalNumber, toggleArrayValue} from "../../../lib/filterStateUtils";
 import {useClubAutocomplete} from "../hooks/useClubAutocomplete";
 import SeasonFilterSection from "./filterBar/SeasonFilterSection";
 import CompetitionFilterSection from "./filterBar/CompetitionFilterSection";
@@ -22,7 +22,7 @@ import PlayerNameFilterSection from "./filterBar/PlayerNameFilterSection";
 import PlayerCountryFilterSection from "./filterBar/PlayerCountryFilterSection";
 import ClubsFilterSection from "./filterBar/ClubsFilterSection";
 import SubstitutesFilterSection from "./filterBar/SubstitutesFilterSection";
-import RadioGroupSection from "./filterBar/RadioGroupSection";
+import RadioGroupSection from "../../../components/RadioGroupSection";
 import SortByFilterSection from "./filterBar/SortByFilterSection";
 
 interface SearchFilterBarProps {
