@@ -1,17 +1,22 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import SearchFilterBar from './SearchFilterBar';
 import { createDefaultSearchFilterState } from '../lib/defaultSearchFilter';
 
-const renderFilterBar = () => render(
+const renderFilterBar = (props?: Partial<React.ComponentProps<typeof SearchFilterBar>>) => render(
     <SearchFilterBar
         isOpen={true}
         filterState={createDefaultSearchFilterState()}
         onFilterChange={vi.fn()}
         onClose={vi.fn()}
+        {...props}
     />,
 );
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+});
 
 describe('SearchFilterBar', () => {
     it('renders the header, all section titles and the apply button', () => {
@@ -45,5 +50,50 @@ describe('SearchFilterBar', () => {
 
         expect(screen.getByText('Overall')).toBeInTheDocument();
         expect(screen.getByText('Minutes played')).toBeInTheDocument();
+    });
+
+    it('applies the default filters', async () => {
+        const user = userEvent.setup();
+        const onFilterChange = vi.fn();
+        const onClose = vi.fn();
+        renderFilterBar({onFilterChange, onClose});
+
+        await user.click(screen.getByText('APPLY'));
+
+        expect(onFilterChange).toHaveBeenCalledTimes(1);
+        expect(onFilterChange.mock.calls[0][0].seasons).toEqual([2025]);
+        expect(onFilterChange.mock.calls[0][0].competitions).toEqual(['GB1']);
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('toggles a season off and restores it with reset', async () => {
+        const user = userEvent.setup();
+        const onFilterChange = vi.fn();
+        renderFilterBar({onFilterChange});
+
+        await user.click(screen.getByText('SEASONS'));
+        await user.click(screen.getByText('2025/26'));
+        await user.click(screen.getByText('Reset'));
+        await user.click(screen.getByText('APPLY'));
+
+        expect(onFilterChange).toHaveBeenCalledTimes(1);
+        expect(onFilterChange.mock.calls[0][0].seasons).toEqual([2025]);
+    });
+
+    it('blocks apply with an alert for an invalid age range', async () => {
+        const user = userEvent.setup();
+        const alertMock = vi.fn();
+        vi.stubGlobal('alert', alertMock);
+        const onFilterChange = vi.fn();
+        renderFilterBar({onFilterChange});
+
+        await user.click(screen.getByText('AGE'));
+        const [minAge, maxAge] = screen.getAllByRole('combobox');
+        fireEvent.change(minAge, {target: {value: '30'}});
+        fireEvent.change(maxAge, {target: {value: '25'}});
+        await user.click(screen.getByText('APPLY'));
+
+        expect(alertMock).toHaveBeenCalledWith('Max age should be greater than or equal to Min age');
+        expect(onFilterChange).not.toHaveBeenCalled();
     });
 });
