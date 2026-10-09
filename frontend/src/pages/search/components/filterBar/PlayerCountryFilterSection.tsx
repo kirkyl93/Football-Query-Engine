@@ -1,6 +1,6 @@
 import React from "react";
 import {Country} from "../../../../data/Countries";
-import FilterSection from "./FilterSection";
+import FilterSection from "../../../../components/FilterSection";
 
 interface PlayerCountryFilterSectionProps {
     selectedCountries: Country[];

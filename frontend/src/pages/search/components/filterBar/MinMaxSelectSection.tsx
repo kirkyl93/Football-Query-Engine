@@ -1,5 +1,5 @@
 import React from "react";
-import FilterSection from "./FilterSection";
+import FilterSection from "../../../../components/FilterSection";
 
 interface MinMaxSelectSectionProps {
     title: string;

@@ -1,6 +1,6 @@
 import React from "react";
 import {minutes} from "../../lib/searchFilterOptions";
-import FilterSection from "./FilterSection";
+import FilterSection from "../../../../components/FilterSection";
 
 interface SubstitutesFilterSectionProps {
     subsOnly: boolean;

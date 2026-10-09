@@ -1,14 +1,14 @@
 import React from "react";
 import {formatSeason} from "../../../../lib/DateUtils";
-import {seasons} from "../../lib/searchFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
 
-interface SeasonFilterSectionProps {
+interface PlayerSeasonSectionProps {
+    seasons: number[];
     selectedSeasons: number[];
     onSeasonChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const SeasonFilterSection: React.FC<SeasonFilterSectionProps> = ({selectedSeasons, onSeasonChange}) => {
+const PlayerSeasonSection: React.FC<PlayerSeasonSectionProps> = ({seasons, selectedSeasons, onSeasonChange}) => {
     return (
         <FilterSection title="SEASONS">
             <div className="season-group">
@@ -29,4 +29,4 @@ const SeasonFilterSection: React.FC<SeasonFilterSectionProps> = ({selectedSeason
     );
 };
 
-export default SeasonFilterSection;
+export default PlayerSeasonSection;

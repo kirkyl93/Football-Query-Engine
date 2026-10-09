@@ -15,7 +15,7 @@ import {
     sortTypes,
     statScopes,
 } from "../../lib/searchFilterOptions";
-import FilterSection from "./FilterSection";
+import FilterSection from "../../../../components/FilterSection";
 
 interface SortByFilterSectionProps {
     filterState: SearchFilterState;

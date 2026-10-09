@@ -1,10 +1,16 @@
 import React, {useEffect, useState} from "react";
 import './AppearancesChartFilterBar.css';
-import {formatSeason} from "../../../lib/DateUtils";
-import {competitions} from "../../../data/Competitions";
-import {getColour, hexToRGB} from "../../../lib/ColourUtils";
 import {AppearanceTypeOptions, HomeOrAwayOptions} from "../../../types/SearchOptions";
 import {EventType, PlayerFilterState, PlayerSeasonsCompetitionsAndClubs} from "../../../types/Player";
+import {homeOrAwayOptions} from "../lib/appearancesFilterOptions";
+import {parseOptionalNumber, toggleArrayValue} from "../../../lib/filterStateUtils";
+import RadioGroupSection from "../../../components/RadioGroupSection";
+import PlayerSeasonSection from "./appearancesFilter/PlayerSeasonSection";
+import PlayerCompetitionSection from "./appearancesFilter/PlayerCompetitionSection";
+import ClubsPlayedForSection from "./appearancesFilter/ClubsPlayedForSection";
+import ClubsPlayedAgainstSection from "./appearancesFilter/ClubsPlayedAgainstSection";
+import AppearanceTypeSection from "./appearancesFilter/AppearanceTypeSection";
+import EventsSection from "./appearancesFilter/EventsSection";
 
 interface AppearancesChartFilterBarProps {
     isOpen: boolean;
@@ -13,8 +19,6 @@ interface AppearancesChartFilterBarProps {
     onFilterChange: (filterState: PlayerFilterState) => void;
     onClose: () => void;
 }
-
-const minutesPlayed = Array.from({length: 120}, (_, i) => i + 1);
 
 const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
     {
@@ -26,44 +30,24 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
     }) => {
 
     const [localFilterState, setLocalFilterState] = useState<PlayerFilterState>(playerFilterState);
-    const [isSeasonsOpen, setIsSeasonsOpen] = useState(false);
-    const [isCompetitionsOpen, setIsCompetitionsOpen] = useState(false);
-    const [isLeaguesOpen, setIsLeaguesOpen] = useState(false);
-    const [isEuropeanCompetitionsOpen, setIsEuropeanCompetitionsOpen] = useState(false);
-    const [isClubsPlayedForOpen, setIsClubsPlayedForOpen] = useState(false);
-    const [isClubsPlayedAgainstOpen, setIsClubsPlayedAgainstOpen] = useState(false);
     const [newClubPlayedAgainst, setNewClubPlayedAgainst] = useState<string>("");
     const [newClubsPlayedAgainstSuggestions, setNewClubsPlayedAgainstSuggestions] = useState<[number, string][]>([]);
     const [isClubsPlayedAgainstDropdownVisible, setIsClubsPlayedAgainstDropdownVisible] = useState<boolean>(false);
-    const [isHomeOrAwayOpen, setIsHomeOrAwayOpen] = useState(false);
-    const [isIncludeGamesOpen, setIsIncludeGamesOpen] = useState(false);
-    const [isEventsOpen, setIsEventsOpen] = useState(false);
-
-    const homeOrAwayOptions = [
-        {name: "Either", id: HomeOrAwayOptions.EITHER},
-        {name: "Home", id: HomeOrAwayOptions.HOME},
-        {name: "Away", id: HomeOrAwayOptions.AWAY}
-    ]
-
-    const appearanceTypeOptions = [
-        {name: "Either", id: AppearanceTypeOptions.EITHER},
-        {name: "Started", id: AppearanceTypeOptions.STARTED},
-        {name: "Subbed on", id: AppearanceTypeOptions.SUBBED_ON}
-    ]
-
-    const eventTypeOptions = [
-        {eventType: EventType.Goals, colour: "blue", name: "Goals"},
-        {eventType: EventType.Penalties, colour: "gold", name: "Penalties"},
-        {eventType: EventType.Assists, colour: "green", name: "Assists"},
-        {eventType: EventType.CleanSheets, colour: "green", name: "Clean sheets"},
-        {eventType: EventType.OwnGoals, colour: "pink", name: "Own goals"},
-        {eventType: EventType.Yellows, colour: "yellow", name: "Yellows"},
-        {eventType: EventType.Reds, colour: "red", name: "Reds"},
-    ]
 
     useEffect(() => {
         setLocalFilterState(playerFilterState);
     }, [playerFilterState]);
+
+    const setField = <K extends keyof PlayerFilterState>(key: K, value: PlayerFilterState[K]) => {
+        setLocalFilterState(prevState => ({...prevState, [key]: value}));
+    };
+
+    const updateField = <K extends keyof PlayerFilterState>(
+        key: K,
+        updater: (current: PlayerFilterState[K]) => PlayerFilterState[K],
+    ) => {
+        setLocalFilterState(prevState => ({...prevState, [key]: updater(prevState[key])}));
+    };
 
     const resetFilters = () => {
         setLocalFilterState(prev => ({
@@ -85,36 +69,6 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                 [EventType.Yellows]: false,
                 [EventType.Reds]: false
         }
-        }));
-    };
-
-    const handleSeasonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = parseInt(e.target.value);
-        setLocalFilterState(prevState => ({
-            ...prevState,
-            selectedSeasons: e.target.checked
-                ? [...prevState.selectedSeasons, value]
-                : prevState.selectedSeasons.filter(season => season !== value)
-        }));
-    };
-
-    const handleCompetitionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setLocalFilterState(prevState => ({
-            ...prevState,
-            selectedCompetitions: e.target.checked
-                ? [...prevState.selectedCompetitions, value]
-                : prevState.selectedCompetitions.filter(competition => competition !== value)
-        }));
-    };
-
-    const handleClubsPlayedForChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Number(e.target.value);
-        setLocalFilterState(prevState => ({
-            ...prevState,
-            selectedClubsPlayedFor: e.target.checked
-                ? [...prevState.selectedClubsPlayedFor, value]
-                : prevState.selectedClubsPlayedFor.filter(club => club !== value)
         }));
     };
 
@@ -141,27 +95,11 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
         setIsClubsPlayedAgainstDropdownVisible(true);
     }
 
-    const handleHomeOrAwayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const homeOrAwayOption = e.target.value as HomeOrAwayOptions;
-        setLocalFilterState(prevState => ({
-            ...prevState,
-            selectedHomeOrAway: homeOrAwayOption
-        }));
-    }
-
-    const handleAppearanceTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const appearanceType = e.target.value as AppearanceTypeOptions;
-        setLocalFilterState(prevState => ({
-            ...prevState,
-            selectedAppearanceType: appearanceType
-        }));
-    }
-
     const handleClubPlayedAgainstSuggestionClick = (suggestion: number) => {
         setNewClubPlayedAgainst("");
         setNewClubsPlayedAgainstSuggestions([]);
         setIsClubsPlayedAgainstDropdownVisible(false);
-        if (localFilterState.selectedClubsPlayedFor !== undefined && !localFilterState.selectedClubsPlayedAgainst.includes(suggestion)) {
+        if (localFilterState.selectedClubsPlayedAgainst !== undefined && !localFilterState.selectedClubsPlayedAgainst.includes(suggestion)) {
             setLocalFilterState(prevState => ({
                 ...prevState,
                 selectedClubsPlayedAgainst: [...prevState.selectedClubsPlayedAgainst, suggestion]
@@ -175,22 +113,6 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
             selectedClubsPlayedAgainst: prevState.selectedClubsPlayedAgainst.filter(club => club !== clubIdToRemove)
         }));
     }
-
-    const handleMinimumMinutesPlayedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLocalFilterState(prevState => ({
-            ...prevState,
-            selectedMinimumMinutesPlayed: e.target.value ? parseInt(e.target.value) : undefined
-        }));
-    }
-
-    const handleMaximumMinutesPlayedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLocalFilterState(prevState => ({
-            ...prevState,
-            selectedMaximumMinutesPlayed: e.target.value ? parseInt(e.target.value) : undefined
-        }));
-    }
-
-    const isEventSelected = (event: EventType) => localFilterState.selectedEvents[event];
 
     const handleEventSelectionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const eventKey = e.target.value as EventType;
@@ -220,280 +142,49 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
             </div>
 
             <div className="filter-drawer-content">
-                <div className="dropdown-section">
-                    <div className="dropdown-title" onClick={() => setIsSeasonsOpen(!isSeasonsOpen)}>
-                        <span className="title-text">SEASONS</span>
-                        <span className="arrow-icon">{isSeasonsOpen ? '▲' : '▼'}</span>
-                    </div>
-                    {isSeasonsOpen && (
-                        <div className="season-group">
-                            {playerSeasonsCompetitionsAndClubs.seasons.map(season => (
-                                <label className="season-checkbox-label" key={season}>
-                                    <input
-                                        type="checkbox"
-                                        value={season}
-                                        checked={localFilterState?.selectedSeasons.includes(season)}
-                                        onChange={handleSeasonChange}
-                                        className="season-checkbox-input"
-                                    />
-                                    <span>{formatSeason(season)}</span>
-                                </label>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className="dropdown-section">
-                    <div className="dropdown-title" onClick={() => setIsCompetitionsOpen(!isCompetitionsOpen)}>
-                        <span className="title-text">COMPETITIONS</span>
-                        <span className="arrow-icon">{isCompetitionsOpen ? '▲' : '▼'}</span>
-                    </div>
-                    {isCompetitionsOpen && (
-                        <div>
-                            {playerSeasonsCompetitionsAndClubs.leagueCompetitions.length > 0 && (
-                                <div className="sub-dropdown-title" onClick={() => setIsLeaguesOpen(!isLeaguesOpen)}>
-                                    <span className="title-text">DOMESTIC</span>
-                                    <span className="arrow-icon">{isLeaguesOpen ? '▲' : '▼'}</span>
-                                </div>
-                            )}
-                            {isLeaguesOpen && playerSeasonsCompetitionsAndClubs.leagueCompetitions.length > 0 && (
-                                <div className="checkbox-group-vertical">
-                                    {playerSeasonsCompetitionsAndClubs.leagueCompetitions.map(league => {
-                                        const leagueComp = competitions.leagues.find(comp => comp.name === league);
-                                        if (!leagueComp) {
-                                            return;
-                                        }
-                                        return (
-                                            <label className="competition-label" key={leagueComp.competitionId}>
-                                                <input
-                                                    type="checkbox"
-                                                    value={leagueComp.name}
-                                                    checked={localFilterState.selectedCompetitions.includes(leagueComp.name)}
-                                                    onChange={handleCompetitionChange}
-                                                />
-                                                <img
-                                                    src={`https://flagcdn.com/w20/${leagueComp.countryCode}.png`}
-                                                    alt={leagueComp.name}
-                                                    className="flag-icon"
-                                                />
-                                                {leagueComp.name}
-                                            </label>
-                                        )
-                                    })}
-                                </div>
-                            )}
-
-                            {playerSeasonsCompetitionsAndClubs.europeanCompetitions.length > 0 && (
-                                <div className="sub-dropdown-title"
-                                     onClick={() => setIsEuropeanCompetitionsOpen(!isEuropeanCompetitionsOpen)}>
-                                    <span className="title-text">EUROPE</span>
-                                    <span className="arrow-icon">{isEuropeanCompetitionsOpen ? '▲' : '▼'}</span>
-                                </div>
-                            )}
-                            {isEuropeanCompetitionsOpen && playerSeasonsCompetitionsAndClubs.europeanCompetitions.length > 0 && (
-                                <div className="checkbox-group-vertical">
-                                    {playerSeasonsCompetitionsAndClubs.europeanCompetitions.map(comp => {
-                                        const europeComp = competitions.europeanCompetitions.find(euroComp => euroComp.name === comp);
-                                        if (!europeComp) {
-                                            return;
-                                        }
-                                        return (
-                                            <label className="competition-label" key={europeComp.competitionId}>
-                                                <input
-                                                    type='checkbox'
-                                                    value={europeComp.name}
-                                                    checked={localFilterState.selectedCompetitions.includes(europeComp.name)}
-                                                    onChange={handleCompetitionChange}
-                                                />
-                                                <img
-                                                    src={`https://tmssl.akamaized.net/images/logo/header/${encodeURIComponent(europeComp.competitionId.toLowerCase())}.png`}
-                                                    alt={europeComp.name}
-                                                    className="flag-icon"
-                                                />
-                                                {europeComp.name}
-                                            </label>
-                                        )
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-                <div className="dropdown-section">
-                    <div className="dropdown-title" onClick={() => setIsClubsPlayedForOpen(!isClubsPlayedForOpen)}>
-                        <span className="title-text">CLUBS PLAYED FOR</span>
-                        <span className="arrow-icon">{isClubsPlayedForOpen ? '▲' : '▼'}</span>
-                    </div>
-                    {isClubsPlayedForOpen && (
-                        <div className="checkbox-group-vertical">
-                            {playerSeasonsCompetitionsAndClubs.clubsPlayedFor.map(club => (
-                                <label className="club-label"
-                                       style={{
-                                           backgroundColor: hexToRGB(getColour(club[0]), 0.25),
-                                       }}
-                                       key={club[0]}>
-                                    <input
-                                        type="checkbox"
-                                        value={club[0]}
-                                        checked={localFilterState?.selectedClubsPlayedFor.includes(club[0])}
-                                        onChange={handleClubsPlayedForChange}
-                                    />
-                                    <img
-                                        style={{width: 30, fontSize: 15, marginRight: "5px"}}
-                                        alt="Badge of football team selected"
-                                        src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(club[0])}.png`}
-                                    />
-                                    {club[1]}
-                                </label>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className="dropdown-section">
-                    <div className="dropdown-title"
-                         onClick={() => setIsClubsPlayedAgainstOpen(!isClubsPlayedAgainstOpen)}>
-                        <span className="title-text">CLUBS PLAYED AGAINST</span>
-                        <span className="arrow-icon">{isClubsPlayedAgainstOpen ? '▲' : '▼'}</span>
-                    </div>
-                    {isClubsPlayedAgainstOpen && (
-                        <div className="player-name-and-club-dropdown-content">
-                            <input
-                                type="text"
-                                placeholder="Clubs played against"
-                                value={newClubPlayedAgainst}
-                                onChange={handleClubPlayedAgainstChange}
-                            />
-                            {isClubsPlayedAgainstDropdownVisible && newClubsPlayedAgainstSuggestions.length > 0 && (
-                                <ul className="suggestions-dropdown">
-                                    {newClubsPlayedAgainstSuggestions.map((suggestion, index) => (
-                                        <li key={index}
-                                            className="suggestion-item"
-                                            onClick={() => handleClubPlayedAgainstSuggestionClick(suggestion[0])}
-                                        >
-                                            <img
-                                                style={{width: 30, fontSize: 15}}
-                                                alt="Badge of football team selected"
-                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(suggestion[0])}.png`}
-                                            />
-                                            {suggestion[1]}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            <div className="club-names-list">
-                                {(localFilterState.selectedClubsPlayedAgainst || []).map((club, index) => (
-                                    <span key={index} className="club-name-item">
-                                            <img
-                                                style={{width: 30}}
-                                                alt="Badge of football team selected"
-                                                src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(club)}.png`}
-                                            />
-                                            <button onClick={() => handleRemovePlayedAgainstClub(club)}>x</button>
-                                        </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-                <div className='dropdown-section'>
-                    <div className="dropdown-title" onClick={() => setIsHomeOrAwayOpen(!isHomeOrAwayOpen)}>
-                        <span className="title-text">HOME OR AWAY</span>
-                        <span className="arrow-icon">{isHomeOrAwayOpen ? '▲' : '▼'}</span>
-                    </div>
-                    {isHomeOrAwayOpen && (
-                        <div className='radio-group'>
-                            {homeOrAwayOptions.map(option => (
-                                <label key={option.id}>
-                                    <input
-                                        type="radio"
-                                        value={option.id}
-                                        checked={localFilterState.selectedHomeOrAway === option.id}
-                                        onChange={handleHomeOrAwayChange}
-                                    />
-                                    {option.name}
-                                </label>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className='dropdown-section'>
-                    <div className="dropdown-title" onClick={() => setIsIncludeGamesOpen(!isIncludeGamesOpen)}>
-                        <span className="title-text">ONLY INCLUDE GAMES WHERE</span>
-                        <span className="arrow-icon">{isIncludeGamesOpen ? '▲' : '▼'}</span>
-                    </div>
-                    {isIncludeGamesOpen && (
-                        <div className='checkbox-group'>
-                            <div className='radio-group'>
-                                {appearanceTypeOptions.map(option => (
-                                    <label key={option.id}>
-                                        <input
-                                            type="radio"
-                                            value={option.id}
-                                            checked={localFilterState.selectedAppearanceType === option.id}
-                                            onChange={handleAppearanceTypeChange}
-                                        />
-                                        {option.name}
-                                    </label>
-                                ))}
-                            </div>
-                            <div className="minute-and-age-and-sub-dropdown-group">
-                                <label>minutes played at least: </label>
-                                <select value={localFilterState.selectedMinimumMinutesPlayed ?? ''}
-                                        onChange={handleMinimumMinutesPlayedChange}>
-                                    <option value="">Any</option>
-                                    {minutesPlayed.map(minute => (
-                                        <option key={minute} value={minute}>{minute}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="minute-and-age-and-sub-dropdown-group">
-                                <label>minutes played at most: </label>
-                                <select value={localFilterState.selectedMaximumMinutesPlayed ?? ''}
-                                        onChange={handleMaximumMinutesPlayedChange}>
-                                    <option value="">Any</option>
-                                    {minutesPlayed.map(minute => (
-                                        <option key={minute} value={minute}>{minute}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                    )}
-                </div>
-                <div className="dropdown-section">
-                    <div className="dropdown-title" onClick={() => setIsEventsOpen(!isEventsOpen)}>
-                        <span className="title-text">EVENTS</span>
-                        <span className="arrow-icon">{isEventsOpen ? '▲' : '▼'}</span>
-                    </div>
-                    {isEventsOpen && (
-                        <div className="checkbox-group-vertical">
-                            {eventTypeOptions.map(event => (
-                                <label className="club-label" key={event.eventType}>
-                                    <input
-                                        type="checkbox"
-                                        value={event.eventType}
-                                        checked={isEventSelected(event.eventType)}
-                                        onChange={handleEventSelectionChange}
-                                    />
-                                    {event.eventType !== EventType.CleanSheets ?
-                                        <span className="square" style={{backgroundColor: event.colour}}></span> :
-                                        <img
-                                            src={'/light-bulb.png'}
-                                            alt={`Light bulb`}
-                                            style={{
-                                                width: '20px',
-                                                height: '20px',
-                                                verticalAlign: 'middle',
-                                                marginLeft: '-3.8px',
-                                                marginTop: '-2px'
-                                            }}
-                                        />
-                                    }
-                                    {event.name}
-                                </label>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                <PlayerSeasonSection
+                    seasons={playerSeasonsCompetitionsAndClubs.seasons}
+                    selectedSeasons={localFilterState.selectedSeasons}
+                    onSeasonChange={(e) => updateField('selectedSeasons', seasons => toggleArrayValue(seasons, parseInt(e.target.value)))}
+                />
+                <PlayerCompetitionSection
+                    leagueCompetitions={playerSeasonsCompetitionsAndClubs.leagueCompetitions}
+                    europeanCompetitions={playerSeasonsCompetitionsAndClubs.europeanCompetitions}
+                    selectedCompetitions={localFilterState.selectedCompetitions}
+                    onCompetitionChange={(e) => updateField('selectedCompetitions', competitions => toggleArrayValue(competitions, e.target.value))}
+                />
+                <ClubsPlayedForSection
+                    clubs={playerSeasonsCompetitionsAndClubs.clubsPlayedFor}
+                    selectedClubIds={localFilterState.selectedClubsPlayedFor}
+                    onClubChange={(e) => updateField('selectedClubsPlayedFor', clubs => toggleArrayValue(clubs, Number(e.target.value)))}
+                />
+                <ClubsPlayedAgainstSection
+                    selectedClubIds={localFilterState.selectedClubsPlayedAgainst}
+                    query={newClubPlayedAgainst}
+                    suggestions={newClubsPlayedAgainstSuggestions}
+                    isDropdownVisible={isClubsPlayedAgainstDropdownVisible}
+                    onQueryChange={handleClubPlayedAgainstChange}
+                    onSuggestionClick={handleClubPlayedAgainstSuggestionClick}
+                    onRemoveClub={handleRemovePlayedAgainstClub}
+                />
+                <RadioGroupSection
+                    title="HOME OR AWAY"
+                    options={homeOrAwayOptions}
+                    selectedId={localFilterState.selectedHomeOrAway}
+                    onChange={(e) => setField('selectedHomeOrAway', e.target.value as HomeOrAwayOptions)}
+                />
+                <AppearanceTypeSection
+                    selectedAppearanceType={localFilterState.selectedAppearanceType}
+                    minimumMinutesPlayed={localFilterState.selectedMinimumMinutesPlayed}
+                    maximumMinutesPlayed={localFilterState.selectedMaximumMinutesPlayed}
+                    onAppearanceTypeChange={(e) => setField('selectedAppearanceType', e.target.value as AppearanceTypeOptions)}
+                    onMinimumMinutesPlayedChange={(e) => setField('selectedMinimumMinutesPlayed', parseOptionalNumber(e.target.value))}
+                    onMaximumMinutesPlayedChange={(e) => setField('selectedMaximumMinutesPlayed', parseOptionalNumber(e.target.value))}
+                />
+                <EventsSection
+                    selectedEvents={localFilterState.selectedEvents}
+                    onEventSelectionChange={handleEventSelectionChange}
+                />
             </div>
 
             <button className="apply-button" onClick={applyFilters}>APPLY</button>

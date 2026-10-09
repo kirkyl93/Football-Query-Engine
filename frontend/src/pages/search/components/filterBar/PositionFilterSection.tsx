@@ -1,6 +1,6 @@
 import React from "react";
 import {positions} from "../../lib/searchFilterOptions";
-import FilterSection from "./FilterSection";
+import FilterSection from "../../../../components/FilterSection";
 
 interface PositionFilterSectionProps {
     selectedPositions: string[];
