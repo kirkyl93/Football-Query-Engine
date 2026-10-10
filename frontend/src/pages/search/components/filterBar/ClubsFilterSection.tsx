@@ -1,5 +1,6 @@
 import React from "react";
 import {Club} from "../../../../types/Club";
+import {getClubName} from "../../../../lib/ClubDirectory";
 import FilterSection from "../../../../components/FilterSection";
 import {clubsSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
@@ -47,7 +48,7 @@ const clubInputBlock = (
                     >
                                 <img
                                     className={shared['club-badge']}
-                                    alt="Badge of football team selected"
+                                    alt={suggestion.name}
                                     src={badgeUrl(suggestion.club_id)}
                                 />
                         {suggestion.name}
@@ -57,12 +58,13 @@ const clubInputBlock = (
         )}
         <div className={selectedListClassName}>
             {(selectedClubIds || []).map((club, index) => (
-                <span key={index} className={shared['club-name-item']}>
+                <span key={index} className={shared['club-name-item']} title={getClubName(club)}>
                             <img
                                 className={shared['club-badge']}
-                                alt="Badge of football team selected"
+                                alt={getClubName(club)}
                                 src={badgeUrl(club)}
                             />
+                    {getClubName(club)}
                     <button onClick={() => onRemoveClub(club)}>x</button>
                 </span>
             ))}
@@ -86,8 +88,8 @@ const ClubsFilterSection: React.FC<ClubsFilterSectionProps> = ({
                 <img
                     key={`${keyPrefix}-${clubId}`}
                     className={shared['club-badge']}
-                    alt="Badge of selected club"
-                    title={title}
+                    alt={getClubName(clubId)}
+                    title={`${title}: ${getClubName(clubId)}`}
                     src={badgeUrl(clubId)}
                 />
             ))}

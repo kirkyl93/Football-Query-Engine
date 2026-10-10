@@ -22,3 +22,14 @@ export function hexToRGB(hex: string, alpha: number) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/** Euclidean distance between two "#rrggbb" colours in RGB space (0-441). */
+export function colourDistance(a: string, b: string): number {
+    const rgb = (hex: string): [number, number, number] => {
+        const h = hex.replace(/^#/, '');
+        return [parseInt(h.substring(0, 2), 16), parseInt(h.substring(2, 4), 16), parseInt(h.substring(4, 6), 16)];
+    };
+    const [r1, g1, b1] = rgb(a);
+    const [r2, g2, b2] = rgb(b);
+    return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+}
+

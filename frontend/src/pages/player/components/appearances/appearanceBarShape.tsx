@@ -1,11 +1,12 @@
 import React from "react";
 import {BarShapeProps, Rectangle} from "recharts";
-import {getColour} from "../../../../lib/ColourUtils";
+import {getClubPrimary} from "../../../../lib/ClubDirectory";
 import {PlayerAppearance} from "../../../../types/Player";
 import {getBarOutlineColour} from "../../lib/barOutlineColour";
 
 interface AppearanceBarShapeOptions {
     zoomedData: PlayerAppearance[];
+    barFills: string[];
     showCleanSheets: boolean;
     barChartOpacity: number;
     strokeWidth: number;
@@ -13,6 +14,7 @@ interface AppearanceBarShapeOptions {
 
 export const createAppearanceBarShape = ({
     zoomedData,
+    barFills,
     showCleanSheets,
     barChartOpacity,
     strokeWidth,
@@ -39,7 +41,7 @@ export const createAppearanceBarShape = ({
             y={props.y}
             width={props.width}
             height={props.height}
-            fill={getColour(entry.club_id)}
+            fill={barFills[props.index] ?? getClubPrimary(entry.club_id)}
             fillOpacity={adjustedOpacity}
             stroke={getBarOutlineColour(entry)}
             strokeWidth={strokeWidth}

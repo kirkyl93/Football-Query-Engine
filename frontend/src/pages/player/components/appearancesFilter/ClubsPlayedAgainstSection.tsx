@@ -1,4 +1,5 @@
 import React from "react";
+import {getClubName} from "../../../../lib/ClubDirectory";
 import FilterSection from "../../../../components/FilterSection";
 import {clubsSummary} from "../../../search/lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
@@ -34,8 +35,8 @@ const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
                         <img
                             key={clubId}
                             className={shared['club-badge']}
-                            alt="Badge of selected club"
-                            title="Played against"
+                            alt={getClubName(clubId)}
+                            title={`Played against: ${getClubName(clubId)}`}
                             src={badgeUrl(clubId)}
                         />
                     ))}
@@ -69,12 +70,13 @@ const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
                 )}
                 <div className={shared['club-names-list']}>
                     {(selectedClubIds || []).map((club, index) => (
-                        <span key={index} className={shared['club-name-item']}>
+                        <span key={index} className={shared['club-name-item']} title={getClubName(club)}>
                             <img
                                 className={shared['club-badge']}
-                                alt="Badge of football team selected"
+                                alt={getClubName(club)}
                                 src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(club)}.png`}
                             />
+                            {getClubName(club)}
                             <button onClick={() => onRemoveClub(club)}>x</button>
                         </span>
                     ))}

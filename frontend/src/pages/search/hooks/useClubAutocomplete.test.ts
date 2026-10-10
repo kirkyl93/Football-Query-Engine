@@ -1,63 +1,56 @@
-import { act, renderHook } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { useClubAutocomplete } from './useClubAutocomplete';
-
-const clubs = [{club_id: 1, name: 'Arsenal'}];
-
-const mockFetch = (data: unknown = clubs) =>
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({json: async () => data}));
+import {act, renderHook} from '@testing-library/react';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+import {useClubAutocomplete} from './useClubAutocomplete';
 
 afterEach(() => {
     vi.unstubAllGlobals();
     vi.useRealTimers();
 });
 
-describe('useClubAutocomplete', () => {
-    it('fetches suggestions after debounce for queries of 3+ characters', async () => {
+describe('useClubAutocomplete (local)', () => {
+    it('returns local suggestions after debounce for queries of 2+ characters', async () => {
         vi.useFakeTimers();
-        mockFetch();
+        const fetchSpy = vi.fn();
+        vi.stubGlobal('fetch', fetchSpy);
         const {result} = renderHook(() => useClubAutocomplete());
 
         act(() => {
             result.current.setQuery('Ars');
         });
         await act(async () => {
-            await vi.advanceTimersByTimeAsync(300);
+            await vi.advanceTimersByTimeAsync(150);
         });
 
-        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('search_name=Ars'));
-        expect(result.current.suggestions).toEqual(clubs);
+        expect(fetchSpy).not.toHaveBeenCalled();
+        expect(result.current.suggestions.map(s => s.name)).toContain('Arsenal FC');
         expect(result.current.isDropdownVisible).toBe(true);
     });
 
-    it('does not fetch for short queries', async () => {
+    it('does not suggest for short queries', async () => {
         vi.useFakeTimers();
-        mockFetch();
         const {result} = renderHook(() => useClubAutocomplete());
 
         act(() => {
-            result.current.setQuery('Ar');
+            result.current.setQuery('A');
         });
         await act(async () => {
-            await vi.advanceTimersByTimeAsync(300);
+            await vi.advanceTimersByTimeAsync(150);
         });
 
-        expect(fetch).not.toHaveBeenCalled();
         expect(result.current.suggestions).toEqual([]);
     });
 
     it('clears suggestions when the query is emptied', async () => {
         vi.useFakeTimers();
-        mockFetch();
         const {result} = renderHook(() => useClubAutocomplete());
 
         act(() => {
             result.current.setQuery('Ars');
         });
         await act(async () => {
-            await vi.advanceTimersByTimeAsync(300);
+            await vi.advanceTimersByTimeAsync(150);
         });
-        expect(result.current.suggestions).toEqual(clubs);
+        expect(result.current.suggestions.length).toBeGreaterThan(0);
 
         act(() => {
             result.current.setQuery('   ');
@@ -69,14 +62,13 @@ describe('useClubAutocomplete', () => {
 
     it('clear() resets query, suggestions and visibility', async () => {
         vi.useFakeTimers();
-        mockFetch();
         const {result} = renderHook(() => useClubAutocomplete());
 
         act(() => {
             result.current.setQuery('Ars');
         });
         await act(async () => {
-            await vi.advanceTimersByTimeAsync(300);
+            await vi.advanceTimersByTimeAsync(150);
         });
 
         act(() => {
@@ -86,23 +78,5 @@ describe('useClubAutocomplete', () => {
         expect(result.current.query).toBe('');
         expect(result.current.suggestions).toEqual([]);
         expect(result.current.isDropdownVisible).toBe(false);
-    });
-
-    it('hides fetch errors without throwing', async () => {
-        vi.useFakeTimers();
-        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
-        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        const {result} = renderHook(() => useClubAutocomplete());
-
-        act(() => {
-            result.current.setQuery('Ars');
-        });
-        await act(async () => {
-            await vi.advanceTimersByTimeAsync(300);
-        });
-
-        expect(result.current.suggestions).toEqual([]);
-        expect(errorSpy).toHaveBeenCalled();
-        errorSpy.mockRestore();
     });
 });

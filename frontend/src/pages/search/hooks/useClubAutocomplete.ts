@@ -1,14 +1,15 @@
 import {useEffect, useState} from "react";
 import {Club} from "../../../types/Club";
-import {API_BASE_URL} from "../../../config";
+import {searchClubs} from "../../../lib/ClubDirectory";
 
-const DEBOUNCE_MS = 300;
-const MIN_QUERY_LENGTH = 3;
+const DEBOUNCE_MS = 120;
+const MIN_QUERY_LENGTH = 2;
 const SUGGESTION_LIMIT = 10;
 
 /**
- * Debounced club-name autocomplete against /clubs.
- * Owns query text, fetched suggestions and dropdown visibility.
+ * Local club-name autocomplete over the in-memory club map.
+ * Same return shape as the previous /clubs-backed hook, so callers
+ * (SearchFilterBar) need no changes. No DB round-trips.
  */
 export const useClubAutocomplete = () => {
     const [query, setQuery] = useState<string>("");
@@ -23,27 +24,16 @@ export const useClubAutocomplete = () => {
         }
 
         const delayDebounceFn = setTimeout(() => {
-            void fetchSuggestions(query.trim());
+            const trimmed = query.trim();
+            if (trimmed.length < MIN_QUERY_LENGTH) {
+                return;
+            }
+            setSuggestions(searchClubs(trimmed, SUGGESTION_LIMIT));
+            setIsDropdownVisible(true);
         }, DEBOUNCE_MS);
 
         return () => clearTimeout(delayDebounceFn);
     }, [query]);
-
-    const fetchSuggestions = async (name: string) => {
-        try {
-            if (name.length < MIN_QUERY_LENGTH) {
-                return;
-            }
-            const response = await fetch(
-                `${API_BASE_URL}/clubs?search_name=${encodeURIComponent(name)}&page=0&limit=${SUGGESTION_LIMIT}`
-            );
-            const data: Club[] = await response.json();
-            setSuggestions(data);
-            setIsDropdownVisible(true);
-        } catch (error) {
-            console.error(`Error fetching suggestions: `, error);
-        }
-    };
 
     const clear = () => {
         setQuery("");

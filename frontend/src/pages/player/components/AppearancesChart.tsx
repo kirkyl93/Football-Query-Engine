@@ -13,6 +13,7 @@ import {calculateYDomain} from "../lib/chartSizing";
 import AppearancesTooltip from "./appearances/AppearancesTooltip";
 import AppearancesSummaryHeader from "./appearances/AppearancesSummaryHeader";
 import AppearancesMainChart from "./appearances/AppearancesMainChart";
+import {resolveBarFills} from "../lib/barFillColours";
 
 type AppearancesChartProps = {
     playerName: string;
@@ -66,6 +67,12 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
     );
 
     const totals = useMemo(() => calculateAppearancesTotals(zoomedData), [zoomedData]);
+
+    const barFills = useMemo(() => resolveBarFills(zoomedData), [zoomedData]);
+    const barFillsByGame = useMemo(
+        () => new Map(zoomedData.map((appearance, index) => [appearance.game_number, barFills[index]])),
+        [zoomedData, barFills],
+    );
 
     const toggleDrawer = () => {
         setIsPlayerDrawerOpen(!isPlayerDrawerOpen);
@@ -131,6 +138,7 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
             </div>
             <AppearancesMainChart
                 zoomedData={zoomedData}
+                barFills={barFills}
                 scatterData={scatterData}
                 sizing={sizing}
                 yDomain={yDomain}
@@ -138,7 +146,7 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 refAreaRight={refAreaRight}
                 chartRef={chartRef}
                 showCleanSheets={noEventFiltersSelected || playerFilterState.selectedEvents.CleanSheets}
-                tooltip={<AppearancesTooltip filteredData={filteredData}/>}
+                tooltip={<AppearancesTooltip filteredData={filteredData} barFillsByGame={barFillsByGame}/>}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
