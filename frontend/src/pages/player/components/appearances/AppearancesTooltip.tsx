@@ -1,5 +1,6 @@
 import React from "react";
 import {convertDateStringToDate, dateFormatter, formatSeason} from "../../../../lib/DateUtils";
+import {getClubName, getClubPrimary} from "../../../../lib/ClubDirectory";
 import {PlayerAppearance} from "../../../../types/Player";
 import styles from './AppearancesTooltip.module.css';
 
@@ -7,12 +8,15 @@ interface AppearancesTooltipProps {
     active?: boolean;
     payload?: { payload: PlayerAppearance }[];
     filteredData: PlayerAppearance[];
+    /** Resolved bar fills keyed by game_number, so the swatch matches the bar. */
+    barFillsByGame?: Map<number, string>;
 }
 
-const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload, filteredData}) => {
+const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload, filteredData, barFillsByGame}) => {
     if (active && payload && payload.length) {
         const gameNumber = payload[0].payload.game_number;
         const appearance = filteredData[gameNumber - 1];
+        const swatchFill = barFillsByGame?.get(gameNumber) ?? getClubPrimary(appearance.club_id);
 
         return (
             <div className={styles['custom-tooltip']}>
@@ -41,6 +45,20 @@ const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload,
                 </div>
 
                 <p style={{fontWeight: "bold"}}>{`${appearance.competition_name}`}</p>
+                <p style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                    <span
+                        title={getClubName(appearance.club_id)}
+                        style={{
+                            display: 'inline-block',
+                            width: '12px',
+                            height: '12px',
+                            borderRadius: '2px',
+                            border: '1px solid rgba(0,0,0,0.4)',
+                            background: swatchFill,
+                        }}
+                    />
+                    {getClubName(appearance.club_id)}
+                </p>
                 <p>Minutes: {appearance.minutes_played[1] - appearance.minutes_played[0]}</p>
                 <p>Goals: {appearance.goals}</p>
                 <p>Own goals: {appearance.own_goal_minutes.length}</p>

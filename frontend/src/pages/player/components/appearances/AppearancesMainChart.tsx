@@ -16,6 +16,7 @@ import {createAppearanceBarShape} from "./appearanceBarShape";
 
 interface AppearancesMainChartProps {
     zoomedData: PlayerAppearance[];
+    barFills: string[];
     scatterData: ScatterEvent[];
     sizing: ChartSizing;
     yDomain: number[];
@@ -34,6 +35,7 @@ interface AppearancesMainChartProps {
 
 const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     zoomedData,
+    barFills,
     scatterData,
     sizing,
     yDomain,
@@ -54,8 +56,8 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     const {barChartWidth, strokeWidth, scatterDotRadius, rectangleWidth, rectangleHeight, barChartOpacity} = sizing;
 
     const barShape = useMemo(
-        () => createAppearanceBarShape({zoomedData, showCleanSheets, barChartOpacity, strokeWidth}),
-        [zoomedData, showCleanSheets, barChartOpacity, strokeWidth],
+        () => createAppearanceBarShape({zoomedData, barFills, showCleanSheets, barChartOpacity, strokeWidth}),
+        [zoomedData, barFills, showCleanSheets, barChartOpacity, strokeWidth],
     );
 
     return (

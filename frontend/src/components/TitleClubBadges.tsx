@@ -1,4 +1,5 @@
 import React from "react";
+import {getClubName} from "../lib/ClubDirectory";
 import shared from "../styles/shared.module.css";
 
 interface TitleClubBadgesProps {
@@ -26,7 +27,8 @@ const TitleClubBadges: React.FC<TitleClubBadgesProps> = ({label, clubIds}) => {
                                         className={shared['title-badge']}
                         key={clubId}
                         src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(clubId)}.png`}
-                        alt={`Club ${clubId}`}
+                        alt={getClubName(clubId)}
+                        title={getClubName(clubId)}
                     />
                 )))}
         </>

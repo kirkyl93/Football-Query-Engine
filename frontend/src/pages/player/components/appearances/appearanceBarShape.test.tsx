@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Rectangle, type BarShapeProps } from 'recharts';
-import { getColour } from '../../../../lib/ColourUtils';
+import { getClubPrimary } from '../../../../lib/ClubDirectory';
 import type { PlayerAppearance } from '../../../../types/Player';
+import { resolveBarFills } from '../../lib/barFillColours';
 import { createAppearanceBarShape } from './appearanceBarShape';
 
 const game = (overrides: Partial<PlayerAppearance> = {}): PlayerAppearance => ({
@@ -40,9 +41,11 @@ const shapeProps = (index: number): BarShapeProps =>
     ({index, x: 10, y: 20, width: 30, height: 40} as BarShapeProps);
 
 describe('createAppearanceBarShape', () => {
-    it('colours bars by club with a clean-sheet opacity boost', () => {
+    it('colours bars from the resolved fills with a clean-sheet opacity boost', () => {
+        const zoomedData = [game()];
         const shape = createAppearanceBarShape({
-            zoomedData: [game()],
+            zoomedData,
+            barFills: resolveBarFills(zoomedData),
             showCleanSheets: true,
             barChartOpacity: 1,
             strokeWidth: 1,
@@ -51,14 +54,30 @@ describe('createAppearanceBarShape', () => {
         const element = shape(shapeProps(0)) as React.ReactElement<any>;
 
         expect(element.type).toBe(Rectangle);
-        expect(element.props.fill).toBe(getColour(1));
+        expect(element.props.fill).toBe(resolveBarFills(zoomedData)[0]);
         expect(element.props.fillOpacity).toBe(1.35);
         expect(element.props.x).toBe(10);
+    });
+
+    it('falls back to the club primary when no resolved fill exists for the index', () => {
+        const zoomedData = [game()];
+        const shape = createAppearanceBarShape({
+            zoomedData,
+            barFills: [],
+            showCleanSheets: true,
+            barChartOpacity: 1,
+            strokeWidth: 1,
+        });
+
+        const element = shape(shapeProps(0)) as React.ReactElement<any>;
+
+        expect(element.props.fill).toBe(getClubPrimary(1));
     });
 
     it('renders nothing for an out-of-range index instead of throwing', () => {
         const shape = createAppearanceBarShape({
             zoomedData: [],
+            barFills: [],
             showCleanSheets: true,
             barChartOpacity: 1,
             strokeWidth: 1,
@@ -69,8 +88,10 @@ describe('createAppearanceBarShape', () => {
     });
 
     it('uses base opacity without a clean sheet', () => {
+        const zoomedData = [game({away_club_goals: 2})];
         const shape = createAppearanceBarShape({
-            zoomedData: [game({away_club_goals: 2})],
+            zoomedData,
+            barFills: resolveBarFills(zoomedData),
             showCleanSheets: true,
             barChartOpacity: 1,
             strokeWidth: 1,

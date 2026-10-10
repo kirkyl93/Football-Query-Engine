@@ -1,5 +1,6 @@
 import React from "react";
-import {getColour, hexToRGB} from "../../../../lib/ColourUtils";
+import {hexToRGB} from "../../../../lib/ColourUtils";
+import {getClubPrimary} from "../../../../lib/ClubDirectory";
 import FilterSection from "../../../../components/FilterSection";
 import {playerClubsForSummary} from "../../lib/playerFilterSummaries";
 import shared from '../../../../styles/shared.module.css';
@@ -16,9 +17,9 @@ const ClubsPlayedForSection: React.FC<ClubsPlayedForSectionProps> = ({clubs, sel
             <div className={shared['checkbox-group-vertical']}>
                 {clubs.map(club => (
                     <label className="club-label"
-                           style={{
-                               backgroundColor: hexToRGB(getColour(club[0]), 0.25),
-                           }}
+                            style={{
+                                backgroundColor: hexToRGB(getClubPrimary(club[0]), 0.25),
+                            }}
                            key={club[0]}>
                         <input
                             type="checkbox"
@@ -28,7 +29,8 @@ const ClubsPlayedForSection: React.FC<ClubsPlayedForSectionProps> = ({clubs, sel
                         />
                         <img
                             style={{width: 30, fontSize: 15, marginRight: "5px"}}
-                            alt="Badge of football team selected"
+                            alt={club[1]}
+                            title={club[1]}
                             src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(club[0])}.png`}
                         />
                         {club[1]}

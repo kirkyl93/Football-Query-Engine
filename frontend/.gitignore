@@ -22,3 +22,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+/scripts/buildClubColours.py
+/scripts/generateClubs.py
+/scripts/clubColours.json
+/scripts/clubColourAliases.json
+/scripts/clubColourOverrides.json

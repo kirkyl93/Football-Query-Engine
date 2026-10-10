@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getColour, hexToRGB } from './ColourUtils';
+import { colourDistance, getColour, hexToRGB } from './ColourUtils';
 import { convertDateStringToDate, dateFormatter, formatSeason } from './DateUtils';
 
 describe('formatSeason', () => {
@@ -49,5 +49,20 @@ describe('hexToRGB', () => {
 
     it('converts hex without hash', () => {
         expect(hexToRGB('00ff00', 1)).toBe('rgba(0, 255, 0, 1)');
+    });
+});
+
+describe('colourDistance', () => {
+    it('is zero for identical colours', () => {
+        expect(colourDistance('#ef0107', '#ef0107')).toBe(0);
+    });
+
+    it('is maximal for black vs white', () => {
+        expect(colourDistance('#000000', '#ffffff')).toBeCloseTo(Math.sqrt(3 * 255 ** 2), 5);
+    });
+
+    it('rates similar reds as close and red vs white as far', () => {
+        expect(colourDistance('#ef0107', '#c8102e')).toBeLessThan(80);
+        expect(colourDistance('#ef0107', '#ffffff')).toBeGreaterThan(200);
     });
 });
