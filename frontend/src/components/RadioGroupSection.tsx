@@ -11,13 +11,21 @@ interface RadioGroupSectionProps {
     title: string;
     options: RadioOption[];
     selectedId: string;
+    defaultId?: string;
+    showDefaultSummary?: boolean;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 /** Shared single-choice radio group used by PENALTIES and HOME OR AWAY. */
-const RadioGroupSection: React.FC<RadioGroupSectionProps> = ({title, options, selectedId, onChange}) => {
+const RadioGroupSection: React.FC<RadioGroupSectionProps> = ({title, options, selectedId, defaultId, showDefaultSummary, onChange}) => {
+    const summary = !defaultId || showDefaultSummary || selectedId !== defaultId
+        ? options.find((option) => option.id === selectedId)?.name
+        : undefined;
     return (
-        <FilterSection title={title}>
+        <FilterSection
+            title={title}
+            summary={summary}
+        >
             <div className={shared['radio-group']}>
                 {options.map(option => (
                     <label key={option.id}>

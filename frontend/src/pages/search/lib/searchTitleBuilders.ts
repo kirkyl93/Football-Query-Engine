@@ -17,54 +17,54 @@ export const sortByTitle = (filterState: SearchFilterState): string => {
     let title = "";
     switch (filterState.sortBy) {
         case SortOptions.GOALS:
-            title += "TOP SCORERS ";
+            title += "Top Scorers ";
             break;
         case SortOptions.ASSISTS:
-            title += "MOST ASSISTS ";
+            title += "Most Assists ";
             break;
         case SortOptions.GOALS_AND_ASSISTS:
-            title += "MOST ASSISTS + GOALS ";
+            title += "Most Assists + Goals ";
             break;
         case SortOptions.APPEARANCES:
-            title += "MOST APPS ";
+            title += "Most Apps ";
             break;
         case SortOptions.MINUTES_PLAYED:
-            title += "MOST MINS ";
+            title += "Most Mins ";
             break;
         case SortOptions.YELLOW_CARDS:
-            title += "MOST YELLOWS ";
+            title += "Most Yellows ";
             break;
         case SortOptions.RED_CARDS:
-            title += "MOST REDS ";
+            title += "Most Reds ";
             break;
         case SortOptions.MINUTES_PER_GOAL:
-            title += "BEST MINS PER GOAL ";
+            title += "Best Mins Per Goal ";
             break;
         case SortOptions.MINUTES_PER_ASSIST:
-            title += "BEST MINS PER ASSIST ";
+            title += "Best Mins Per Assist ";
             break;
         case SortOptions.MINUTES_PER_GOAL_OR_ASSIST:
-            title += "BEST MINS PER GOAL OR ASSIST ";
+            title += "Best Mins Per Goal Or Assist ";
             break;
         case SortOptions.MINUTES_PER_YELLOW:
-            title += "FEWEST MINS PER YELLOW ";
+            title += "Fewest Mins Per Yellow ";
             break;
         case SortOptions.MINUTES_PER_RED:
-            title += "FEWEST MINS PER RED ";
+            title += "Fewest Mins Per Red ";
             break;
         case SortOptions.NUMBER_OF_GAMES_WITH:
-            title += "MOST GAMES WITH ";
+            title += "Most Games With ";
             break;
         case SortOptions.NUMBER_OF_SEASONS_WITH:
-            title += "MOST SEASONS WITH "
+            title += "Most Seasons With "
             break;
         default:
-            title += "TOP SCORERS ";
+            title += "Top Scorers ";
     }
 
     if (minuteBasedSortOptions.includes(filterState.sortBy as SortOptions) &&
         (filterState.minimumAppearances ?? 0) > 0) {
-        title += `(AT LEAST ${filterState.minimumAppearances} APPS) `;
+        title += `(At Least ${filterState.minimumAppearances} Apps) `;
     }
 
     if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy as SortOptions)) {
@@ -77,54 +77,54 @@ export const sortByTitle = (filterState: SearchFilterState): string => {
 
         if (minimumGoals > 0 && maximumGoals > 0) {
             if (minimumGoals === maximumGoals) {
-                title += `EXACTLY ${maximumGoals} GOAL${maximumGoals > 1 ? 'S' : ''} `
+                title += `Exactly ${maximumGoals} Goal${maximumGoals > 1 ? 's' : ''} `
             } else {
-                title += `BETWEEN ${minimumGoals} AND ${maximumGoals} GOALS `
+                title += `Between ${minimumGoals} And ${maximumGoals} Goals `
             }
         } else if (minimumGoals > 0) {
-            title += `AT LEAST ${minimumGoals} GOAL${minimumGoals > 1 ? 'S' : ''} `
+            title += `At Least ${minimumGoals} Goal${minimumGoals > 1 ? 's' : ''} `
         } else if (maximumGoals > 0) {
-            title += `AT MOST ${maximumGoals} GOAL${maximumGoals > 1 ? 'S' : ''} `
+            title += `At Most ${maximumGoals} Goal${maximumGoals > 1 ? 's' : ''} `
         }
 
         if ((minimumGoals > 0 || maximumGoals > 0) && (minimumAssists > 0 || maximumAssists > 0)) {
-            title += `AND `
+            title += `And `
         }
 
         if (minimumAssists > 0 && maximumAssists > 0) {
             if (minimumAssists === maximumAssists) {
-                title += `EXACTLY ${maximumAssists} ASSIST${maximumAssists > 1 ? `S` : ''} `
+                title += `Exactly ${maximumAssists} Assist${maximumAssists > 1 ? `s` : ''} `
             } else {
-                title += `BETWEEN ${minimumAssists} AND ${maximumAssists} ASSISTS `
+                title += `Between ${minimumAssists} And ${maximumAssists} Assists `
             }
         } else if (minimumAssists > 0) {
-            title += `AT LEAST ${minimumAssists} ASSIST${minimumAssists > 1 ? 'S' : ''} `
+            title += `At Least ${minimumAssists} Assist${minimumAssists > 1 ? 's' : ''} `
         } else if (maximumAssists > 0) {
-            title += `AT MOST ${maximumAssists} ASSIST${maximumAssists > 1 ? 'S' : ''} `
+            title += `At Most ${maximumAssists} Assist${maximumAssists > 1 ? 's' : ''} `
         }
 
         if (minimumGoals > 0 || maximumGoals > 0 || minimumAssists > 0 || maximumAssists > 0) {
-            title += `AND `
+            title += `And `
         }
 
         if (minimumGoalsAndAssists > 0 && maximumGoalsAndAssists > 0) {
             if (minimumGoalsAndAssists === maximumGoalsAndAssists) {
-                title += `EXACTLY ${maximumGoalsAndAssists} GOAL${maximumGoalsAndAssists > 1 ? `S` : ''} AND ASSIST${maximumGoalsAndAssists > 1 ? `S` : ''} `
+                title += `Exactly ${maximumGoalsAndAssists} Goal${maximumGoalsAndAssists > 1 ? `s` : ''} And Assist${maximumGoalsAndAssists > 1 ? `s` : ''} `
             }
         } else if (minimumGoalsAndAssists > 0) {
-            title += `AT LEAST ${minimumGoalsAndAssists} GOAL${minimumGoalsAndAssists > 1 ? `S` : ''} AND ASSIST${minimumGoalsAndAssists > 1 ? `S` : ''} `
+            title += `At Least ${minimumGoalsAndAssists} Goal${minimumGoalsAndAssists > 1 ? `s` : ''} And Assist${minimumGoalsAndAssists > 1 ? `s` : ''} `
         } else if (maximumAssists > 0) {
-            title += `AT MOST ${minimumGoalsAndAssists} GOAL${maximumGoalsAndAssists > 1 ? `S` : ''} AND ASSIST${maximumGoalsAndAssists > 1 ? `S` : ''} `
+            title += `At Most ${minimumGoalsAndAssists} Goal${maximumGoalsAndAssists > 1 ? `s` : ''} And Assist${maximumGoalsAndAssists > 1 ? `s` : ''} `
         }
     }
 
 
     if (filterState.statScope === StatScope.SEASON) {
-        title += "· SEASON SCOPE "
+        title += "· Season Scope "
     }
 
     if (filterState.statScope === StatScope.GAME) {
-        title += "· INDIVIDUAL GAME "
+        title += "· Individual Game "
     }
 
     return title;
@@ -132,27 +132,27 @@ export const sortByTitle = (filterState: SearchFilterState): string => {
 
 export const competitionsTitle = (filterState: SearchFilterState): string => {
     if (filterState.competitions.length === 0) {
-        return "ALL COMPS";
+        return "All Comps";
     }
 
     if (filterState.competitions.length >= 10) {
-        return filterState.competitions.length + " COMPS";
+        return filterState.competitions.length + " Comps";
     }
 
     const competitionNames = filterState.competitions.map(compId => {
         const leagueComp = competitions.leagues.find(comp => comp.competitionId === compId);
         if (leagueComp) {
-            return leagueComp.name.toUpperCase();
+            return leagueComp.name;
         }
         const euroComp = competitions.europeanCompetitions.find(comp => comp.competitionId === compId);
-        return euroComp ? euroComp.name.toUpperCase() : compId;
+        return euroComp ? euroComp.name : compId;
     });
     return competitionNames.join(" + ");
 }
 
 export const seasonsTitle = (filterState: SearchFilterState): string => {
     if (filterState.seasons.length === 0) {
-        return "ALL SEASONS";
+        return "All Seasons";
     }
 
     if (filterState.seasons.length === 1) {
@@ -167,7 +167,7 @@ export const seasonsTitle = (filterState: SearchFilterState): string => {
     }
 
     if (seasons.length >= 10) {
-        return seasons.length + " SEASONS";
+        return seasons.length + " Seasons";
     }
 
     const formattedSeasons = seasons.map(season => formatSeason(season));
@@ -185,11 +185,11 @@ export const positionTitle = (filterState: SearchFilterState): string => {
 export const minsTitle = (filterState: SearchFilterState): string => {
     let minuteString = "";
     if ((filterState.minuteFrom ?? 0) > 0) {
-        minuteString += ` · FROM MINUTE ${filterState.minuteFrom}`;
+        minuteString += ` · From Minute ${filterState.minuteFrom}`;
     }
 
     if ((filterState.minuteTo ?? 0) > 0) {
-        minuteString += ` · UP UNTIL MINUTE ${filterState.minuteTo}`;
+        minuteString += ` · Up Until Minute ${filterState.minuteTo}`;
     }
     return minuteString;
 }
@@ -197,11 +197,11 @@ export const minsTitle = (filterState: SearchFilterState): string => {
 export const ageTitle = (filterState: SearchFilterState): string => {
     let ageString = "";
     if ((filterState.minAge ?? 0) > 0) {
-        ageString += ` · MIN AGE: ${filterState.minAge}`;
+        ageString += ` · Min Age: ${filterState.minAge}`;
     }
 
     if ((filterState.maxAge ?? 0) > 0) {
-        ageString += ` · MAX AGE: ${filterState.maxAge}`;
+        ageString += ` · Max Age: ${filterState.maxAge}`;
     }
     return ageString;
 }
@@ -209,11 +209,11 @@ export const ageTitle = (filterState: SearchFilterState): string => {
 export const heightTitle = (filterState: SearchFilterState): string => {
     let heightString = "";
     if ((filterState.minHeight ?? 0) > 0) {
-        heightString += ` · MIN HEIGHT: ${filterState.minHeight}CMs`;
+        heightString += ` · Min Height: ${filterState.minHeight}cms`;
     }
 
     if ((filterState.maxHeight ?? 0) > 0) {
-        heightString += ` · MAX HEIGHT: ${filterState.maxHeight}CMs`;
+        heightString += ` · Max Height: ${filterState.maxHeight}cms`;
     }
     return heightString;
 }
@@ -223,7 +223,7 @@ export const namesTitle = (filterState: SearchFilterState): string => {
         return "";
     }
 
-    return ` · ${filterState.playerNames.map(name => name.toUpperCase()).join(" OR ")}`;
+    return ` · ${filterState.playerNames.map(name => name).join(" or ")}`;
 }
 
 export const countriesTitle = (filterState: SearchFilterState): string => {
@@ -231,7 +231,7 @@ export const countriesTitle = (filterState: SearchFilterState): string => {
         return "";
     }
 
-    return ` · ${filterState.playerCountries.map(country => country.name.toUpperCase()).join(" OR ")}`;
+    return ` · ${filterState.playerCountries.map(country => country.name).join(" or ")}`;
 }
 
 export const subsTitle = (filterState: SearchFilterState): string => {
@@ -240,25 +240,25 @@ export const subsTitle = (filterState: SearchFilterState): string => {
         return subString;
     }
 
-    subString += " · SUBS ONLY";
+    subString += " · Subs Only";
 
     if ((filterState.earliestSubOnTime ?? 0) > 0) {
-        subString += ` · EARLIEST SUB ON TIME: ${filterState.earliestSubOnTime}`;
+        subString += ` · Earliest Sub On Time: ${filterState.earliestSubOnTime}`;
     }
 
     if ((filterState.latestSubOnTime ?? 0) > 0) {
-        subString += ` · LATEST SUB ON TIME: " + ${filterState.latestSubOnTime}`;
+        subString += ` · Latest Sub On Time: " + ${filterState.latestSubOnTime}`;
     }
     return subString;
 }
 
 export const pensTitle = (filterState: SearchFilterState): string => {
     if (filterState.penalties === PenaltyOptions.EXCLUDE_PENALTIES) {
-        return " · EXCLUDE PENALTIES";
+        return " · Exclude Penalties";
     }
 
     if (filterState.penalties === PenaltyOptions.ONLY_PENALTIES) {
-        return " · ONLY PENALTIES";
+        return " · Only Penalties";
     }
 
     return "";
@@ -266,11 +266,11 @@ export const pensTitle = (filterState: SearchFilterState): string => {
 
 export const homeOrAwayTitle = (filterState: SearchFilterState): string => {
     if (filterState.homeOrAway === HomeOrAwayOptions.HOME) {
-        return " · AT HOME";
+        return " · At Home";
     }
 
     if (filterState.homeOrAway === HomeOrAwayOptions.AWAY) {
-        return " · AWAY FROM HOME";
+        return " · Away From Home";
     }
 
     return "";

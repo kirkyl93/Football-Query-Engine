@@ -8,6 +8,7 @@ import {SearchByCountTable} from "./components/SearchByCountTable";
 import SearchHeader from "./components/SearchHeader";
 import {
     numberOfGamesOrSeasonsSortOptions,
+    SortOptions,
     StatScope,
 } from "../../types/SearchOptions";
 import {SearchFilterState} from "../../types/SearchFilterState";
@@ -27,12 +28,20 @@ const Search: React.FC = () => {
             }
         };
 
+        const handleEscPress = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsDrawerOpen(false);
+            }
+        };
+
         if (isDrawerOpen) {
             document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleEscPress);
         }
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscPress);
         };
     }, [isDrawerOpen]);
 
@@ -49,6 +58,10 @@ const Search: React.FC = () => {
         }, {replace: true});
     };
 
+    const handleSortChange = (sortBy: SortOptions) => {
+        handleFilterChange({...filterState, sortBy});
+    };
+
     const toggleDrawer = () => {
         setIsDrawerOpen(!isDrawerOpen);
     }
@@ -62,6 +75,7 @@ const Search: React.FC = () => {
                     !numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
                     <SearchOverallTable
                         filterState={filterState}
+                        onSortChange={handleSortChange}
                     />
                 }
 
@@ -75,6 +89,7 @@ const Search: React.FC = () => {
                 {selectedScope === StatScope.GAME &&
                     <SearchByGameTable
                         filterState={filterState}
+                        onSortChange={handleSortChange}
                     />
                 }
             </div>

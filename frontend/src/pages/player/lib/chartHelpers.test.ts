@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getBarOutlineColour } from './barOutlineColour';
-import { calculateBarChartOpacity, calculateSize } from './chartSizing';
+import { calculateBarChartOpacity, calculateSize, calculateYDomain } from './chartSizing';
 import type { PlayerAppearance } from '../../../types/Player';
 
 const game = (overrides: Partial<PlayerAppearance> = {}): PlayerAppearance => ({
@@ -60,5 +60,20 @@ describe('calculateSize mid-range', () => {
         const opacity = calculateBarChartOpacity(310, 0, 100);
         expect(opacity).toBeGreaterThan(0);
         expect(opacity).toBeLessThan(100);
+    });
+});
+
+describe('calculateYDomain', () => {
+    it('caps domestic games at a full match', () => {
+        expect(calculateYDomain([game(), game({minutes_played: [0, 45]})], false)).toEqual([0, 90]);
+    });
+
+    it('extends past 90 for European games', () => {
+        expect(calculateYDomain([game({minutes_played: [0, 120]})], true)).toEqual([0, 120]);
+    });
+
+    it('falls back to a full match when filters leave no games', () => {
+        expect(calculateYDomain([], true)).toEqual([0, 90]);
+        expect(calculateYDomain([], false)).toEqual([0, 90]);
     });
 });

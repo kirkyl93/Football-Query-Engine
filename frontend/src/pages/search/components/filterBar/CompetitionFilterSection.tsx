@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import {competitions} from "../../../../data/Competitions";
 import FilterSection from "../../../../components/FilterSection";
+import {competitionSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface CompetitionFilterSectionProps {
@@ -16,7 +17,7 @@ const CompetitionFilterSection: React.FC<CompetitionFilterSectionProps> = ({
     const [isEuropeanCompetitionsOpen, setIsEuropeanCompetitionsOpen] = useState(false);
 
     return (
-        <FilterSection title="COMPETITIONS">
+        <FilterSection title="COMPETITIONS" summary={competitionSummary(selectedCompetitions)}>
             <div>
                 <div className={shared['sub-dropdown-title']} onClick={() => setIsLeaguesOpen(!isLeaguesOpen)}>
                     <span className={shared['title-text']}>DOMESTIC</span>

@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Link} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {Player, PlayerAppearance} from "../types/Player";
 import {API_BASE_URL} from "../config";
 import styles from './PlayerSearchBar.module.css'
@@ -8,13 +8,15 @@ interface PlayerSearchBarProps {
     placeHolderText: string;
     linkToPlayer: boolean;
     onSelectPlayer?: (name: string, playerGameData: PlayerAppearance[]) => void;
+    onDismiss?: () => void;
 }
 
-const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer }) => {
+const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onDismiss }) => {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [suggestions, setSuggestions] = useState<Player[]>([]);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const dropdownRef = useRef<HTMLFormElement>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -78,12 +80,15 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
     const handleSuggestionClick = async (suggestion: string, playerId: number) => {
         setSearchTerm('');
         setIsDropdownVisible(false);
-        if (!linkToPlayer) {
-            const playerGameData = await fetch(`${API_BASE_URL}/players/${playerId}/games`);
-            const data: PlayerAppearance[] = await playerGameData.json();
-            if (onSelectPlayer) {
-                onSelectPlayer(suggestion, data);
-            }
+        onDismiss?.();
+        if (linkToPlayer) {
+            navigate(`/player/${playerId}`);
+            return;
+        }
+        const playerGameData = await fetch(`${API_BASE_URL}/players/${playerId}/games`);
+        const data: PlayerAppearance[] = await playerGameData.json();
+        if (onSelectPlayer) {
+            onSelectPlayer(suggestion, data);
         }
     };
 
@@ -105,20 +110,13 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
                             className={styles['header-suggestion-item']}
                             onClick={() => handleSuggestionClick(suggestion.last_name, suggestion.player_id)}
                         >
-                            {linkToPlayer ? (
-                                <Link to={`/player/${suggestion.player_id}`} className="player-link" style={{
-                                        textDecoration: 'none',
-                                        color: 'inherit',
-                                        display: 'flex',
-                                        alignItems: 'center'
-                                    }}>
-                                    {renderPlayerContent(suggestion)}
-                                </Link>
-                            ) : (
-                                <>
+                            <span style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    width: '100%'
+                                }}>
                                 {renderPlayerContent(suggestion)}
-                                </>
-                            )}
+                            </span>
                         </li>
                     ))}
                 </ul>

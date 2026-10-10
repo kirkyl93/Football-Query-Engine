@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import AppearancesChartTitle from "./AppearancesChartTitle";
 import AppearancesChartFilterBar from "./AppearancesChartFilterBar";
 import styles from '../Player.module.css';
@@ -9,6 +9,7 @@ import {useChartZoom} from "../hooks/useChartZoom";
 import {areNoEventsSelected, mapAppearanceEvents} from "../lib/appearancesEventMapper";
 import {useChartSizing} from "../lib/chartSizing";
 import {calculateAppearancesTotals} from "../lib/appearancesTotals";
+import {calculateYDomain} from "../lib/chartSizing";
 import AppearancesTooltip from "./appearances/AppearancesTooltip";
 import AppearancesSummaryHeader from "./appearances/AppearancesSummaryHeader";
 import AppearancesMainChart from "./appearances/AppearancesMainChart";
@@ -22,6 +23,7 @@ type AppearancesChartProps = {
 
 export function AppearancesChart({playerName: name, data: initialData, onZoomChange: onZoomChange}: AppearancesChartProps) {
     const [isPlayerDrawerOpen, setIsPlayerDrawerOpen] = useState(false);
+    const drawerRef = useRef<HTMLDivElement>(null);
 
     const {filteredData, playerFilterState, setPlayerFilterState, metadata} = useAppearancesFilter(initialData);
     const {
@@ -58,19 +60,39 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
 
     const sizing = useChartSizing(zoomedData.length);
 
-    const yDomain = useMemo(() => {
-        if (metadata.europeanCompetitions.length === 0) {
-            return [0, 90];
-        }
-        const maxMinutes = Math.max(...zoomedData.map(app => app.minutes_played[1]));
-        return [0, maxMinutes];
-    }, [zoomedData, metadata.europeanCompetitions.length])
+    const yDomain = useMemo(
+        () => calculateYDomain(zoomedData, metadata.europeanCompetitions.length > 0),
+        [zoomedData, metadata.europeanCompetitions.length],
+    );
 
     const totals = useMemo(() => calculateAppearancesTotals(zoomedData), [zoomedData]);
 
     const toggleDrawer = () => {
         setIsPlayerDrawerOpen(!isPlayerDrawerOpen);
     }
+
+    useEffect(() => {
+        if (!isPlayerDrawerOpen) {
+            return;
+        }
+        const handleClickOutside = (event: MouseEvent) => {
+            if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+                setIsPlayerDrawerOpen(false);
+            }
+        };
+        const handleEscPress = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsPlayerDrawerOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscPress);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscPress);
+        };
+    }, [isPlayerDrawerOpen]);
 
     return (
         <div className={styles['chart-container']}>
@@ -98,13 +120,15 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 noEventFiltersSelected={noEventFiltersSelected}
                 selectedEvents={playerFilterState.selectedEvents}
             />
-            <AppearancesChartFilterBar
-                isOpen={isPlayerDrawerOpen}
-                playerFilterState={playerFilterState}
-                playerSeasonsCompetitionsAndClubs={metadata}
-                onFilterChange={setPlayerFilterState}
-                onClose={toggleDrawer}
-            />
+            <div ref={drawerRef}>
+                <AppearancesChartFilterBar
+                    isOpen={isPlayerDrawerOpen}
+                    playerFilterState={playerFilterState}
+                    playerSeasonsCompetitionsAndClubs={metadata}
+                    onFilterChange={setPlayerFilterState}
+                    onClose={toggleDrawer}
+                />
+            </div>
             <AppearancesMainChart
                 zoomedData={zoomedData}
                 scatterData={scatterData}

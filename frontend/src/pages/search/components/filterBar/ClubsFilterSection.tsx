@@ -1,6 +1,7 @@
 import React from "react";
 import {Club} from "../../../../types/Club";
 import FilterSection from "../../../../components/FilterSection";
+import {clubsSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface ClubAutocompleteProps {
@@ -77,8 +78,32 @@ const ClubsFilterSection: React.FC<ClubsFilterSectionProps> = ({
     onRemovePlayedForClub,
     onRemovePlayedAgainstClub,
 }) => {
+    const totalClubs = clubsPlayedFor.length + clubsPlayedAgainst.length;
+    const clubBadges = (clubIds: number[], keyPrefix: string, title: string) => (
+        <span className={shared['summary-inline']}>
+            <span>{title}:</span>
+            {clubIds.map((clubId) => (
+                <img
+                    key={`${keyPrefix}-${clubId}`}
+                    className={shared['club-badge']}
+                    alt="Badge of selected club"
+                    title={title}
+                    src={badgeUrl(clubId)}
+                />
+            ))}
+        </span>
+    );
+    const clubSummary =
+        totalClubs === 0 || totalClubs > 4
+            ? clubsSummary(clubsPlayedFor, clubsPlayedAgainst)
+            : (
+                <>
+                    {clubsPlayedFor.length > 0 && clubBadges(clubsPlayedFor, "for", "For")}
+                    {clubsPlayedAgainst.length > 0 && clubBadges(clubsPlayedAgainst, "against", "Against")}
+                </>
+            );
     return (
-        <FilterSection title="CLUBS">
+        <FilterSection title="CLUBS" summary={clubSummary}>
             {clubInputBlock("Clubs played for", playedFor, clubsPlayedFor, "player-names-and-clubs-list", onRemovePlayedForClub)}
             {clubInputBlock("Clubs played against", playedAgainst, clubsPlayedAgainst, "club-names-list", onRemovePlayedAgainstClub)}
         </FilterSection>

@@ -1,7 +1,7 @@
 
 .table-container {
     min-height: 400px;
-    overflow: hidden;
+    overflow-x: auto;
     background-color: white;
     margin: 0 auto;
     width: fit-content;
@@ -18,9 +18,27 @@
     width: fit-content;
 }
 
+.generic-table tbody tr {
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.generic-table tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+.generic-table tbody tr:hover {
+    background-color: #e8eef3;
+    box-shadow: inset 3px 0 0 #14532d;
+}
+
+.generic-table tbody tr:hover .table-link {
+    color: #14532d;
+    text-shadow: 0.5px 0 0 currentColor;
+}
+
 .generic-table tbody tr td {
     height: 40px;
-    padding: 10px;
+    padding: 10px 18px;
     border-bottom: 1px solid #ddd;
     width: fit-content;
     align-items: center;
@@ -30,20 +48,20 @@
 }
 
 .player-name {
-    min-width: 140px;
+    min-width: 170px;
 }
 
 .generic-table thead th {
     background-color: white;
     border-bottom: 2px solid #ddd;
-    padding: 10px;
+    padding: 10px 18px;
     text-align: left;
     font-weight: 800;
     font-size: 13px;
     width: fit-content;
 }
 
-.generic-table img {
+.generic-table img.avatar-sm {
     width: 32px;
     height: 40px;
     vertical-align: middle;
@@ -54,8 +72,8 @@
 }
 
 .flag-sm {
-    width: 20px;
-    height: 14px;
+    width: 21px;
+    height: 15px;
     margin-right: 10px;
 }
 
@@ -67,4 +85,54 @@
 .table-link {
     text-decoration: none;
     color: inherit;
+}
+
+/* Clickable sort headers */
+.sort-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    font-weight: inherit;
+    color: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sort-button:hover {
+    color: #14532d;
+}
+
+.sort-button:focus-visible {
+    outline: 2px solid #14532d;
+    outline-offset: 2px;
+}
+
+.sort-button-active {
+    color: #14532d;
+}
+
+.sort-arrow {
+    font-size: 10px;
+    line-height: 1;
+}
+
+/* Compact density on narrower screens so all columns fit
+   instead of clipping before the collapse breakpoints kick in. */
+@media (max-width: 1150px) {
+    .generic-table tbody tr td {
+        padding: 10px 10px;
+    }
+
+    .generic-table thead th {
+        padding: 10px 10px;
+    }
+
+    .player-name {
+        min-width: 140px;
+    }
 }

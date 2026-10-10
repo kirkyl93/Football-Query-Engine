@@ -9,14 +9,17 @@ import {SearchFilterState} from "../../../types/SearchFilterState";
 import {PlayerGameSearchResult} from "../../../types/Player";
 import {PlayerCell} from "./PlayerCell";
 import {ClubBadgesCell} from "./ClubBadgesCell";
+import {SortableTh} from "./SortableTh";
+import {SortOptions} from "../../../types/SearchOptions";
 import shared from "../../../styles/shared.module.css";
 
 
 interface SearchByGameTableProps {
-    filterState: SearchFilterState
+    filterState: SearchFilterState;
+    onSortChange: (sortBy: SortOptions) => void;
 }
 
-export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState}) => {
+export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState, onSortChange}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef} =
         useInfiniteScroll<PlayerGameSearchResult>(fetchPlayerGameData);
 
@@ -36,8 +39,8 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                             <th className={styles['first-columns-to-hide']}>Position</th>
                             <th>Result</th>
                             <th className={styles['first-columns-to-hide']}>Mins Played</th>
-                            <th>Goals</th>
-                            <th>Assists</th>
+                            <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} onSort={onSortChange} />
+                            <SortableTh label="Assists" columnSort={SortOptions.ASSISTS} activeSort={filterState.sortBy} onSort={onSortChange} />
                         </tr>
                         </thead>
                         <tbody>

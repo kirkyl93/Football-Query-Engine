@@ -3,6 +3,7 @@ import {EventType} from "../../../../types/Player";
 import {eventTypeOptions} from "../../lib/appearancesFilterOptions";
 import {EventSelection} from "../../lib/appearancesEventMapper";
 import FilterSection from "../../../../components/FilterSection";
+import {eventsSummary} from "../../lib/playerFilterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface EventsSectionProps {
@@ -12,7 +13,7 @@ interface EventsSectionProps {
 
 const EventsSection: React.FC<EventsSectionProps> = ({selectedEvents, onEventSelectionChange}) => {
     return (
-        <FilterSection title="EVENTS">
+        <FilterSection title="EVENTS" summary={eventsSummary(selectedEvents)}>
             <div className={shared['checkbox-group-vertical']}>
                 {eventTypeOptions.map(event => (
                     <label className="club-label" key={event.eventType}>

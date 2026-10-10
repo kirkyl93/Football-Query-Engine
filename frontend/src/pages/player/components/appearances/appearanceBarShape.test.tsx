@@ -56,6 +56,18 @@ describe('createAppearanceBarShape', () => {
         expect(element.props.x).toBe(10);
     });
 
+    it('renders nothing for an out-of-range index instead of throwing', () => {
+        const shape = createAppearanceBarShape({
+            zoomedData: [],
+            showCleanSheets: true,
+            barChartOpacity: 1,
+            strokeWidth: 1,
+        });
+
+        expect(() => shape(shapeProps(0))).not.toThrow();
+        expect(shape(shapeProps(0))).toBeNull();
+    });
+
     it('uses base opacity without a clean sheet', () => {
         const shape = createAppearanceBarShape({
             zoomedData: [game({away_club_goals: 2})],

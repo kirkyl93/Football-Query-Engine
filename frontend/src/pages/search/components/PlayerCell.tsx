@@ -20,7 +20,7 @@ export const PlayerCell: React.FC<PlayerCellProps> = ({
     flagClassName,
     avatarClassName,
 }) => (
-    <>
+    <span style={{display: 'inline-flex', alignItems: 'center'}}>
         <img
             className={`${baseStyles['flag-sm']} ${flagClassName ?? ''}`}
             src={`https://flagicons.lipis.dev/flags/4x3/${countryCode}.svg`}
@@ -38,5 +38,5 @@ export const PlayerCell: React.FC<PlayerCellProps> = ({
         >
             {playerName}
         </Link>
-    </>
+    </span>
 );

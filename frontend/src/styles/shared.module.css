@@ -57,6 +57,8 @@
 .apply-button {
     width: 100%;
     padding: 10px;
+    min-height: 40px;
+    flex-shrink: 0;
     background-color: #121212;
     color: white;
     border: none;
@@ -64,8 +66,7 @@
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    bottom: 20px; /* Adjust bottom margin */
-    margin-bottom: 40px;
+    margin-top: 16px;
 }
 
 .apply-button:hover {
@@ -95,7 +96,44 @@
 }
 
 .title-text {
-    font-weight: bold;
+    font-weight: 600;
+    min-width: 150px;
+}
+
+.summary-text {
+    margin-left: 0;
+    margin-right: 8px;
+    font-size: 12px;
+    font-weight: 400;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 55%;
+}
+
+.summary-text img {
+    max-height: 18px;
+    width: auto;
+    vertical-align: middle;
+}
+
+.summary-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 6px;
+}
+
+.summary-inline img {
+    flex-shrink: 0;
+}
+
+.summary-inline img.club-badge {
+    height: 22px;
+    width: auto;
+    max-width: 30px;
+    object-fit: contain;
 }
 
 .arrow-icon {
@@ -477,7 +515,7 @@
 
 /* ---- Club badges (fixed 30px footprint) ---- */
 .club-badge {
-    width: 30px;
+    width: 32px;
 }
 
 /* ---- Legend swatches ---- */
@@ -505,7 +543,7 @@
 .title {
     font-family: "Inter", serif;
     font-optical-sizing: auto;
-    font-size: 16px;
+    font-size: 14px;
     font-style: normal;
     font-weight: bold;
     word-wrap: break-word;

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import SearchFilterBar from './SearchFilterBar';
 import { createDefaultSearchFilterState } from '../lib/defaultSearchFilter';
+import { SortOptions } from '../../../types/SearchOptions';
 
 const renderFilterBar = (props?: Partial<React.ComponentProps<typeof SearchFilterBar>>) => render(
     <SearchFilterBar
@@ -78,6 +79,36 @@ describe('SearchFilterBar', () => {
 
         expect(onFilterChange).toHaveBeenCalledTimes(1);
         expect(onFilterChange.mock.calls[0][0].seasons).toEqual([2025]);
+    });
+
+    it('shows collapsed summaries for the default filters', () => {
+        renderFilterBar();
+
+        expect(screen.getByText('2025/26')).toBeInTheDocument();
+        expect(screen.getByText('Premier League')).toBeInTheDocument();
+        expect(screen.getByText('Goals · Overall')).toBeInTheDocument();
+        expect(screen.getByText('Either')).toBeInTheDocument();
+        expect(screen.getByText('Include penalties')).toBeInTheDocument();
+    });
+
+    it('shows an externally updated sort when reopened', async () => {
+        const user = userEvent.setup();
+        const defaultState = createDefaultSearchFilterState();
+        const { rerender } = renderFilterBar({isOpen: false, filterState: defaultState});
+
+        rerender(
+            <SearchFilterBar
+                isOpen={true}
+                filterState={{...defaultState, sortBy: SortOptions.ASSISTS}}
+                onFilterChange={vi.fn()}
+                onClose={vi.fn()}
+            />,
+        );
+
+        await user.click(screen.getByText('SORT BY'));
+
+        expect(screen.getByRole('radio', {name: 'Assists'})).toBeChecked();
+        expect(screen.getByRole('radio', {name: 'Goals'})).not.toBeChecked();
     });
 
     it('blocks apply with an alert for an invalid age range', async () => {

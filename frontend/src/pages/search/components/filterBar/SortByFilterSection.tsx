@@ -16,6 +16,7 @@ import {
     statScopes,
 } from "../../lib/searchFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
+import {sortSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 import filterStyles from '../SearchFilterBar.module.css';
 
@@ -49,7 +50,10 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
         : season_goals_or_assists;
 
     return (
-        <FilterSection title="SORT BY">
+        <FilterSection
+            title="SORT BY"
+            summary={sortSummary(filterState.sortBy, filterState.statScope)}
+        >
             <div className={shared['radio-group']}>
                 {statScopes.map(score => (
                     <label key={score.id}>

@@ -2,6 +2,7 @@ import React from "react";
 import {AppearanceTypeOptions} from "../../../../types/SearchOptions";
 import {appearanceTypeOptions, minutesPlayed} from "../../lib/appearancesFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
+import {appearanceTypeSummary} from "../../lib/playerFilterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface AppearanceTypeSectionProps {
@@ -22,9 +23,12 @@ const AppearanceTypeSection: React.FC<AppearanceTypeSectionProps> = ({
     onMaximumMinutesPlayedChange,
 }) => {
     return (
-        <FilterSection title="ONLY INCLUDE GAMES WHERE">
-            <div className='checkbox-group'>
-                <div className='radio-group'>
+        <FilterSection
+            title="APPEARANCES"
+            summary={appearanceTypeSummary(selectedAppearanceType, minimumMinutesPlayed, maximumMinutesPlayed)}
+        >
+            <div className={shared['checkbox-group']}>
+                <div className={shared['radio-group']}>
                     {appearanceTypeOptions.map(option => (
                         <label key={option.id}>
                             <input

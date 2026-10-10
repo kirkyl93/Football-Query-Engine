@@ -95,7 +95,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
                             }}
                             type='number'
                             tickCount={10}
-                            domain={["dataMin", "dataMax" + 1]}
+                            domain={["dataMin", "dataMax + 1"]}
                             style={{fontSize: '12px', userSelect: 'none'}}
                             tick={{dy: 10}}
                         />

@@ -172,6 +172,8 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                     title="HOME OR AWAY"
                     options={homeOrAwayOptions}
                     selectedId={localFilterState.selectedHomeOrAway}
+                    defaultId={HomeOrAwayOptions.EITHER}
+                    showDefaultSummary
                     onChange={(e) => setField('selectedHomeOrAway', e.target.value as HomeOrAwayOptions)}
                 />
                 <AppearanceTypeSection

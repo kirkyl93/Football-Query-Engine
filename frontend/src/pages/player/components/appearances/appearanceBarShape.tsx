@@ -19,6 +19,13 @@ export const createAppearanceBarShape = ({
 }: AppearanceBarShapeOptions) => (props: BarShapeProps) => {
     const entry = zoomedData[props.index];
 
+    // Recharts can call the shape with a stale index while the data
+    // shrinks (e.g. filters removing games). Render nothing instead of
+    // throwing and unmounting the whole page.
+    if (!entry) {
+        return null;
+    }
+
     const cleanSheet =
         showCleanSheets &&
         (entry.club_id === entry.home_club_id

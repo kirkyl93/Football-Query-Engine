@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from './SearchFilterBar.module.css';
 import shared from "../../../styles/shared.module.css";
 import {countries, Country} from "../../../data/Countries";
@@ -46,6 +46,15 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
     const [newPlayerName, setNewPlayerName] = useState<string>("");
     const playedForAutocomplete = useClubAutocomplete();
     const playedAgainstAutocomplete = useClubAutocomplete();
+
+    // Refresh the working copy whenever the drawer opens, so sorts (or
+    // anything else) applied elsewhere — e.g. table headers — show up.
+    // Deliberately keyed on opening only, so in-progress edits are kept.
+    useEffect(() => {
+        if (isOpen) {
+            setLocalFilterState(filterState);
+        }
+    }, [isOpen]);
 
     const resetFilters = () => {
         setLocalFilterState(createDefaultSearchFilterState());
@@ -218,6 +227,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
                 />
                 <MinMaxSelectSection
                     title="MINUTES"
+                    summaryUnit="'"
                     options={minutes}
                     minLabel="Played from:"
                     maxLabel="Played to:"
@@ -238,6 +248,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
                 />
                 <MinMaxSelectSection
                     title="HEIGHT"
+                    summaryUnit="cm"
                     options={heights}
                     minLabel="Min height (cms):"
                     maxLabel="Max height (cms):"
@@ -293,12 +304,16 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
                     title="PENALTIES"
                     options={penaltyOptions}
                     selectedId={localFilterState.penalties}
+                    defaultId={PenaltyOptions.INCLUDE_PENALTIES}
+                    showDefaultSummary
                     onChange={(e) => setField('penalties', e.target.value as PenaltyOptions)}
                 />
                 <RadioGroupSection
                     title="HOME OR AWAY"
                     options={homeOrAwayOptions}
                     selectedId={localFilterState.homeOrAway}
+                    defaultId={HomeOrAwayOptions.EITHER}
+                    showDefaultSummary
                     onChange={(e) => setField('homeOrAway', e.target.value as HomeOrAwayOptions)}
                 />
                 <SortByFilterSection
@@ -313,9 +328,9 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
                     onMinimumGoalsAndAssistsChange={(e) => setField('minimumGoalsAndAssists', parseOptionalNumber(e.target.value))}
                     onMaximumGoalsAndAssistsChange={(e) => setField('maximumGoalsAndAssists', parseOptionalNumber(e.target.value))}
                 />
-
-                <button className={shared['apply-button']} onClick={applyFilters}>APPLY</button>
             </div>
+
+            <button className={shared['apply-button']} onClick={applyFilters}>APPLY</button>
         </div>
     );
 };
