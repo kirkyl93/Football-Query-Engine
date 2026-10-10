@@ -10,13 +10,15 @@ import {SortOptions, StatScope} from "../../../types/SearchOptions";
 import {PlayerSearchResult} from "../../../types/Player";
 import {PlayerCell} from "./PlayerCell";
 import {ClubBadgesCell} from "./ClubBadgesCell";
+import {SortableTh} from "./SortableTh";
 import {getDisplayStatForSmallScreen, getDisplayTitleForSmallScreen} from "../lib/smallScreenStat";
 
 interface SearchOverallTableProps {
     filterState: SearchFilterState;
+    onSortChange: (sortBy: SortOptions) => void;
 }
 
-export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterState}) => {
+export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterState, onSortChange}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef} =
         useInfiniteScroll<PlayerSearchResult>(fetchPlayerOverallOrSeasonData);
 
@@ -32,22 +34,22 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                             <th className={styles['first-columns-to-hide']}>Clubs</th>
                             {filterState.statScope === StatScope.SEASON && <th>Season</th>}
                             <th className={styles['second-columns-to-hide']}>Position</th>
-                            <th className={`${baseStyles['table-header']} ${styles['third-columns-to-hide']}`}>Apps</th>
-                            <th className={`${baseStyles['table-header']} ${styles['third-columns-to-hide']}`}>Mins</th>
-                            <th className={styles['third-columns-to-hide']}>Goals</th>
-                            <th className={styles['third-columns-to-hide']}>Assists</th>
-                            <th className={styles['third-columns-to-hide']}>Yellows</th>
-                            <th className={styles['third-columns-to-hide']}>Reds</th>
+                            <SortableTh label="Apps" columnSort={SortOptions.APPEARANCES} activeSort={filterState.sortBy} onSort={onSortChange} className={`${baseStyles['table-header']} ${styles['third-columns-to-hide']}`} />
+                            <SortableTh label="Mins" columnSort={SortOptions.MINUTES_PLAYED} activeSort={filterState.sortBy} onSort={onSortChange} className={`${baseStyles['table-header']} ${styles['third-columns-to-hide']}`} />
+                            <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />
+                            <SortableTh label="Assists" columnSort={SortOptions.ASSISTS} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />
+                            <SortableTh label="Yellows" columnSort={SortOptions.YELLOW_CARDS} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />
+                            <SortableTh label="Reds" columnSort={SortOptions.RED_CARDS} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />
                             {filterState.sortBy === SortOptions.MINUTES_PER_GOAL &&
-                                <th className={styles['third-columns-to-hide']}>Mins per goal</th>}
+                                <SortableTh label="Mins per goal" columnSort={SortOptions.MINUTES_PER_GOAL} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />}
                             {filterState.sortBy === SortOptions.MINUTES_PER_ASSIST &&
-                                <th className={styles['third-columns-to-hide']}>Mins per assist</th>}
+                                <SortableTh label="Mins per assist" columnSort={SortOptions.MINUTES_PER_ASSIST} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />}
                             {filterState.sortBy === SortOptions.MINUTES_PER_GOAL_OR_ASSIST &&
-                                <th className={styles['third-columns-to-hide']}>Mins per goal or assist</th>}
+                                <SortableTh label="Mins per goal or assist" columnSort={SortOptions.MINUTES_PER_GOAL_OR_ASSIST} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />}
                             {filterState.sortBy === SortOptions.MINUTES_PER_YELLOW &&
-                                <th className={styles['third-columns-to-hide']}>Mins per Yellow</th>}
+                                <SortableTh label="Mins per Yellow" columnSort={SortOptions.MINUTES_PER_YELLOW} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />}
                             {filterState.sortBy === SortOptions.MINUTES_PER_RED &&
-                                <th className={styles['third-columns-to-hide']}>Mins per Red</th>}
+                                <SortableTh label="Mins per Red" columnSort={SortOptions.MINUTES_PER_RED} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />}
                             <th className={styles['small-screen-display']}>
                                 {getDisplayTitleForSmallScreen(filterState.sortBy)}
                             </th>

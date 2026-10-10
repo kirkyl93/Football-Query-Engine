@@ -1,6 +1,7 @@
 import React from "react";
 import {minutes} from "../../lib/searchFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
+import {subsSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface SubstitutesFilterSectionProps {
@@ -21,7 +22,7 @@ const SubstitutesFilterSection: React.FC<SubstitutesFilterSectionProps> = ({
     onLatestSubOnTimeChange,
 }) => {
     return (
-        <FilterSection title="SUBSTITUTES">
+        <FilterSection title="SUBSTITUTES" summary={subsSummary(subsOnly, earliestSubOnTime, latestSubOnTime)}>
             <div className={shared['checkbox-group']}>
                 <label key="subsOnly">
                     <input

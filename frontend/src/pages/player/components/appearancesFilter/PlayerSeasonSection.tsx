@@ -1,6 +1,7 @@
 import React from "react";
 import {formatSeason} from "../../../../lib/DateUtils";
 import FilterSection from "../../../../components/FilterSection";
+import {seasonSummary} from "../../../search/lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface PlayerSeasonSectionProps {
@@ -11,7 +12,7 @@ interface PlayerSeasonSectionProps {
 
 const PlayerSeasonSection: React.FC<PlayerSeasonSectionProps> = ({seasons, selectedSeasons, onSeasonChange}) => {
     return (
-        <FilterSection title="SEASONS">
+        <FilterSection title="SEASONS" summary={seasonSummary(selectedSeasons)}>
             <div className={shared['season-group']}>
                 {seasons.map(season => (
                     <label className={shared['season-checkbox-label']} key={season}>

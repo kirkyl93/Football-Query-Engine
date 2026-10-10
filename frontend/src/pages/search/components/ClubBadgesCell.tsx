@@ -1,4 +1,5 @@
 import React from "react";
+import shared from "../../../styles/shared.module.css";
 
 interface ClubBadgesCellProps {
     clubIds: (number | string)[];
@@ -15,7 +16,7 @@ export const ClubBadgesCell: React.FC<ClubBadgesCellProps> = ({clubIds, cellClas
                     key={trimmedClubId}
                     src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(trimmedClubId)}.png`}
                     alt={`Club ${trimmedClubId}`}
-                    width="20px"
+                    className={shared['club-badge']}
                     style={{marginRight: '5px'}}
                 />
             );

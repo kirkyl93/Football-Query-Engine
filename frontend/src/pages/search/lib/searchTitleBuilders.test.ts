@@ -4,7 +4,7 @@ import { constructSearchTitle, seasonsTitle, sortByTitle } from './searchTitleBu
 
 describe('seasonsTitle', () => {
     it('reports all seasons when empty', () => {
-        expect(seasonsTitle({...createDefaultSearchFilterState(), seasons: []})).toBe('ALL SEASONS');
+        expect(seasonsTitle({...createDefaultSearchFilterState(), seasons: []})).toBe('All Seasons');
     });
 
     it('formats a single season', () => {
@@ -26,14 +26,14 @@ describe('seasonsTitle', () => {
 
 describe('sortByTitle', () => {
     it('defaults to top scorers', () => {
-        expect(sortByTitle(createDefaultSearchFilterState()).startsWith('TOP SCORERS')).toBe(true);
+        expect(sortByTitle(createDefaultSearchFilterState()).startsWith('Top Scorers')).toBe(true);
     });
 });
 
 describe('constructSearchTitle', () => {
     it('combines sort, competitions and seasons', () => {
         const title = constructSearchTitle(createDefaultSearchFilterState());
-        expect(title).toContain('TOP SCORERS');
+        expect(title).toContain('Top Scorers');
         expect(title).toContain('2025/26');
     });
 });

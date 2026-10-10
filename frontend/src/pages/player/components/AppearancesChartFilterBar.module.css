@@ -7,6 +7,7 @@
     background-color: #ffffff;
     border: black solid 1px;
     padding: 20px;
+    box-sizing: border-box;
     transition: right 0.3s ease;
     z-index: 5;
     display: flex;

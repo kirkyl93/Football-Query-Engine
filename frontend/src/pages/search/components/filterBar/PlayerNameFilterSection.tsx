@@ -1,5 +1,6 @@
 import React from "react";
 import FilterSection from "../../../../components/FilterSection";
+import {namesSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface PlayerNameFilterSectionProps {
@@ -18,7 +19,7 @@ const PlayerNameFilterSection: React.FC<PlayerNameFilterSectionProps> = ({
     onRemovePlayerName,
 }) => {
     return (
-        <FilterSection title="PLAYER NAMES">
+        <FilterSection title="PLAYER NAMES" summary={namesSummary(playerNames)}>
             <div className={shared['player-name-and-club-dropdown-content']}>
                 <input
                     type="text"

@@ -2,6 +2,7 @@ import React from "react";
 import {formatSeason} from "../../../../lib/DateUtils";
 import {seasons} from "../../lib/searchFilterOptions";
 import FilterSection from "../../../../components/FilterSection";
+import {seasonSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface SeasonFilterSectionProps {
@@ -11,7 +12,7 @@ interface SeasonFilterSectionProps {
 
 const SeasonFilterSection: React.FC<SeasonFilterSectionProps> = ({selectedSeasons, onSeasonChange}) => {
     return (
-        <FilterSection title="SEASONS">
+        <FilterSection title="SEASONS" summary={seasonSummary(selectedSeasons)}>
             <div className={shared['season-group']}>
                 {seasons.map(season => (
                     <label className={shared['season-checkbox-label']} key={season}>

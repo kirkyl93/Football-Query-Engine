@@ -1,4 +1,5 @@
 import {useMemo} from "react";
+import type {PlayerAppearance} from "../../../types/Player";
 
 const MIN_LENGTH = 20;
 const MAX_LENGTH = 600;
@@ -44,6 +45,23 @@ export interface ChartSizing {
     rectangleHeight: number;
     barChartOpacity: number;
 }
+
+/**
+ * Y-axis domain for the appearances chart. European games can run past
+ * 90 minutes, otherwise a full match is the ceiling. Falls back to a
+ * full match when filters leave nothing to measure — Math.max of an
+ * empty range is -Infinity, which crashes the chart.
+ */
+export const calculateYDomain = (
+    zoomedData: PlayerAppearance[],
+    hasEuropeanCompetitions: boolean,
+): number[] => {
+    if (!hasEuropeanCompetitions || zoomedData.length === 0) {
+        return [0, 90];
+    }
+    const maxMinutes = Math.max(...zoomedData.map(app => app.minutes_played[1]));
+    return [0, maxMinutes];
+};
 
 /** All zoom-dependent chart dimensions, recomputed when the data changes. */
 export const useChartSizing = (dataLength: number): ChartSizing => {

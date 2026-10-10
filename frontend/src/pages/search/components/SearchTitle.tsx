@@ -19,8 +19,8 @@ const SearchTitle: React.FC<SearchTitleProps> = (
     return (
         <h4 className={shared['title']}>
             {constructTitle}
-            <TitleClubBadges label=" · PLAYING FOR:" clubIds={filterState.clubsPlayedFor} />
-            <TitleClubBadges label="· PLAYING AGAINST:" clubIds={filterState.clubsPlayedAgainst} />
+            <TitleClubBadges label=" · Playing For:" clubIds={filterState.clubsPlayedFor} />
+            <TitleClubBadges label="· Playing Against:" clubIds={filterState.clubsPlayedAgainst} />
         </h4>
     );
 }

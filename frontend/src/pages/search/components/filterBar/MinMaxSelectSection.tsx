@@ -1,5 +1,6 @@
 import React from "react";
 import FilterSection from "../../../../components/FilterSection";
+import {minMaxSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface MinMaxSelectSectionProps {
@@ -9,6 +10,7 @@ interface MinMaxSelectSectionProps {
     maxLabel: string;
     minValue?: number;
     maxValue?: number;
+    summaryUnit?: string;
     onMinChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     onMaxChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
@@ -21,11 +23,12 @@ const MinMaxSelectSection: React.FC<MinMaxSelectSectionProps> = ({
     maxLabel,
     minValue,
     maxValue,
+    summaryUnit = "",
     onMinChange,
     onMaxChange,
 }) => {
     return (
-        <FilterSection title={title}>
+        <FilterSection title={title} summary={minMaxSummary(minValue, maxValue, summaryUnit)}>
             <div className={shared['minute-and-age-and-sub-dropdown-group']}>
                 <label>{minLabel}</label>
                 <select value={minValue ?? ''} onChange={onMinChange}>

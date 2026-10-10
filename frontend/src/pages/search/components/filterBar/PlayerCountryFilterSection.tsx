@@ -1,6 +1,7 @@
 import React from "react";
 import {Country} from "../../../../data/Countries";
 import FilterSection from "../../../../components/FilterSection";
+import {countriesSummary} from "../../lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface PlayerCountryFilterSectionProps {
@@ -20,8 +21,24 @@ const PlayerCountryFilterSection: React.FC<PlayerCountryFilterSectionProps> = ({
     onSelectCountry,
     onRemoveCountry,
 }) => {
+    const countrySummary =
+        selectedCountries.length === 0 || selectedCountries.length > 3
+            ? countriesSummary(selectedCountries)
+            : (
+                <span className={shared['summary-inline']}>
+                    {selectedCountries.map((country) => (
+                        <img
+                            key={country.code}
+                            src={`https://flagcdn.com/w20/${country.code}.png`}
+                            alt={country.name}
+                            title={country.name}
+                            className={shared['flag-icon']}
+                        />
+                    ))}
+                </span>
+            );
     return (
-        <FilterSection title="PLAYER COUNTRIES">
+        <FilterSection title="PLAYER COUNTRIES" summary={countrySummary}>
             <div className={shared['player-name-and-club-dropdown-content']}>
                 <input
                     type="text"

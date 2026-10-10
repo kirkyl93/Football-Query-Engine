@@ -1,5 +1,6 @@
 import React from "react";
 import FilterSection from "../../../../components/FilterSection";
+import {clubsSummary} from "../../../search/lib/filterSummaries";
 import shared from '../../../../styles/shared.module.css';
 
 interface ClubsPlayedAgainstSectionProps {
@@ -12,6 +13,9 @@ interface ClubsPlayedAgainstSectionProps {
     onRemoveClub: (clubId: number) => void;
 }
 
+const badgeUrl = (clubId: number | string) =>
+    `https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(clubId)}.png`;
+
 const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
     selectedClubIds,
     query,
@@ -21,8 +25,24 @@ const ClubsPlayedAgainstSection: React.FC<ClubsPlayedAgainstSectionProps> = ({
     onSuggestionClick,
     onRemoveClub,
 }) => {
+    const againstSummary =
+        selectedClubIds.length === 0 || selectedClubIds.length > 4
+            ? clubsSummary([], selectedClubIds)
+            : (
+                <span className={shared['summary-inline']}>
+                    {selectedClubIds.map((clubId) => (
+                        <img
+                            key={clubId}
+                            className={shared['club-badge']}
+                            alt="Badge of selected club"
+                            title="Played against"
+                            src={badgeUrl(clubId)}
+                        />
+                    ))}
+                </span>
+            );
     return (
-        <FilterSection title="CLUBS PLAYED AGAINST">
+        <FilterSection title="OPPONENTS" summary={againstSummary}>
             <div className={shared['player-name-and-club-dropdown-content']}>
                 <input
                     type="text"

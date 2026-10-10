@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import PlayerSearchBar from './PlayerSearchBar';
 import type { Player } from '../types/Player';
@@ -62,8 +62,7 @@ describe('PlayerSearchBar', () => {
         });
 
         expect(screen.getByText('Harry Kane')).toBeInTheDocument();
-        const link = screen.getByText('Harry Kane').closest('a');
-        expect(link?.getAttribute('href')).toBe('/player/7');
+        expect(screen.getByText('Harry Kane').closest('li')).toBeInTheDocument();
     });
 
     it('calls onSelectPlayer with game data when not linking', async () => {
@@ -87,6 +86,38 @@ describe('PlayerSearchBar', () => {
         await act(async () => {});
         expect(onSelectPlayer).toHaveBeenCalledWith('Kane', games);
         expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('navigates to the player page when clicking a suggestion', async () => {
+        vi.useFakeTimers();
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({json: async () => [player]}));
+        const onDismiss = vi.fn();
+        const LocationProbe = () => {
+            const location = useLocation();
+            return <div data-testid="loc">{location.pathname}</div>;
+        };
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <PlayerSearchBar
+                    placeHolderText="Search for a player..."
+                    linkToPlayer={true}
+                    onDismiss={onDismiss}
+                />
+                <LocationProbe />
+            </MemoryRouter>,
+        );
+
+        fireEvent.change(screen.getByPlaceholderText('Search for a player...'), {
+            target: {value: 'Kane'},
+        });
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(300);
+        });
+        // Clicking anywhere on the row (not just the name) navigates.
+        fireEvent.click(screen.getByText('Harry Kane').closest('li')!);
+
+        expect(onDismiss).toHaveBeenCalled();
+        expect(screen.getByTestId('loc').textContent).toBe('/player/7');
     });
 
     it('clears the dropdown on Escape', async () => {
