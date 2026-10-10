@@ -23,15 +23,11 @@ interface AppearancesMainChartProps {
     yDomain: number[];
     refAreaLeft: number | null;
     refAreaRight: number | null;
-    chartRef: React.RefObject<HTMLDivElement | null>;
     showCleanSheets: boolean;
     tooltip: React.ReactElement | ((props: any) => React.ReactNode);
     onMouseDown: (e: { activeLabel?: number }) => void;
     onMouseMove: (e: { activeLabel?: number }) => void;
     onMouseUp: () => void;
-    onZoom: (e: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => void;
-    onEnter: () => void;
-    onLeave: () => void;
 }
 
 // Static chart chrome: module-level so Recharts never sees a fresh object
@@ -66,15 +62,11 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     yDomain,
     refAreaLeft,
     refAreaRight,
-    chartRef,
     showCleanSheets,
     tooltip,
     onMouseDown,
     onMouseMove,
     onMouseUp,
-    onZoom,
-    onEnter,
-    onLeave,
 }) => {
     const {barChartWidth, strokeWidth, scatterDotRadius, rectangleWidth, rectangleHeight, barChartOpacity} = sizing;
 
@@ -111,14 +103,11 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
         onMouseMove(e as { activeLabel?: number });
     }, [onMouseMove]);
 
+    // No wheel/pinch handlers here by design: the wheel scrolls the page
+    // natively and touch scrolls/zooms via the browser. Zooming is via
+    // drag-select on the chart plus the zoom-out button.
     return (
-        <div
-             onWheel={onZoom}
-             onTouchMove={onZoom}
-             onMouseEnter={onEnter}
-             onMouseLeave={onLeave}
-             ref={chartRef}
-             style={{touchAction: 'none'}}>
+        <div>
             <div style={{height: '360px'}}>
                 <ResponsiveContainer>
                     <ComposedChart

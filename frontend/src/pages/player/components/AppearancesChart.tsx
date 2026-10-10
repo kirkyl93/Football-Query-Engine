@@ -42,14 +42,10 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
         endGame,
         refAreaLeft,
         refAreaRight,
-        chartRef,
         handleMouseDown,
         handleMouseMove,
         handleMouseUp,
         handleZoomOut,
-        handleZoom,
-        stopScrolling,
-        enableScrolling,
     } = useChartZoom(filteredData);
 
     const noEventFiltersSelected = useMemo(
@@ -173,15 +169,11 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 yDomain={yDomain}
                 refAreaLeft={refAreaLeft}
                 refAreaRight={refAreaRight}
-                chartRef={chartRef}
                 showCleanSheets={showCleanSheets}
                 tooltip={tooltip}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
-                onZoom={handleZoom}
-                onEnter={stopScrolling}
-                onLeave={enableScrolling}
             />
         </div>
     );

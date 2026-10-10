@@ -77,3 +77,4 @@ describe('calculateYDomain', () => {
         expect(calculateYDomain([], false)).toEqual([0, 90]);
     });
 });
+

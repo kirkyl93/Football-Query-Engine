@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type { BarShapeProps } from 'recharts';
 import type { PlayerAppearance } from '../../../../types/Player';
 import { resolveBarFills } from '../../lib/barFillColours';
@@ -100,7 +100,6 @@ describe('AppearancesMainChart at scale', () => {
 
     it('mounts with 600 bars without crashing', () => {
         const data = buildCareer(600);
-        const ref = {current: null} as React.RefObject<HTMLDivElement | null>;
         const noop = () => {};
 
         const {container} = render(
@@ -112,15 +111,11 @@ describe('AppearancesMainChart at scale', () => {
                 yDomain={[0, 90]}
                 refAreaLeft={null}
                 refAreaRight={null}
-                chartRef={ref}
                 showCleanSheets
                 tooltip={<div/>}
                 onMouseDown={noop}
                 onMouseMove={noop}
                 onMouseUp={noop}
-                onZoom={vi.fn()}
-                onEnter={noop}
-                onLeave={noop}
             />,
         );
 
