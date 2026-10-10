@@ -50,7 +50,6 @@ const X_AXIS_STYLE = {fontSize: '12px', userSelect: 'none' as const};
 const Y_AXIS_STYLE = {fontSize: '12px', userSelect: 'none' as const};
 const X_AXIS_TICK = {dy: 10};
 const Y_AXIS_TICK = {dx: -10};
-const X_AXIS_DOMAIN: [string, string] = ["dataMin", "dataMax + 1"];
 
 const formatYTick = (value: number): string => (value > 0 ? String(value) : "");
 
@@ -124,13 +123,13 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
                             tickLine={false}
                             allowDecimals={false}
                             label={X_AXIS_LABEL}
-                            type='number'
+                            type='category'
                             tickCount={10}
-                            domain={X_AXIS_DOMAIN}
                             style={X_AXIS_STYLE}
                             tick={X_AXIS_TICK}
                             interval="preserveStartEnd"
                             minTickGap={24}
+                            allowDuplicatedCategory={false}
                         />
                         <YAxis
                             tickLine={false}
