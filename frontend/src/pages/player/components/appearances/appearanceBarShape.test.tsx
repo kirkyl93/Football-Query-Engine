@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { Rectangle, type BarShapeProps } from 'recharts';
+import { type BarShapeProps } from 'recharts';
 import { getClubPrimary } from '../../../../lib/ClubDirectory';
 import type { PlayerAppearance } from '../../../../types/Player';
 import { resolveBarFills } from '../../lib/barFillColours';
-import { createAppearanceBarShape } from './appearanceBarShape';
+import { BAR_STROKE_CUTOFF, createAppearanceBarShape } from './appearanceBarShape';
 
 const game = (overrides: Partial<PlayerAppearance> = {}): PlayerAppearance => ({
     game_number: 1,
@@ -53,7 +53,7 @@ describe('createAppearanceBarShape', () => {
 
         const element = shape(shapeProps(0)) as React.ReactElement<any>;
 
-        expect(element.type).toBe(Rectangle);
+        expect(element.type).toBe('rect');
         expect(element.props.fill).toBe(resolveBarFills(zoomedData)[0]);
         expect(element.props.fillOpacity).toBe(1.35);
         expect(element.props.x).toBe(10);
@@ -100,5 +100,21 @@ describe('createAppearanceBarShape', () => {
         const element = shape(shapeProps(0)) as React.ReactElement<any>;
 
         expect(element.props.fillOpacity).toBe(1);
+    });
+
+    it('omits sub-pixel strokes that cost paint but are invisible', () => {
+        const zoomedData = [game()];
+        const shape = createAppearanceBarShape({
+            zoomedData,
+            barFills: resolveBarFills(zoomedData),
+            showCleanSheets: true,
+            barChartOpacity: 1,
+            strokeWidth: BAR_STROKE_CUTOFF / 2,
+        });
+
+        const element = shape(shapeProps(0)) as React.ReactElement<any>;
+
+        expect(element.props.stroke).toBe('none');
+        expect(element.props.strokeWidth).toBe(0);
     });
 });

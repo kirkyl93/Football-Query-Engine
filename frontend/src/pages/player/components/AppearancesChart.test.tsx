@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AppearancesChart } from './AppearancesChart';
@@ -73,7 +73,9 @@ describe('AppearancesChart', () => {
         await user.click(screen.getByText('Away'));
         await user.click(screen.getByText('APPLY'));
 
-        expect(onZoomChange).toHaveBeenLastCalledWith([]);
+        // Zoom propagation is debounced so rapid zoom gestures don't recompute
+        // page-level stats at 60Hz; the settled (empty) window arrives shortly after.
+        await waitFor(() => expect(onZoomChange).toHaveBeenLastCalledWith([]));
         expect(screen.getByText('SEASONS')).toBeInTheDocument();
     });
 });
