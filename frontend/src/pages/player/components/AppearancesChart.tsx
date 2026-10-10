@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import AppearancesChartTitle from "./AppearancesChartTitle";
 import AppearancesChartFilterBar from "./AppearancesChartFilterBar";
 import styles from '../Player.module.css';
@@ -22,6 +22,15 @@ type AppearancesChartProps = {
 
 };
 
+/**
+ * Delay before a settled zoom window propagates to the page-level stats and
+ * sibling charts. The chart itself stays live every frame; only the
+ * expensive fan-out (streak + stats recalculation across PlayerChartsGrid)
+ * waits for the gesture to settle. Without this, each wheel tick at 250+
+ * bars recomputes all stats and re-renders every small chart at 60Hz.
+ */
+export const ZOOM_CHANGE_DEBOUNCE_MS = 150;
+
 export function AppearancesChart({playerName: name, data: initialData, onZoomChange: onZoomChange}: AppearancesChartProps) {
     const [isPlayerDrawerOpen, setIsPlayerDrawerOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
@@ -33,14 +42,10 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
         endGame,
         refAreaLeft,
         refAreaRight,
-        chartRef,
         handleMouseDown,
         handleMouseMove,
         handleMouseUp,
         handleZoomOut,
-        handleZoom,
-        stopScrolling,
-        enableScrolling,
     } = useChartZoom(filteredData);
 
     const noEventFiltersSelected = useMemo(
@@ -48,10 +53,14 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
         [playerFilterState],
     );
 
+    // Debounced fan-out: chart + summary header render from zoomedData
+    // immediately; parent stats wait for the gesture to settle.
     useEffect(() => {
-        if (onZoomChange) {
-            onZoomChange(zoomedData);
+        if (!onZoomChange) {
+            return;
         }
+        const timer = setTimeout(() => onZoomChange(zoomedData), ZOOM_CHANGE_DEBOUNCE_MS);
+        return () => clearTimeout(timer);
     }, [zoomedData, onZoomChange]);
 
     const scatterData = useMemo(
@@ -73,10 +82,26 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
         () => new Map(zoomedData.map((appearance, index) => [appearance.game_number, barFills[index]])),
         [zoomedData, barFills],
     );
+    const filteredByGame = useMemo(
+        () => new Map(filteredData.map((appearance) => [appearance.game_number, appearance])),
+        [filteredData],
+    );
+    const showCleanSheets = noEventFiltersSelected || playerFilterState.selectedEvents.CleanSheets;
 
-    const toggleDrawer = () => {
-        setIsPlayerDrawerOpen(!isPlayerDrawerOpen);
-    }
+    // Stable tooltip element: without memo the parent builds a fresh element
+    // (and Map) identity every commit, defeating AppearancesMainChart memo.
+    const tooltip = useMemo(
+        () => <AppearancesTooltip filteredData={filteredData} filteredByGame={filteredByGame} barFillsByGame={barFillsByGame}/>,
+        [filteredData, filteredByGame, barFillsByGame],
+    );
+
+    const toggleDrawer = useCallback(() => {
+        setIsPlayerDrawerOpen((open) => !open);
+    }, []);
+
+    const closeDrawer = useCallback(() => {
+        setIsPlayerDrawerOpen(false);
+    }, []);
 
     useEffect(() => {
         if (!isPlayerDrawerOpen) {
@@ -133,7 +158,7 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                     playerFilterState={playerFilterState}
                     playerSeasonsCompetitionsAndClubs={metadata}
                     onFilterChange={setPlayerFilterState}
-                    onClose={toggleDrawer}
+                    onClose={closeDrawer}
                 />
             </div>
             <AppearancesMainChart
@@ -144,15 +169,11 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 yDomain={yDomain}
                 refAreaLeft={refAreaLeft}
                 refAreaRight={refAreaRight}
-                chartRef={chartRef}
-                showCleanSheets={noEventFiltersSelected || playerFilterState.selectedEvents.CleanSheets}
-                tooltip={<AppearancesTooltip filteredData={filteredData} barFillsByGame={barFillsByGame}/>}
+                showCleanSheets={showCleanSheets}
+                tooltip={tooltip}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
-                onZoom={handleZoom}
-                onEnter={stopScrolling}
-                onLeave={enableScrolling}
             />
         </div>
     );

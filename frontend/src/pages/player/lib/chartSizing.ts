@@ -59,7 +59,15 @@ export const calculateYDomain = (
     if (!hasEuropeanCompetitions || zoomedData.length === 0) {
         return [0, 90];
     }
-    const maxMinutes = Math.max(...zoomedData.map(app => app.minutes_played[1]));
+    // Single pass without an intermediate array or spread call, so large
+    // zoom windows don't allocate per wheel-tick commit.
+    let maxMinutes = 0;
+    for (let i = 0; i < zoomedData.length; i++) {
+        const end = zoomedData[i].minutes_played[1];
+        if (end > maxMinutes) {
+            maxMinutes = end;
+        }
+    }
     return [0, maxMinutes];
 };
 

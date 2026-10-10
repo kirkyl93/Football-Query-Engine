@@ -66,4 +66,8 @@
     overflow: hidden;
     width: 100%;
     font-weight: 400;
+    /* Skip rendering work for off-screen charts while page-scrolling; the
+       intrinsic size placeholder keeps the scrollbar stable. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
 }

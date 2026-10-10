@@ -1,4 +1,4 @@
-import React, {useMemo} from "react";
+import React, {useCallback, useMemo} from "react";
 import {
     Bar,
     ComposedChart,
@@ -13,6 +13,7 @@ import {PlayerAppearance} from "../../../../types/Player";
 import {ChartSizing} from "../../lib/chartSizing";
 import {ScatterEvent} from "../../lib/appearancesEventMapper";
 import {createAppearanceBarShape} from "./appearanceBarShape";
+import {ScatterGlyph} from "./ScatterEventShape";
 
 interface AppearancesMainChartProps {
     zoomedData: PlayerAppearance[];
@@ -22,16 +23,36 @@ interface AppearancesMainChartProps {
     yDomain: number[];
     refAreaLeft: number | null;
     refAreaRight: number | null;
-    chartRef: React.RefObject<HTMLDivElement | null>;
     showCleanSheets: boolean;
     tooltip: React.ReactElement | ((props: any) => React.ReactNode);
     onMouseDown: (e: { activeLabel?: number }) => void;
     onMouseMove: (e: { activeLabel?: number }) => void;
     onMouseUp: () => void;
-    onZoom: (e: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => void;
-    onEnter: () => void;
-    onLeave: () => void;
 }
+
+// Static chart chrome: module-level so Recharts never sees a fresh object
+// identity (and re-renders) just because the parent committed.
+const CHART_MARGIN = {top: 20, right: 20, left: 20, bottom: 40};
+const X_AXIS_LABEL = {
+    value: "Game Number",
+    dx: 0,
+    dy: 30,
+    style: {fontSize: 14, userSelect: 'none' as const},
+};
+const Y_AXIS_LABEL = {
+    value: "Minute",
+    dx: -30,
+    dy: 0,
+    angle: -90,
+    style: {fontSize: 14, userSelect: 'none' as const},
+};
+const X_AXIS_STYLE = {fontSize: '12px', userSelect: 'none' as const};
+const Y_AXIS_STYLE = {fontSize: '12px', userSelect: 'none' as const};
+const X_AXIS_TICK = {dy: 10};
+const Y_AXIS_TICK = {dx: -10};
+const X_AXIS_DOMAIN: [string, string] = ["dataMin", "dataMax + 1"];
+
+const formatYTick = (value: number): string => (value > 0 ? String(value) : "");
 
 const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     zoomedData,
@@ -41,18 +62,12 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     yDomain,
     refAreaLeft,
     refAreaRight,
-    chartRef,
     showCleanSheets,
     tooltip,
     onMouseDown,
     onMouseMove,
     onMouseUp,
-    onZoom,
-    onEnter,
-    onLeave,
 }) => {
-    const syncId = useMemo(() => `chart-${Math.random().toString(36).substring(2, 10)}`, []);
-
     const {barChartWidth, strokeWidth, scatterDotRadius, rectangleWidth, rectangleHeight, barChartOpacity} = sizing;
 
     const barShape = useMemo(
@@ -60,27 +75,46 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
         [zoomedData, barFills, showCleanSheets, barChartOpacity, strokeWidth],
     );
 
+    // Stable scatter renderer: the previous inline closure gave Scatter a new
+    // shape identity on every parent commit, remounting every marker.
+    const scatterShape = useCallback((props: {
+        cx?: number;
+        cy?: number;
+        payload?: { shape?: string; color?: string };
+    }) => (
+        <ScatterGlyph
+            cx={props.cx}
+            cy={props.cy}
+            payload={props.payload}
+            rectangleWidth={rectangleWidth}
+            rectangleHeight={rectangleHeight}
+            scatterDotRadius={scatterDotRadius}
+            strokeWidth={strokeWidth}
+        />
+    ), [rectangleWidth, rectangleHeight, scatterDotRadius, strokeWidth]);
+
+    // Recharts passes rich mouse state; the zoom hook only needs activeLabel.
+    // Stable shims (instead of per-render closures) keep ComposedChart props
+    // referentially stable across commits that don't touch zoom.
+    const handleMouseDown = useCallback((e: unknown) => {
+        onMouseDown(e as { activeLabel?: number });
+    }, [onMouseDown]);
+    const handleMouseMove = useCallback((e: unknown) => {
+        onMouseMove(e as { activeLabel?: number });
+    }, [onMouseMove]);
+
+    // No wheel/pinch handlers here by design: the wheel scrolls the page
+    // natively and touch scrolls/zooms via the browser. Zooming is via
+    // drag-select on the chart plus the zoom-out button.
     return (
-        <div
-             onWheel={onZoom}
-             onTouchMove={onZoom}
-             onMouseEnter={onEnter}
-             onMouseLeave={onLeave}
-             ref={chartRef}
-             style={{touchAction: 'none'}}>
+        <div>
             <div style={{height: '360px'}}>
                 <ResponsiveContainer>
                     <ComposedChart
                         data={zoomedData}
-                        margin={{
-                            top: 20,
-                            right: 20,
-                            left: 20,
-                            bottom: 40,
-                        }}
-                        syncId={syncId}
-                        onMouseDown={handleMouseDownShim(onMouseDown)}
-                        onMouseMove={handleMouseMoveShim(onMouseMove)}
+                        margin={CHART_MARGIN}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
                         onMouseUp={onMouseUp}
                         onMouseLeave={onMouseUp}
                     >
@@ -89,38 +123,29 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
                             axisLine={false}
                             tickLine={false}
                             allowDecimals={false}
-                            label={{
-                                value: "Game Number",
-                                dx: 0,
-                                dy: 30,
-                                style: {fontSize: 14, userSelect: 'none'},
-                            }}
+                            label={X_AXIS_LABEL}
                             type='number'
                             tickCount={10}
-                            domain={["dataMin", "dataMax + 1"]}
-                            style={{fontSize: '12px', userSelect: 'none'}}
-                            tick={{dy: 10}}
+                            domain={X_AXIS_DOMAIN}
+                            style={X_AXIS_STYLE}
+                            tick={X_AXIS_TICK}
+                            interval="preserveStartEnd"
+                            minTickGap={24}
                         />
                         <YAxis
                             tickLine={false}
                             axisLine={false}
                             tickCount={9}
-                            label={{
-                                value: "Minute",
-                                dx: -30,
-                                dy: 0,
-                                angle: -90,
-                                style: {fontSize: 14, userSelect: 'none'},
-                            }}
+                            label={Y_AXIS_LABEL}
                             domain={yDomain}
-                            style={{fontSize: '12px', userSelect: 'none'}}
-                            tick={{dx: -10}}
-                            tickFormatter={(value) => (value > 0 ? value : "")}
+                            style={Y_AXIS_STYLE}
+                            tick={Y_AXIS_TICK}
+                            tickFormatter={formatYTick}
+                            width={44}
                         />
-                        <Tooltip content={tooltip}/>
+                        <Tooltip content={tooltip} animationDuration={0}/>
 
                         <Bar
-                            type="monotone"
                             dataKey="minutes_played"
                             barSize={barChartWidth}
                             fillOpacity={barChartOpacity}
@@ -135,31 +160,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
                             data={scatterData}
                             dataKey="minute"
                             isAnimationActive={false}
-                            shape={(props: {
-                                cx?: number;
-                                cy?: number;
-                                size?: number;
-                                fill?: string;
-                                payload?: any
-                            }) => {
-                                const {cx, cy, size, fill} = props;
-
-                                switch (props.payload.shape) {
-                                    case 'rectangle':
-                                        return <rect
-                                            x={cx! - (rectangleWidth / 2)}
-                                            y={cy! - rectangleHeight / 2}
-                                            width={rectangleWidth}
-                                            height={rectangleHeight}
-                                            stroke={"black"}
-                                            strokeWidth={strokeWidth}
-                                            fill={props.payload.color}
-                                        />;
-                                    default:
-                                        return <circle cx={cx} cy={cy} r={scatterDotRadius}
-                                                       fill={props.payload.color}/>;
-                                }
-                            }}
+                            shape={scatterShape}
                         />
                         {refAreaLeft && refAreaRight && (
                             <ReferenceArea
@@ -177,11 +178,4 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     );
 };
 
-/** Recharts passes rich mouse state; the zoom hook only needs activeLabel. */
-const handleMouseDownShim = (handler: (e: { activeLabel?: number }) => void) => (e: unknown) =>
-    handler(e as { activeLabel?: number });
-
-const handleMouseMoveShim = (handler: (e: { activeLabel?: number }) => void) => (e: unknown) =>
-    handler(e as { activeLabel?: number });
-
-export default AppearancesMainChart;
+export default React.memo(AppearancesMainChart);
