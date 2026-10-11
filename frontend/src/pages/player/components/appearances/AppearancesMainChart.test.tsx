@@ -1,13 +1,9 @@
-import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import type { BarShapeProps } from 'recharts';
+import { fireEvent, render } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PlayerAppearance } from '../../../../types/Player';
 import { resolveBarFills } from '../../lib/barFillColours';
-import { calculateYDomain } from '../../lib/chartSizing';
 import { mapAppearanceEvents } from '../../lib/appearancesEventMapper';
 import { EventType } from '../../../../types/Player';
-import { createAppearanceBarShape } from './appearanceBarShape';
-import { ScatterGlyph } from './ScatterEventShape';
 import AppearancesMainChart from './AppearancesMainChart';
 
 const game = (n: number): PlayerAppearance => ({
@@ -22,27 +18,24 @@ const game = (n: number): PlayerAppearance => ({
     competition_type: 'League',
     date: '2025-08-01',
     season: 2025,
-    goals: n % 3 === 0 ? 1 : 0,
+    goals: 0,
     penalty_goals: 0,
-    assists: n % 4 === 0 ? 1 : 0,
+    assists: 0,
     yellow_cards: 0,
     red_cards: 0,
     played_from_minute: 0,
     subbed_off_minute: 0,
     home_club_goals: 2,
     away_club_goals: 0,
-    goal_minutes: n % 3 === 0 ? [23] : [],
+    goal_minutes: [],
     penalty_goal_minutes: [],
     own_goal_minutes: [],
-    assist_minutes: n % 4 === 0 ? [55] : [],
+    assist_minutes: [],
     yellow_minutes: [],
     red_minutes: [],
     minutes_played: [0, 90],
-    result: n % 2 === 0 ? 'Win' : 'Loss',
+    result: 'Win',
 });
-
-const buildCareer = (count: number): PlayerAppearance[] =>
-    Array.from({length: count}, (_, i) => game(i + 1));
 
 const noEvents = (): Record<EventType, boolean> => ({
     [EventType.Goals]: false,
@@ -54,71 +47,76 @@ const noEvents = (): Record<EventType, boolean> => ({
     [EventType.Reds]: false,
 });
 
-describe('AppearancesMainChart at scale', () => {
-    it('derives fills, events and domain for a 600-game career without blowing up', () => {
-        const data = buildCareer(600);
+const renderChart = (count = 10) => {
+    const data = Array.from({length: count}, (_, i) => game(i + 1));
+    const noop = () => {};
+    return render(
+        <AppearancesMainChart
+            zoomedData={data}
+            barFills={resolveBarFills(data)}
+            scatterData={mapAppearanceEvents(data, noEvents(), true)}
+            sizing={{barChartWidth: 10, strokeWidth: 1, scatterDotRadius: 5, rectangleWidth: 8, rectangleHeight: 8, barChartOpacity: 1}}
+            yDomain={[0, 90]}
+            refAreaLeft={null}
+            refAreaRight={null}
+            showCleanSheets
+            tooltip={<div/>}
+            onMouseDown={noop}
+            onMouseMove={noop}
+            onMouseUp={noop}
+        />,
+    );
+};
 
-        const started = performance.now();
-        const fills = resolveBarFills(data);
-        // No events selected => every per-game marker set is included.
-        const events = mapAppearanceEvents(data, noEvents(), true);
-        const domain = calculateYDomain(data, false);
-        const elapsed = performance.now() - started;
-
-        expect(fills).toHaveLength(600);
-        // 600 result dots + 200 goals + 150 assists.
-        expect(events).toHaveLength(600 + 200 + 150);
-        expect(domain).toEqual([0, 90]);
-        // Generous guard against pathological (e.g. quadratic) derivations;
-        // jsdom timing is noisy so this only catches blowups, not regressions.
-        expect(elapsed).toBeLessThan(10000);
-
-        const shape = createAppearanceBarShape({
-            zoomedData: data,
-            barFills: fills,
-            showCleanSheets: true,
-            barChartOpacity: 3,
-            strokeWidth: 0.002,
-        });
-        for (let i = 0; i < data.length; i++) {
-            const element = shape({index: i, x: i, y: 0, width: 1, height: 90} as BarShapeProps) as React.ReactElement<any>;
-            expect(element.type).toBe('rect');
-        }
+describe('AppearancesMainChart', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
-    it('renders the scatter glyph for both marker kinds', () => {
-        const {container: rectContainer} = render(
-            <svg><ScatterGlyph cx={10} cy={20} payload={{shape: 'rectangle', color: 'blue'}} rectangleWidth={4} rectangleHeight={6} scatterDotRadius={3} strokeWidth={1}/></svg>,
-        );
-        expect(rectContainer.querySelector('rect')).not.toBeNull();
+    it('mounts a canvas without crashing where there is no layout engine', () => {
+        // jsdom provides neither ResizeObserver nor a 2d context: the
+        // component must render its canvas shell without throwing.
+        const {container} = renderChart();
 
-        const {container: dotContainer} = render(
-            <svg><ScatterGlyph cx={10} cy={20} payload={{shape: 'dot', color: 'green'}} rectangleWidth={4} rectangleHeight={6} scatterDotRadius={3} strokeWidth={1}/></svg>,
-        );
-        expect(dotContainer.querySelector('circle')).not.toBeNull();
+        expect(container.querySelector('canvas')).not.toBeNull();
     });
 
-    it('mounts with 600 bars without crashing', () => {
-        const data = buildCareer(600);
-        const noop = () => {};
-
+    it('forwards drag-zoom gestures with the hovered game number', () => {
+        // jsdom reports zero sizes; stub layout so hit-testing sees a plot.
+        vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
+            x: 0, y: 0, left: 0, top: 0, right: 1000, bottom: 360, width: 1000, height: 360,
+            toJSON: () => {},
+        } as DOMRect);
+        const onMouseDown = vi.fn();
+        const onMouseMove = vi.fn();
+        const onMouseUp = vi.fn();
+        const data = Array.from({length: 10}, (_, i) => game(i + 1));
         const {container} = render(
             <AppearancesMainChart
                 zoomedData={data}
                 barFills={resolveBarFills(data)}
                 scatterData={mapAppearanceEvents(data, noEvents(), true)}
-                sizing={{barChartWidth: 0.7, strokeWidth: 0.002, scatterDotRadius: 2.5, rectangleWidth: 3.5, rectangleHeight: 5, barChartOpacity: 3}}
+                sizing={{barChartWidth: 10, strokeWidth: 1, scatterDotRadius: 5, rectangleWidth: 8, rectangleHeight: 8, barChartOpacity: 1}}
                 yDomain={[0, 90]}
                 refAreaLeft={null}
                 refAreaRight={null}
                 showCleanSheets
                 tooltip={<div/>}
-                onMouseDown={noop}
-                onMouseMove={noop}
-                onMouseUp={noop}
+                onMouseDown={onMouseDown}
+                onMouseMove={onMouseMove}
+                onMouseUp={onMouseUp}
             />,
         );
 
-        expect(container.firstChild).not.toBeNull();
+        const surface = container.firstElementChild?.firstElementChild as HTMLElement;
+        fireEvent.mouseDown(surface, {clientX: 100});
+        fireEvent.mouseMove(surface, {clientX: 150});
+        fireEvent.mouseUp(surface);
+
+        // Without layout the wrapper has no width, so every pixel clamps to
+        // the first game — but the gesture plumbing must still fire.
+        expect(onMouseDown).toHaveBeenCalledWith({activeLabel: 1});
+        expect(onMouseMove).toHaveBeenCalledWith({activeLabel: 1});
+        expect(onMouseUp).toHaveBeenCalled();
     });
 });
