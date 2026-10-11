@@ -1,7 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import type {PlayerAppearance} from '../../../types/Player';
 import {getClubColours} from '../../../lib/ClubDirectory';
-import {BAR_FILL_CLASH_THRESHOLD, resolveBarFills} from './barFillColours';
+import {
+    BAR_FILL_BACKGROUND,
+    BAR_FILL_BACKGROUND_THRESHOLD,
+    BAR_FILL_CLASH_THRESHOLD,
+    resolveBarFills,
+} from './barFillColours';
 import {colourDistance} from '../../../lib/ColourUtils';
 
 // Arsenal (11): red/white. Liverpool (31): near-identical red/white.
@@ -57,19 +62,44 @@ describe('resolveBarFills', () => {
     });
 
     it('switches to the secondary colour when primaries clash', () => {
-        const arsenalRed = getClubColours(11)[0];
-        const liverpool = getClubColours(31);
-        // Precondition: the two primaries really are similar reds.
-        expect(colourDistance(arsenalRed, liverpool[0])).toBeLessThan(BAR_FILL_CLASH_THRESHOLD);
+        // Saarbrücken (1) and Arsenal Tula (3729) open with near-identical
+        // yellows; Tula's red secondary is distinct and background-visible.
+        const saarbruckenYellow = getClubColours(1)[0];
+        const tula = getClubColours(3729);
+        expect(colourDistance(saarbruckenYellow, tula[0])).toBeLessThan(BAR_FILL_CLASH_THRESHOLD);
 
+        const fills = resolveBarFills([
+            game({game_number: 1, club_id: 1}),
+            game({game_number: 2, club_id: 3729}),
+        ]);
+
+        expect(fills[0]).toBe(saarbruckenYellow);
+        expect(fills[1]).toBe(tula[1]);
+        expect(colourDistance(fills[0], fills[1])).toBeGreaterThanOrEqual(BAR_FILL_CLASH_THRESHOLD);
+    });
+
+    it('prefers a visible fill over an invisible distinct one', () => {
+        // Liverpool's only non-clashing option is white-on-white: Arsenal
+        // red clashes with Liverpool red, leaving white — invisible on the
+        // canvas once dense charts drop bar strokes.
         const fills = resolveBarFills([
             game({game_number: 1, club_id: 11}),
             game({game_number: 2, club_id: 31}),
         ]);
 
-        expect(fills[0]).toBe(arsenalRed);
-        expect(fills[1]).toBe(liverpool[1]);
-        expect(colourDistance(fills[0], fills[1])).toBeGreaterThanOrEqual(BAR_FILL_CLASH_THRESHOLD);
+        expect(fills[1]).toBe(getClubColours(31)[0]);
+        expect(colourDistance(fills[1], BAR_FILL_BACKGROUND))
+            .toBeGreaterThanOrEqual(BAR_FILL_BACKGROUND_THRESHOLD);
+    });
+
+    it('swaps a near-white primary for a visible club colour', () => {
+        // Real Madrid (418): white primary, blue secondary.
+        const fills = resolveBarFills([
+            game({game_number: 1, club_id: 418}),
+            game({game_number: 2, club_id: 418}),
+        ]);
+
+        expect(fills).toEqual([getClubColours(418)[1], getClubColours(418)[1]]);
     });
 
     it('keeps the primary when the new club colour is distinct', () => {

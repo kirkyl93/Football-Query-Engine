@@ -5,6 +5,8 @@ export const CANVAS_MARGIN = {top: 20, right: 20, left: 20, bottom: 40};
 export const CANVAS_Y_AXIS_WIDTH = 44;
 
 export const CANVAS_HEIGHT = 360;
+/** Below this canvas height axis labels/titles are skipped (tile previews). */
+export const MINIMAL_CHROME_HEIGHT = 250;
 /**
  * Strokes thinner than this are invisible but still cost paint time across
  * hundreds of bars, so they are omitted.
@@ -29,10 +31,18 @@ export interface PlotFrame {
     plotHeight: number;
 }
 
-/** Plot area inside a container of the given CSS-pixel size. */
-export const plotFrameForSize = (width: number, height: number): PlotFrame => {
+/** Plot area inside a container of the given CSS-pixel size. Short
+ * canvases (tile previews) skip axis chrome, so the bottom label reserve
+ * folds back into the plot. */
+export const plotFrameForSize = (
+    width: number,
+    height: number,
+    minimal: boolean = height < MINIMAL_CHROME_HEIGHT,
+): PlotFrame => {
     const plotTop = CANVAS_MARGIN.top;
-    const plotBottom = height - CANVAS_MARGIN.bottom - CANVAS_X_AXIS_HEIGHT;
+    const plotBottom = minimal
+        ? height - 8
+        : height - CANVAS_MARGIN.bottom - CANVAS_X_AXIS_HEIGHT;
     return {
         plotLeft: CANVAS_MARGIN.left + CANVAS_Y_AXIS_WIDTH,
         plotTop,

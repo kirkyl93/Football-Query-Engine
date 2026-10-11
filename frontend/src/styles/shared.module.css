@@ -558,6 +558,13 @@
     margin: 0 5px;
 }
 
+/* Muted suffix for chart titles with an active zoom filter. */
+.title-suffix {
+    font-weight: 400;
+    color: var(--color-muted);
+    white-space: nowrap;
+}
+
 /* ---- Shared page header row (search header + chart header) ---- */
 .header-container {
     display: flex;

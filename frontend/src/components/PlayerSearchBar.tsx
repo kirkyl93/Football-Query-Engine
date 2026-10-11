@@ -8,10 +8,13 @@ interface PlayerSearchBarProps {
     placeHolderText: string;
     linkToPlayer: boolean;
     onSelectPlayer?: (name: string, playerGameData: PlayerAppearance[]) => void;
+    onSelectPlayerId?: (playerId: number, playerName: string) => void;
+    disabled?: boolean;
+    inputId?: string;
     onDismiss?: () => void;
 }
 
-const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onDismiss }) => {
+const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onSelectPlayerId, disabled, inputId, onDismiss }) => {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [suggestions, setSuggestions] = useState<Player[]>([]);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -85,6 +88,10 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
             navigate(`/player/${playerId}`);
             return;
         }
+        if (onSelectPlayerId) {
+            onSelectPlayerId(playerId, suggestion);
+            return;
+        }
         const playerGameData = await fetch(`${API_BASE_URL}/players/${playerId}/games`);
         const data: PlayerAppearance[] = await playerGameData.json();
         if (onSelectPlayer) {
@@ -96,10 +103,12 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
         <form ref={dropdownRef} className={styles['search-form']}>
             <input
                 type="text"
+                id={inputId}
                 placeholder={placeHolderText}
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className={styles['search-input']}
+                disabled={disabled}
             />
 
             {isDropdownVisible && suggestions.length > 0 && (

@@ -8,11 +8,12 @@ interface TeamGoalsConcededPerGameProps {
     teamGoalsConcededByGame: number[];
     comparisonPlayerName: string;
     comparisonTeamGoalsConcededByGame: number[];
+    height?: number;
 }
 
 const TeamGoalsConcededByGameChart: React.FC<TeamGoalsConcededPerGameProps> = (
     {
-        playerName, teamGoalsConcededByGame, comparisonPlayerName, comparisonTeamGoalsConcededByGame
+        playerName, teamGoalsConcededByGame, comparisonPlayerName, comparisonTeamGoalsConcededByGame, height
     }) => {
     return (
         <ComparisonPieChart
@@ -21,6 +22,7 @@ const TeamGoalsConcededByGameChart: React.FC<TeamGoalsConcededPerGameProps> = (
             playerSlices={teamGoalsConcededSlices(teamGoalsConcededByGame)}
             comparisonPlayerName={comparisonPlayerName}
             comparisonSlices={teamGoalsConcededSlices(comparisonTeamGoalsConcededByGame)}
+            height={height}
         />
     )
 }

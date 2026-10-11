@@ -8,11 +8,12 @@ interface GoalsByGameProps {
     goalsByGame: number[];
     comparisonPlayerName: string;
     comparisonGoalsByGame: number[];
+    height?: number;
 }
 
 const GoalsByGameChart: React.FC<GoalsByGameProps> = (
     {
-        playerName, goalsByGame, comparisonPlayerName, comparisonGoalsByGame
+        playerName, goalsByGame, comparisonPlayerName, comparisonGoalsByGame, height
     }) => {
     return (
         <ComparisonPieChart
@@ -21,6 +22,7 @@ const GoalsByGameChart: React.FC<GoalsByGameProps> = (
             playerSlices={goalsByGameSlices(goalsByGame)}
             comparisonPlayerName={comparisonPlayerName}
             comparisonSlices={goalsByGameSlices(comparisonGoalsByGame)}
+            height={height}
         />
     )
 }

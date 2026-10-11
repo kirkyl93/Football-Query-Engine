@@ -8,6 +8,7 @@ import {
     CANVAS_X_TICK_DY,
     CANVAS_X_TITLE_DY,
     CANVAS_Y_TITLE_DX,
+    MINIMAL_CHROME_HEIGHT,
     PlotFrame,
     barCenterX,
     barFillAndStrokeAlpha,
@@ -42,6 +43,8 @@ const CANVAS_STROKE_BOOST = 0.5;
  * Renders the appearances chart into a 2D context in CSS pixels (the caller
  * applies the devicePixelRatio transform). Range bars per game, event markers,
  * clean-sheet opacity boost, drag-select reference area.
+ * Below 250px tall (tile previews) axis labels and titles are skipped:
+ * cramped ticks overlap into noise at that size — details live behind expand.
  * Deliberately dependency-free.
  */
 export const drawAppearancesChart = (
@@ -55,7 +58,9 @@ export const drawAppearancesChart = (
     const count = zoomedData.length;
 
     ctx.clearRect(0, 0, width, height);
-    drawAxes(ctx, frame, zoomedData, yDomain);
+    if (height >= MINIMAL_CHROME_HEIGHT) {
+        drawAxes(ctx, frame, zoomedData, yDomain);
+    }
     if (count === 0) {
         return;
     }

@@ -60,7 +60,7 @@ export const calculateYDomain = (
         return [0, 90];
     }
     // Single pass without an intermediate array or spread call, so large
-    // zoom windows don't allocate per wheel-tick commit.
+    // zoom windows don't allocate on every recompute.
     let maxMinutes = 0;
     for (let i = 0; i < zoomedData.length; i++) {
         const end = zoomedData[i].minutes_played[1];

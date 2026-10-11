@@ -1,0 +1,251 @@
+/* ---- Level-0 section tiles: exactly two across on desktop ---- */
+
+.section-grid {
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    grid-template-areas:
+        "appearances streaks"
+        "player player"
+        "team team";
+    gap: 16px;
+    width: 100%;
+    margin-top: 12px;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+
+.tile-appearances {
+    grid-area: appearances;
+}
+
+.tile-streaks {
+    grid-area: streaks;
+}
+
+.tile-player {
+    grid-area: player;
+}
+
+.tile-team {
+    grid-area: team;
+}
+
+/* Small title-only previews inside the group tiles. */
+.minis {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    min-width: 0;
+}
+
+.section-tile {
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    color: #131313;
+}
+
+.section-sub {
+    font-size: 12.5px;
+    color: #666;
+    margin: 2px 0 0;
+    /* Two-line reserve so both tile headers measure the same and the
+       preview cards below start (and end) aligned. */
+    min-height: 2.5em;
+}
+
+/* Previews are hoverable (tooltips) but not selectable. Grows to fill
+   the stretched tile so sibling cards measure the same. */
+.preview {
+    user-select: none;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    padding: 12px;
+    box-sizing: border-box;
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* ---- Section modal (level 1) ---- */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 900;
+}
+
+.modal-panel {
+    position: fixed;
+    z-index: 901;
+    inset: 16px;
+    max-width: 1600px;
+    margin: auto;
+    height: fit-content;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+    padding: 20px 20px 24px;
+    box-sizing: border-box;
+}
+
+.modal-header {
+    position: sticky;
+    top: -20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 0 0 12px;
+    margin-bottom: 12px;
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    z-index: 2;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0;
+    color: #131313;
+}
+
+.modal-body {
+    min-width: 0;
+}
+
+/* ---- Appearances side-by-side ---- */
+
+.compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.pane {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.pane-hidden {
+    display: none;
+}
+
+.pane-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.pane-name {
+    font-size: 14px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.back-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 12px;
+}
+
+/* ---- Stats grid (level 1) + mini cards ---- */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    align-items: stretch;
+}
+
+.mini-card {
+    position: relative;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    padding: 8px 8px 12px;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.mini-expand {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    line-height: 1;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    cursor: pointer;
+    color: #333;
+}
+
+.mini-expand:hover {
+    background-color: #131313;
+    color: #fff;
+    border-color: #131313;
+}
+
+@media (max-width: 800px) {
+    .section-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "appearances"
+            "streaks"
+            "player"
+            "team";
+    }
+
+    .compare-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-panel {
+        inset: 12px;
+        max-height: calc(100vh - 24px);
+        padding: 16px 12px 20px;
+    }
+}

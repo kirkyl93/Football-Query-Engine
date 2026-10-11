@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AppearancesChart } from './AppearancesChart';
+import AppearancesChartTitle from './AppearancesChartTitle';
+import { createDefaultPlayerFilterState } from '../hooks/useAppearancesFilter';
 import type { PlayerAppearance } from '../../../types/Player';
 
 const game = (overrides: Partial<PlayerAppearance> = {}): PlayerAppearance => ({
@@ -77,5 +79,53 @@ describe('AppearancesChart', () => {
         // page-level stats at 60Hz; the settled (empty) window arrives shortly after.
         await waitFor(() => expect(onZoomChange).toHaveBeenLastCalledWith([]));
         expect(screen.getByText('SEASONS')).toBeInTheDocument();
+    });
+
+    it('hides only the summary chrome in compact tile previews', () => {
+        render(<AppearancesChart playerName="" data={data} onZoomChange={vi.fn()} compact />);
+
+        expect(screen.queryByText('Between 01/09/2025 and 08/09/2025')).not.toBeInTheDocument();
+    });
+
+    it('keeps zoom and filter controls in the compact tile header', async () => {
+        const user = userEvent.setup();
+        const {container} = render(
+            <AppearancesChart playerName="" data={data} onZoomChange={vi.fn()} compact />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Zoom out'})).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', {name: 'Filter'}));
+        const drawer = container.querySelector('[class*="player-filter-drawer"]');
+        expect(drawer?.className).toMatch(/open/);
+    });
+
+    it('marks the title only for zoom windows, not plain filters', async () => {
+        const user = userEvent.setup();
+        render(<AppearancesChart playerName="" data={data} onZoomChange={vi.fn()} />);
+
+        await user.click(screen.getByRole('button', {name: 'Filter'}));
+        await user.click(screen.getByText('HOME OR AWAY'));
+        await user.click(screen.getByText('Away'));
+        await user.click(screen.getByText('APPLY'));
+
+        // Filtering alone rewrites the title itself — no suffix needed.
+        expect(screen.queryByText('(zoom filter applied)')).not.toBeInTheDocument();
+    });
+});
+
+describe('AppearancesChartTitle', () => {
+    it('appends the zoom suffix only while zoomed', () => {
+        const filterState = createDefaultPlayerFilterState();
+        const {unmount} = render(
+            <AppearancesChartTitle playerName="" filterState={filterState} />,
+        );
+        expect(screen.queryByText('(zoom filter applied)')).not.toBeInTheDocument();
+        unmount();
+
+        render(
+            <AppearancesChartTitle playerName="" filterState={filterState} hasZoomFilter />,
+        );
+        expect(screen.getByText('(zoom filter applied)')).toBeInTheDocument();
     });
 });

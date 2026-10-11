@@ -1,20 +1,123 @@
 .chart-shell {
-    max-width: 1100px;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-title {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 14px;
-    font-weight: 600;
-    margin-top: 5px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 2px;
+    padding: 0 30px;
+    color: #131313;
 }
 
 .chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+    justify-items: center;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.chart-row.single {
+    grid-template-columns: 1fr;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pie-block {
+    width: 100%;
+    min-width: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+}
+
+.pie-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pie-chart {
+    width: 100%;
+    min-width: 0;
+}
+
+.pie-legend {
+    display: flex;
     flex-wrap: wrap;
-    max-width: 1100px;
+    justify-content: center;
+    gap: 4px 8px;
+    margin-top: 4px;
+    font-size: 10.5px;
+    color: #333;
+}
+
+.pie-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+}
+
+.pie-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    border: 1px solid #131313;
+    flex-shrink: 0;
+}
+
+.pie-legend-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pie-legend-value {
+    font-weight: 700;
+}
+
+.pie-legend-pct {
+    font-weight: 400;
+    color: #666;
+}
+
+.pie-tooltip {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.pie-tooltip-title {
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.pie-tooltip-value {
+    color: #333;
+}
+
+@media (max-width: 480px) {
+    .chart-row {
+        grid-template-columns: 1fr;
+    }
 }

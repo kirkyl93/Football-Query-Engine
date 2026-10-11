@@ -12,11 +12,12 @@ interface Per90Props {
     playerStats: PlayerStats;
     comparisonPlayerName: string;
     comparisonPlayerStats: PlayerStats;
+    height?: number;
 }
 
 const Per90Chart: React.FC<Per90Props> = (
     {
-        playerName, playerStats, comparisonPlayerName, comparisonPlayerStats
+        playerName, playerStats, comparisonPlayerName, comparisonPlayerStats, height
     }) => {
     return (
         <ComparisonBarChart
@@ -24,6 +25,7 @@ const Per90Chart: React.FC<Per90Props> = (
             playerName={playerName}
             comparisonPlayerName={comparisonPlayerName}
             data={per90Rows(playerStats, comparisonPlayerStats)}
+            height={height}
             renderTooltipContent={(row) => {
                 if (comparisonPlayerName.length === 0) {
                     return (
