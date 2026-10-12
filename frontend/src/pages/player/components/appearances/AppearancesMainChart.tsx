@@ -20,11 +20,6 @@ interface AppearancesMainChartProps {
     onMouseUp: () => void;
     /** Canvas height in px (compact tile preview vs full chart). */
     height?: number;
-    /**
-     * Pin the canvas to the bottom of a stretching flex column so
-     * side-by-side comparison charts stay in line whatever sits above.
-     */
-    pinToBottom?: boolean;
 }
 
 interface HoverState {
@@ -47,7 +42,6 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     onMouseMove,
     onMouseUp,
     height = CANVAS_HEIGHT,
-    pinToBottom = false,
 }) => {
     const wrapRef = useRef<HTMLDivElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -162,7 +156,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     const showTooltip = hoverAppearance && refAreaLeft == null;
 
     return (
-        <div style={pinToBottom ? {marginTop: 'auto'} : undefined}>
+        <div>
             <div
                 ref={wrapRef}
                 onMouseDown={handleMouseDown}

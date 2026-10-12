@@ -84,18 +84,19 @@ describe('useComparisonPlayer', () => {
         expect(result.current.comparisonPlayerGameData).toEqual([]);
     });
 
-    it('refuses to compare a player with themselves without fetching', () => {
-        const fetchMock = vi.fn();
-        vi.stubGlobal('fetch', fetchMock);
+    it('allows comparing a player with themselves for era-vs-era views', async () => {
+        stubFetchOk();
         const {result} = renderHook(() => useComparisonPlayer('7'));
 
         act(() => {
             result.current.selectComparisonPlayer(7, 'Kane');
         });
 
-        expect(fetchMock).not.toHaveBeenCalled();
-        expect(result.current.comparisonError).toBe('You cannot compare a player with themselves');
-        expect(result.current.comparisonPlayerName).toBe('');
+        await waitFor(() => expect(result.current.comparisonLoading).toBe(false));
+        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/players/7/games'));
+        expect(result.current.comparisonError).toBeNull();
+        expect(result.current.comparisonPlayerName).toBe('Kane');
+        expect(result.current.comparisonPlayerGameData).toEqual(games);
     });
 
     it('clears comparison state', async () => {

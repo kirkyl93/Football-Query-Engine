@@ -34,10 +34,6 @@ export const useComparisonPlayer = (playerId: string | undefined): UseComparison
     }, [playerId]);
 
     const selectComparisonPlayer = (selectedPlayerId: number, playerName: string) => {
-        if (playerId != null && Number(playerId) === selectedPlayerId) {
-            setComparisonError("You cannot compare a player with themselves");
-            return;
-        }
         setComparisonLoading(true);
         setComparisonError(null);
         Promise.all([

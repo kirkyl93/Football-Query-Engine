@@ -43,11 +43,10 @@ type AppearancesChartViewProps = {
     playerName: string;
     view: AppearanceView;
     compact?: boolean;
-    /**
-     * Stretch to fill a flex-column pane and pin the canvas to the bottom,
-     * keeping side-by-side comparison charts in line.
-     */
-    fillHeight?: boolean;
+    /** Renders an expand button in the header for fullscreen single-chart views. */
+    onExpand?: () => void;
+    /** Accessible label for the expand button. */
+    expandLabel?: string;
 };
 
 /**
@@ -56,7 +55,7 @@ type AppearancesChartViewProps = {
  * render the same filtered/zoomed window. Filtering in one place updates
  * every chart.
  */
-export function AppearancesChartView({playerName: name, view, compact = false, fillHeight = false}: AppearancesChartViewProps) {
+export function AppearancesChartView({playerName: name, view, compact = false, onExpand, expandLabel = "Expand chart"}: AppearancesChartViewProps) {
     const [isPlayerDrawerOpen, setIsPlayerDrawerOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -125,7 +124,7 @@ export function AppearancesChartView({playerName: name, view, compact = false, f
     }, [isPlayerDrawerOpen]);
 
     return (
-        <div className={`${styles['chart-container']} ${fillHeight ? styles['chart-container-fill'] : ''}`}>
+        <div className={styles['chart-container']}>
             <div className={shared['header-container']}>
                 <AppearancesChartTitle
                     playerName={name}
@@ -148,6 +147,16 @@ export function AppearancesChartView({playerName: name, view, compact = false, f
                     <button onClick={toggleDrawer} className={styles['filter-button-player']}>
                         Filter
                     </button>
+                    {onExpand && (
+                        <button
+                            onClick={onExpand}
+                            aria-label={expandLabel}
+                            title={expandLabel}
+                            className={styles['filter-button-player']}
+                        >
+                            ⤢
+                        </button>
+                    )}
                 </div>
             </div>
             {!compact && (

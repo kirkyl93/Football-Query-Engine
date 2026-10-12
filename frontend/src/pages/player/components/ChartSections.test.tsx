@@ -1,10 +1,9 @@
-import { fireEvent, render, renderHook, screen, act, waitFor } from '@testing-library/react';
+import { fireEvent, render, renderHook, screen, act, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
-import AppearancesSectionModal from './AppearancesSectionModal';
-import StatsSectionModal from './StatsSectionModal';
 import PlayerChartsGrid from './PlayerChartsGrid';
 import AppearancesChartTitle from './AppearancesChartTitle';
+import {buildStatDefs, STAT_GROUPS} from './statCharts';
 import {useAppearanceView} from '../hooks/useAppearanceView';
 import {HomeOrAwayOptions} from '../../../types/SearchOptions';
 import {
@@ -47,58 +46,6 @@ const game = (overrides: Partial<PlayerAppearance> = {}): PlayerAppearance => ({
 
 const data = [game({date: '2025-09-01'}), game({date: '2025-09-08'})];
 
-/** Shared-view harness: one view per player, as owned by PlayerChartsGrid. */
-const AppearancesHarness: React.FC<{
-    hasComparison: boolean;
-    mainData?: PlayerAppearance[];
-    comparisonData?: PlayerAppearance[];
-}> = ({hasComparison, mainData = data, comparisonData = data}) => {
-    const mainView = useAppearanceView(mainData);
-    const comparisonView = useAppearanceView(comparisonData);
-    return (
-        <AppearancesSectionModal
-            mainLabel="Kane"
-            mainView={mainView}
-            comparisonLabel="Haaland"
-            comparisonView={comparisonView}
-            hasComparison={hasComparison}
-            onClose={vi.fn()}
-        />
-    );
-};
-
-describe('AppearancesSectionModal', () => {
-    it('shows side-by-side panes that expand to one and back', () => {
-        render(<AppearancesHarness hasComparison={true} />);
-
-        expect(screen.getByRole('button', {name: 'Expand Kane appearances'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Expand Haaland appearances'})).toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole('button', {name: 'Expand Kane appearances'}));
-        expect(screen.getByRole('button', {name: '← Back to side-by-side'})).toBeInTheDocument();
-        // Focused layout hides the per-pane expand actions.
-        expect(screen.queryByRole('button', {name: 'Expand Haaland appearances'})).not.toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole('button', {name: '← Back to side-by-side'}));
-        expect(screen.getByRole('button', {name: 'Expand Haaland appearances'})).toBeInTheDocument();
-    });
-
-    it('renders a single chart with no expand step when alone', () => {
-        render(<AppearancesHarness hasComparison={false} />);
-
-        expect(screen.queryByRole('button', {name: /Expand .* appearances/})).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', {name: '← Back to side-by-side'})).not.toBeInTheDocument();
-    });
-
-    it('shares one filter state across both panes', async () => {
-        const {container} = render(<AppearancesHarness hasComparison={true} />);
-        // One shared view per player: filtering is a single control surface.
-        // Both panes render from their player's view (two filter buttons).
-        expect(screen.getAllByRole('button', {name: 'Filter'})).toHaveLength(2);
-        expect(container.querySelector('[class*="modal-panel"]')).not.toBeNull();
-    });
-});
-
 describe('shared appearance view', () => {
     it('one shared view updates every consumer when filters change', () => {
         const {result} = renderHook(() => useAppearanceView(data));
@@ -128,36 +75,23 @@ describe('shared appearance view', () => {
     });
 });
 
-describe('StatsSectionModal', () => {
-    const statsProps = {
-        playerName: 'Kane',
-        comparisonPlayerName: '',
-        stats: createDefaultPlayerStats(),
-        comparisonStats: createDefaultPlayerStats(),
-        playerStreaks: createDefaultPlayerStreaks(),
-        comparisonPlayerStreaks: createDefaultPlayerStreaks(),
-        onClose: vi.fn(),
-    };
-
-    it('grids nine charts and focuses one with a way back', () => {
-        render(<StatsSectionModal {...statsProps} />);
-
-        expect(screen.getAllByRole('button', {name: /Expand /})).toHaveLength(9);
-
-        fireEvent.click(screen.getByRole('button', {name: 'Expand Per 90'}));
-        expect(screen.getByRole('button', {name: '← Back to stat charts'})).toBeInTheDocument();
-        expect(screen.queryByRole('button', {name: 'Expand Win percentage'})).not.toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole('button', {name: '← Back to stat charts'}));
-        expect(screen.getAllByRole('button', {name: /Expand /})).toHaveLength(9);
-    });
-
-    it('scopes to one group when chart ids are given', () => {
-        render(<StatsSectionModal {...statsProps} title="Streak charts" chartIds={['team-streaks', 'player-streaks']} />);
-
-        expect(screen.getByRole('dialog', {name: 'Streak charts'})).toBeInTheDocument();
-        expect(screen.getAllByRole('button', {name: /Expand /})).toHaveLength(2);
-        expect(screen.queryByRole('button', {name: 'Expand Per 90'})).not.toBeInTheDocument();
+describe('stat chart registry', () => {
+    it('covers every group id with a titled chart exactly once', () => {
+        const defs = buildStatDefs({
+            playerName: 'Kane',
+            comparisonPlayerName: '',
+            stats: createDefaultPlayerStats(),
+            comparisonStats: createDefaultPlayerStats(),
+            playerStreaks: createDefaultPlayerStreaks(),
+            comparisonPlayerStreaks: createDefaultPlayerStreaks(),
+        });
+        const byId = new Map(defs.map((def) => [def.id, def]));
+        const grouped = STAT_GROUPS.flatMap((group) => group.chartIds);
+        expect(grouped).toHaveLength(9);
+        expect(new Set(grouped).size).toBe(9);
+        for (const id of grouped) {
+            expect(byId.get(id)?.title).toBeTruthy();
+        }
     });
 });
 
@@ -176,18 +110,26 @@ describe('PlayerChartsGrid sections', () => {
         comparisonEnabled: true,
     };
 
-    it('opens the appearances and group sections from four tiles', () => {
+    it('renders four tiles with per-chart fullscreen expand', () => {
         render(<PlayerChartsGrid {...gridProps} />);
 
-        expect(screen.getAllByRole('button', {name: 'Open ⤢'})).toHaveLength(4);
+        // Nine minis plus the main appearances chart each expand alone.
+        expect(screen.getAllByRole('button', {name: /Expand /})).toHaveLength(10);
 
-        fireEvent.click(screen.getAllByRole('button', {name: 'Open ⤢'})[0]);
-        expect(screen.getByRole('dialog', {name: 'Appearances'})).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', {name: 'Expand Per 90'}));
+        const dialog = screen.getByRole('dialog', {name: 'Per 90'});
+        // Fullscreen single chart: no collection chrome, no back step.
+        expect(within(dialog).queryByRole('button', {name: /Back to/})).not.toBeInTheDocument();
         fireEvent.keyDown(document, {key: 'Escape'});
-        expect(screen.queryByRole('dialog', {name: 'Appearances'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('dialog', {name: 'Per 90'})).not.toBeInTheDocument();
+    });
 
-        fireEvent.click(screen.getAllByRole('button', {name: 'Open ⤢'})[1]);
-        expect(screen.getByRole('dialog', {name: 'Streak charts'})).toBeInTheDocument();
-        expect(screen.getAllByRole('button', {name: /Expand /})).toHaveLength(2);
+    it('expands an individual appearances chart fullscreen from level 0', () => {
+        render(<PlayerChartsGrid {...gridProps} />);
+
+        fireEvent.click(screen.getByRole('button', {name: 'Expand Kane full screen'}));
+        expect(screen.getByRole('dialog', {name: 'Appearances — Kane'})).toBeInTheDocument();
+        fireEvent.keyDown(document, {key: 'Escape'});
+        expect(screen.queryByRole('dialog', {name: 'Appearances — Kane'})).not.toBeInTheDocument();
     });
 });

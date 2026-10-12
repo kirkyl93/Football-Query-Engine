@@ -182,14 +182,6 @@
     contain-intrinsic-size: auto 500px;
 }
 
-/* Stretching variant for side-by-side comparison panes: fills the pane
-   so the bottom-pinned canvas lands in line on both sides. */
-.chart-container-fill {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
 /* Collapse the 3-column header on narrow screens (compare UI hidden by JS). */
 @media (max-width: 1099px) {
     .player-info {
