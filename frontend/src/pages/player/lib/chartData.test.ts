@@ -55,22 +55,22 @@ describe('streakRows', () => {
         const rows = streakRows(teamStreakTypes, player, createDefaultPlayerStreaks());
 
         expect(rows).toHaveLength(7);
-        expect(rows[0]).toEqual({name: "won", player1: 4, player2: 0});
+        expect(rows[0]).toEqual({name: "won", player1: 4, player2: 0, colour: "#22c55e"});
     });
 });
 
 describe('safePer90Rate', () => {
     it('computes a standard rate', () => {
-        expect(per90Rate(900, 10)).toBe("1.00");
+        expect(per90Rate(900, 10)).toBe(1);
     });
 
     it('returns zero instead of NaN for empty data', () => {
-        expect(per90Rate(0, 0)).toBe("0.00");
-        expect(perGameRate(0, 0)).toBe("0.00");
+        expect(per90Rate(0, 0)).toBe(0);
+        expect(perGameRate(0, 0)).toBe(0);
     });
 
     it('returns zero when nothing was scored', () => {
-        expect(per90Rate(900, 0)).toBe("0.00");
+        expect(per90Rate(900, 0)).toBe(0);
     });
 });
 
@@ -80,7 +80,7 @@ describe('per90Rows', () => {
         const rows = per90Rows(stats, createDefaultPlayerStats());
 
         expect(rows).toHaveLength(7);
-        expect(rows[0]).toEqual({name: "goals", player1: "0.90", player2: "0.00"});
-        expect(rows.every(row => row.player1 !== "NaN" && row.player2 !== "NaN")).toBe(true);
+        expect(rows[0]).toEqual({name: "goals", player1: 0.9, player2: 0, colour: "#22c55e"});
+        expect(rows.every(row => !Number.isNaN(row.player1) && !Number.isNaN(row.player2))).toBe(true);
     });
 });

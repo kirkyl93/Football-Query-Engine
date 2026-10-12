@@ -68,6 +68,28 @@
     flex-shrink: 0;
 }
 
+/* Solid vs striped swatches: with semantic bar colours, pattern (not hue)
+   says whose bar it is. */
+.legend-solid {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background-color: #333;
+    border: 1px solid #131313;
+    flex-shrink: 0;
+}
+
+.legend-striped {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: repeating-linear-gradient(45deg, #333 0 2px, #fff 2px 5px);
+    border: 1px solid #131313;
+    flex-shrink: 0;
+}
+
 .chart-body {
     width: 100%;
     min-height: 0;

@@ -24,6 +24,7 @@ const TeamStreakChart: React.FC<TeamStreakChartProps> = (
             comparisonPlayerName={comparisonPlayerName}
             data={streakRows(teamStreakTypes, playerStreaks, comparisonPlayerStreaks)}
             height={height}
+            layout="horizontal"
             renderTooltipContent={(row) => {
                 const streakType = teamStreakTypes.find(streak => streak.name === row.name);
                 if (!streakType) {
@@ -31,9 +32,11 @@ const TeamStreakChart: React.FC<TeamStreakChartProps> = (
                 }
                 return (
                     <StreakTooltipContent
+                        playerName={playerName}
                         playerStreak={playerStreaks[streakType.key]}
                         comparisonStreak={comparisonPlayerStreaks[streakType.key]}
                         comparisonPlayerName={comparisonPlayerName}
+                        colour={streakType.colour}
                     />
                 );
             }}
