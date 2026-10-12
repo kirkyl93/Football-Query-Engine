@@ -168,9 +168,9 @@
 }
 
 .mini-expand:hover {
-    background-color: #131313;
-    color: #fff;
-    border-color: #131313;
+    background-color: #e8eef3;
+    color: #14532d;
+    border-color: #14532d;
 }
 
 @media (max-width: 800px) {

@@ -35,8 +35,8 @@
 }
 
 .reset-button:hover {
-    background-color: black;
-    color: white;
+    background-color: #e8eef3;
+    color: #14532d;
     text-decoration: underline;
 }
 
@@ -46,6 +46,10 @@
     font-weight: bold;
     font-size: 22px;
     cursor: pointer;
+}
+
+.close-button:hover {
+    color: #14532d;
 }
 
 .filter-drawer-content {
@@ -70,7 +74,8 @@
 }
 
 .apply-button:hover {
-    background-color: #0056b3;
+    background-color: #e8eef3;
+    color: #14532d;
 }
 
 /* ---- Collapsible section chrome (FilterSection + all filter sections) ---- */
@@ -429,8 +434,8 @@
 }
 
 .player-name-item button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: #333;
+    background-color: #e8eef3;
+    color: #14532d;
 }
 
 .suggestions-dropdown {
@@ -454,7 +459,9 @@
 }
 
 .suggestion-item:hover {
-    background-color: #f6f4f4;
+    /* Same treatment as hovering rows on the main query table. */
+    background-color: #e8eef3;
+    color: #14532d;
 }
 
 .club-names-list {
@@ -487,8 +494,8 @@
 }
 
 .club-name-item button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: #333;
+    background-color: #e8eef3;
+    color: #14532d;
 }
 
 .club-name-item img {

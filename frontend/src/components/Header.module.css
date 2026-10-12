@@ -46,7 +46,8 @@
 }
 
 .search-toggle:hover {
-    background-color: rgba(0, 0, 0, 0.06);
+    background-color: #e8eef3;
+    color: #14532d;
 }
 
 .search-toggle svg {
@@ -101,7 +102,8 @@
 }
 
 .search-dropdown li:hover {
-    background-color: #f6f4f4;
+    background-color: #e8eef3;
+    color: #14532d;
 }
 
 .header-title {

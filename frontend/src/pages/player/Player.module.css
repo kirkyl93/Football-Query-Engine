@@ -124,7 +124,8 @@
 }
 
 .compare-dropdown li:hover {
-    background-color: #f6f4f4;
+    background-color: #e8eef3;
+    color: #14532d;
 }
 
 .player-info p {
@@ -161,8 +162,8 @@
 }
 
 .filter-button-player:hover {
-    background-color: #0056b3;
-    color: white;
+    background-color: #e8eef3;
+    color: #14532d;
 }
 
 .chart-container {

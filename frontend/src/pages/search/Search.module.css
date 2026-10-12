@@ -21,9 +21,10 @@
     margin-right: 35px;
     font-size: 15px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .filter-button:hover {
-    background-color: #0056b3;
+    background-color: #e8eef3;
+    color: #14532d;
 }
