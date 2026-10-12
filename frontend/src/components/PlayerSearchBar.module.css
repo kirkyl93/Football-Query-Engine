@@ -41,5 +41,13 @@
 }
 
 .header-suggestion-item:hover {
-    background-color: #0056b3;
+    /* Same treatment as hovering rows on the main query table. */
+    background-color: #e8eef3;
+    color: #14532d;
+}
+
+/* Keyboard highlight: same treatment as hover. */
+.header-suggestion-item.highlighted {
+    background-color: #e8eef3;
+    color: #14532d;
 }

@@ -12,11 +12,12 @@ interface PlayerWinPercentageProps {
     comparisonWins: number;
     comparisonDraws: number;
     comparisonLosses: number;
+    height?: number;
 }
 
 const PlayerWinPercentageChart: React.FC<PlayerWinPercentageProps> = (
     {
-        playerName, wins, draws, losses, comparisonPlayerName, comparisonWins, comparisonDraws, comparisonLosses
+        playerName, wins, draws, losses, comparisonPlayerName, comparisonWins, comparisonDraws, comparisonLosses, height
     }) => {
     return (
         <ComparisonPieChart
@@ -25,6 +26,7 @@ const PlayerWinPercentageChart: React.FC<PlayerWinPercentageProps> = (
             playerSlices={winDrawLossSlices(wins, draws, losses)}
             comparisonPlayerName={comparisonPlayerName}
             comparisonSlices={winDrawLossSlices(comparisonWins, comparisonDraws, comparisonLosses)}
+            height={height}
         />
     )
 }

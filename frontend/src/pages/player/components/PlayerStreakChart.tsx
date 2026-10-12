@@ -10,11 +10,12 @@ interface PlayerStreakChartProps {
     playerStreaks: PlayerStreaks;
     comparisonPlayerName: string;
     comparisonPlayerStreaks: PlayerStreaks;
+    height?: number;
 }
 
 const PlayerStreakChart: React.FC<PlayerStreakChartProps> = (
     {
-        playerName, playerStreaks, comparisonPlayerName, comparisonPlayerStreaks
+        playerName, playerStreaks, comparisonPlayerName, comparisonPlayerStreaks, height
     }) => {
     return (
         <ComparisonBarChart
@@ -22,6 +23,8 @@ const PlayerStreakChart: React.FC<PlayerStreakChartProps> = (
             playerName={playerName}
             comparisonPlayerName={comparisonPlayerName}
             data={streakRows(playerStreakTypes, playerStreaks, comparisonPlayerStreaks)}
+            height={height}
+            layout="horizontal"
             renderTooltipContent={(row) => {
                 const streakType = playerStreakTypes.find(streak => streak.name === row.name);
                 if (!streakType) {
@@ -29,9 +32,11 @@ const PlayerStreakChart: React.FC<PlayerStreakChartProps> = (
                 }
                 return (
                     <StreakTooltipContent
+                        playerName={playerName}
                         playerStreak={playerStreaks[streakType.key]}
                         comparisonStreak={comparisonPlayerStreaks[streakType.key]}
                         comparisonPlayerName={comparisonPlayerName}
+                        colour={streakType.colour}
                     />
                 );
             }}

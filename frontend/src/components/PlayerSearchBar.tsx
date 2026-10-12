@@ -8,15 +8,21 @@ interface PlayerSearchBarProps {
     placeHolderText: string;
     linkToPlayer: boolean;
     onSelectPlayer?: (name: string, playerGameData: PlayerAppearance[]) => void;
+    onSelectPlayerId?: (playerId: number, playerName: string) => void;
+    disabled?: boolean;
+    inputId?: string;
     onDismiss?: () => void;
 }
 
-const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onDismiss }) => {
+const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onSelectPlayerId, disabled, inputId, onDismiss }) => {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [suggestions, setSuggestions] = useState<Player[]>([]);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+    const [highlightIndex, setHighlightIndex] = useState(-1);
     const dropdownRef = useRef<HTMLFormElement>(null);
+    const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
     const navigate = useNavigate();
+    const listId = React.useId();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -48,6 +54,13 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
         }
     })
 
+    // Keep the highlighted option in view while arrowing through results.
+    useEffect(() => {
+        if (highlightIndex >= 0) {
+            itemRefs.current[highlightIndex]?.scrollIntoView?.({block: 'nearest'});
+        }
+    }, [highlightIndex]);
+
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (searchTerm.trim().length > 1) {
@@ -67,6 +80,8 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
             const data = await response.json();
             setSuggestions(data);
             setIsDropdownVisible(true);
+            // Preselect the top result so Enter immediately confirms it.
+            setHighlightIndex(data.length > 0 ? 0 : -1);
 
         } catch (error) {
             console.error(`Error fetching suggestions: `, error);
@@ -75,14 +90,20 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
+        setHighlightIndex(-1);
     };
 
     const handleSuggestionClick = async (suggestion: string, playerId: number) => {
         setSearchTerm('');
         setIsDropdownVisible(false);
+        setHighlightIndex(-1);
         onDismiss?.();
         if (linkToPlayer) {
             navigate(`/player/${playerId}`);
+            return;
+        }
+        if (onSelectPlayerId) {
+            onSelectPlayerId(playerId, suggestion);
             return;
         }
         const playerGameData = await fetch(`${API_BASE_URL}/players/${playerId}/games`);
@@ -92,23 +113,68 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
         }
     };
 
+    const highlightedSuggestion =
+        isDropdownVisible && suggestions.length > 0
+            ? suggestions[Math.min(Math.max(highlightIndex, 0), suggestions.length - 1)]
+            : undefined;
+
+    const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') {
+            return;
+        }
+        if (!isDropdownVisible || suggestions.length === 0) {
+            return;
+        }
+        e.preventDefault();
+        if (e.key === 'ArrowDown') {
+            setHighlightIndex((index) => Math.min(index + 1, suggestions.length - 1));
+        } else if (e.key === 'ArrowUp') {
+            setHighlightIndex((index) => Math.max(index - 1, 0));
+        } else if (highlightedSuggestion) {
+            // Enter confirms the highlighted option; with nothing
+            // highlighted the swallowed form submit keeps it a no-op.
+            void handleSuggestionClick(highlightedSuggestion.last_name, highlightedSuggestion.player_id);
+        }
+    };
+
     return (
-        <form ref={dropdownRef} className={styles['search-form']}>
+        <form
+            ref={dropdownRef}
+            className={styles['search-form']}
+            // Enter in the input must not natively submit (it appends "?" to
+            // the URL and reloads the page): selection happens by clicking
+            // or arrowing to a suggestion and pressing Enter.
+            onSubmit={(event) => event.preventDefault()}
+        >
             <input
                 type="text"
+                id={inputId}
                 placeholder={placeHolderText}
                 value={searchTerm}
                 onChange={handleSearchChange}
+                onKeyDown={handleInputKeyDown}
                 className={styles['search-input']}
+                disabled={disabled}
+                role="combobox"
+                aria-expanded={isDropdownVisible && suggestions.length > 0}
+                aria-controls={listId}
+                aria-activedescendant={highlightedSuggestion ? `${listId}-option-${highlightedSuggestion.player_id}` : undefined}
             />
 
             {isDropdownVisible && suggestions.length > 0 && (
-                <ul className={styles['header-suggestions-dropdown']}>
+                <ul id={listId} role="listbox" className={styles['header-suggestions-dropdown']}>
                     {suggestions.map((suggestion, index) => (
                         <li
                             key={index}
-                            className={styles['header-suggestion-item']}
+                            id={`${listId}-option-${suggestion.player_id}`}
+                            role="option"
+                            aria-selected={highlightedSuggestion?.player_id === suggestion.player_id}
+                            className={`${styles['header-suggestion-item']} ${highlightedSuggestion?.player_id === suggestion.player_id ? styles['highlighted'] : ''}`}
                             onClick={() => handleSuggestionClick(suggestion.last_name, suggestion.player_id)}
+                            onMouseEnter={() => setHighlightIndex(index)}
+                            ref={(element) => {
+                                itemRefs.current[index] = element;
+                            }}
                         >
                             <span style={{
                                     display: 'flex',

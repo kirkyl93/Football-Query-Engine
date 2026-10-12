@@ -4,39 +4,66 @@ import AppearancesChartFilterBar from "./AppearancesChartFilterBar";
 import styles from '../Player.module.css';
 import shared from "../../../styles/shared.module.css";
 import {PlayerAppearance} from "../../../types/Player";
-import {useAppearancesFilter} from "../hooks/useAppearancesFilter";
-import {useChartZoom} from "../hooks/useChartZoom";
-import {areNoEventsSelected, mapAppearanceEvents} from "../lib/appearancesEventMapper";
-import {useChartSizing} from "../lib/chartSizing";
-import {calculateAppearancesTotals} from "../lib/appearancesTotals";
-import {calculateYDomain} from "../lib/chartSizing";
+import {AppearanceView, useAppearanceView, ZOOM_CHANGE_DEBOUNCE_MS} from "../hooks/useAppearanceView";
 import AppearancesTooltip from "./appearances/AppearancesTooltip";
 import AppearancesSummaryHeader from "./appearances/AppearancesSummaryHeader";
 import AppearancesMainChart from "./appearances/AppearancesMainChart";
-import {resolveBarFills} from "../lib/barFillColours";
 
 type AppearancesChartProps = {
     playerName: string;
     data?: PlayerAppearance[];
     onZoomChange: (zoomedData: PlayerAppearance[]) => void;
+    /**
+     * Compact tile preview: title + live canvas (real tooltip and zoom,
+     * shared view) with zoom and filter controls but no summary totals.
+     * Sized to match the streak tile stack so the top-row cards measure
+     * the same.
+     */
+    compact?: boolean;
 
 };
 
-/**
- * Delay before a settled zoom window propagates to the page-level stats and
- * sibling charts. The chart itself stays live every frame; only the
- * expensive fan-out (streak + stats recalculation across PlayerChartsGrid)
- * waits for the gesture to settle. Without this, each wheel tick at 250+
- * bars recomputes all stats and re-renders every small chart at 60Hz.
- */
-export const ZOOM_CHANGE_DEBOUNCE_MS = 150;
+export function AppearancesChart({playerName: name, data: initialData, onZoomChange: onZoomChange, compact = false}: AppearancesChartProps) {
+    const view = useAppearanceView(initialData);
 
-export function AppearancesChart({playerName: name, data: initialData, onZoomChange: onZoomChange}: AppearancesChartProps) {
+    // Debounced fan-out: chart + summary header render from zoomedData
+    // immediately; parent stats wait for the gesture to settle.
+    useEffect(() => {
+        if (!onZoomChange) {
+            return;
+        }
+        const timer = setTimeout(() => onZoomChange(view.zoomedData), ZOOM_CHANGE_DEBOUNCE_MS);
+        return () => clearTimeout(timer);
+    }, [view.zoomedData, onZoomChange]);
+
+    return <AppearancesChartView playerName={name} view={view} compact={compact} />;
+}
+
+type AppearancesChartViewProps = {
+    playerName: string;
+    view: AppearanceView;
+    compact?: boolean;
+    /** Renders an expand button in the header for fullscreen single-chart views. */
+    onExpand?: () => void;
+    /** Accessible label for the expand button. */
+    expandLabel?: string;
+};
+
+/**
+ * Controlled appearances chart: all data behaviour comes from a shared
+ * {@link AppearanceView}, so the tile preview and the modal instances
+ * render the same filtered/zoomed window. Filtering in one place updates
+ * every chart.
+ */
+export function AppearancesChartView({playerName: name, view, compact = false, onExpand, expandLabel = "Expand chart"}: AppearancesChartViewProps) {
     const [isPlayerDrawerOpen, setIsPlayerDrawerOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
 
-    const {filteredData, playerFilterState, setPlayerFilterState, metadata} = useAppearancesFilter(initialData);
     const {
+        filteredData,
+        playerFilterState,
+        setPlayerFilterState,
+        metadata,
         zoomedData,
         startGame,
         endGame,
@@ -46,47 +73,17 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
         handleMouseMove,
         handleMouseUp,
         handleZoomOut,
-    } = useChartZoom(filteredData);
-
-    const noEventFiltersSelected = useMemo(
-        () => areNoEventsSelected(playerFilterState.selectedEvents),
-        [playerFilterState],
-    );
-
-    // Debounced fan-out: chart + summary header render from zoomedData
-    // immediately; parent stats wait for the gesture to settle.
-    useEffect(() => {
-        if (!onZoomChange) {
-            return;
-        }
-        const timer = setTimeout(() => onZoomChange(zoomedData), ZOOM_CHANGE_DEBOUNCE_MS);
-        return () => clearTimeout(timer);
-    }, [zoomedData, onZoomChange]);
-
-    const scatterData = useMemo(
-        () => mapAppearanceEvents(zoomedData, playerFilterState.selectedEvents, noEventFiltersSelected),
-        [zoomedData, playerFilterState.selectedEvents, noEventFiltersSelected],
-    );
-
-    const sizing = useChartSizing(zoomedData.length);
-
-    const yDomain = useMemo(
-        () => calculateYDomain(zoomedData, metadata.europeanCompetitions.length > 0),
-        [zoomedData, metadata.europeanCompetitions.length],
-    );
-
-    const totals = useMemo(() => calculateAppearancesTotals(zoomedData), [zoomedData]);
-
-    const barFills = useMemo(() => resolveBarFills(zoomedData), [zoomedData]);
-    const barFillsByGame = useMemo(
-        () => new Map(zoomedData.map((appearance, index) => [appearance.game_number, barFills[index]])),
-        [zoomedData, barFills],
-    );
-    const filteredByGame = useMemo(
-        () => new Map(filteredData.map((appearance) => [appearance.game_number, appearance])),
-        [filteredData],
-    );
-    const showCleanSheets = noEventFiltersSelected || playerFilterState.selectedEvents.CleanSheets;
+        scatterData,
+        sizing,
+        yDomain,
+        totals,
+        barFills,
+        barFillsByGame,
+        filteredByGame,
+        showCleanSheets,
+        noEventFiltersSelected,
+        hasZoomFilter,
+    } = view;
 
     // Stable tooltip element: without memo the parent builds a fresh element
     // (and Map) identity every commit, defeating AppearancesMainChart memo.
@@ -132,9 +129,15 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 <AppearancesChartTitle
                     playerName={name}
                     filterState={playerFilterState}
+                    hasZoomFilter={hasZoomFilter}
                 />
                 <div className={styles['button-container']}>
-                    <button onClick={handleZoomOut} disabled={!startGame && !endGame} className={styles['filter-button-player']}>
+                    <button
+                        onClick={handleZoomOut}
+                        disabled={!startGame && !endGame}
+                        className={styles['filter-button-player']}
+                        title="Zoom out to the full range"
+                    >
                         <img
                             src={'/magnifying-glass.png'}
                             alt={`Zoom out`}
@@ -144,14 +147,26 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                     <button onClick={toggleDrawer} className={styles['filter-button-player']}>
                         Filter
                     </button>
+                    {onExpand && (
+                        <button
+                            onClick={onExpand}
+                            aria-label={expandLabel}
+                            title={expandLabel}
+                            className={styles['filter-button-player']}
+                        >
+                            ⤢
+                        </button>
+                    )}
                 </div>
             </div>
-            <AppearancesSummaryHeader
-                zoomedData={zoomedData}
-                totals={totals}
-                noEventFiltersSelected={noEventFiltersSelected}
-                selectedEvents={playerFilterState.selectedEvents}
-            />
+            {!compact && (
+                <AppearancesSummaryHeader
+                    zoomedData={zoomedData}
+                    totals={totals}
+                    noEventFiltersSelected={noEventFiltersSelected}
+                    selectedEvents={playerFilterState.selectedEvents}
+                />
+            )}
             <div ref={drawerRef}>
                 <AppearancesChartFilterBar
                     isOpen={isPlayerDrawerOpen}
@@ -174,6 +189,7 @@ export function AppearancesChart({playerName: name, data: initialData, onZoomCha
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
+                height={compact ? 280 : undefined}
             />
         </div>
     );

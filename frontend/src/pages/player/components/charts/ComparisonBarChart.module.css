@@ -1,39 +1,107 @@
 .team-streak-custom-tooltip {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
-    outline: #2e89a5 1px solid;
     background-color: white;
-    align-items: center;
-    position: relative;
-    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    padding: 10px 12px;
+    max-width: 280px;
+}
+
+.tooltip-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #666;
+    margin-bottom: 6px;
 }
 
 .chart-shell {
-    width: 500px;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-title {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 14px;
-    font-weight: 600;
-    margin-top: 5px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 2px;
+    padding: 0 30px;
+    color: #131313;
 }
 
 .chart-legend {
     display: flex;
     justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-top: 4px;
     margin-bottom: 4px;
-    font-size: 13.5px;
+    font-size: 11px;
+    color: #333;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid #131313;
+    flex-shrink: 0;
+}
+
+/* Solid vs striped swatches: with semantic bar colours, pattern (not hue)
+   says whose bar it is. */
+.legend-solid {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background-color: #333;
+    border: 1px solid #131313;
+    flex-shrink: 0;
+}
+
+.legend-striped {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: repeating-linear-gradient(45deg, #333 0 2px, #fff 2px 5px);
+    border: 1px solid #131313;
+    flex-shrink: 0;
+}
+
+.chart-body {
+    width: 100%;
+    min-height: 0;
 }
 
 .tooltip-value {
     font-weight: 600;
+    margin: 2px 0;
 }
 
 .tooltip-dates {
     font-weight: 400;
     font-size: 12px;
+    color: #666;
 }

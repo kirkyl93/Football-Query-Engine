@@ -18,6 +18,8 @@ interface AppearancesMainChartProps {
     onMouseDown: (e: { activeLabel?: number }) => void;
     onMouseMove: (e: { activeLabel?: number }) => void;
     onMouseUp: () => void;
+    /** Canvas height in px (compact tile preview vs full chart). */
+    height?: number;
 }
 
 interface HoverState {
@@ -39,6 +41,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
     onMouseDown,
     onMouseMove,
     onMouseUp,
+    height = CANVAS_HEIGHT,
 }) => {
     const wrapRef = useRef<HTMLDivElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -54,12 +57,12 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
         const observer = new ResizeObserver((entries) => {
             const rect = entries[0]?.contentRect;
             if (rect) {
-                setSize({width: rect.width, height: CANVAS_HEIGHT});
+                setSize({width: rect.width, height});
             }
         });
         observer.observe(node);
         return () => observer.disconnect();
-    }, []);
+    }, [height]);
 
     // Paint on every visual input change. Hover state is intentionally
     // excluded: the tooltip is a DOM overlay, so hovering never repaints.
@@ -70,13 +73,13 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
         }
         const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
         canvas.width = Math.max(1, Math.round(size.width * dpr));
-        canvas.height = Math.max(1, Math.round(CANVAS_HEIGHT * dpr));
+        canvas.height = Math.max(1, Math.round(height * dpr));
         const ctx = canvas.getContext("2d");
         if (!ctx) {
             return;
         }
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        drawAppearancesChart(ctx, size.width, CANVAS_HEIGHT, {
+        drawAppearancesChart(ctx, size.width, height, {
             zoomedData,
             barFills,
             scatterData,
@@ -86,7 +89,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
             refAreaRight,
             showCleanSheets,
         });
-    }, [size, zoomedData, barFills, scatterData, sizing, yDomain, refAreaLeft, refAreaRight, showCleanSheets]);
+    }, [size, zoomedData, barFills, scatterData, sizing, yDomain, refAreaLeft, refAreaRight, showCleanSheets, height]);
 
     const appearanceByGame = useMemo(
         () => new Map(zoomedData.map((appearance) => [appearance.game_number, appearance])),
@@ -99,13 +102,13 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
             return null;
         }
         const rect = node.getBoundingClientRect();
-        const frame = plotFrameForSize(rect.width, CANVAS_HEIGHT);
+        const frame = plotFrameForSize(rect.width, height);
         const index = gameIndexAtX(clientX - rect.left, frame, zoomedData.length);
         if (index < 0) {
             return null;
         }
         return zoomedData[index]?.game_number ?? null;
-    }, [zoomedData]);
+    }, [zoomedData, height]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         const gameNumber = gameAtClientX(e.clientX);
@@ -124,7 +127,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
             const rect = node.getBoundingClientRect();
             const appearance = appearanceByGame.get(gameNumber);
             if (appearance) {
-                const frame = plotFrameForSize(rect.width, CANVAS_HEIGHT);
+                const frame = plotFrameForSize(rect.width, height);
                 const slot = frame.plotWidth / Math.max(1, zoomedData.length);
                 const index = zoomedData.indexOf(appearance);
                 const cx = frame.plotLeft + (index + 0.5) * slot;
@@ -137,7 +140,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
             }
         }
         setHover(null);
-    }, [appearanceByGame, gameAtClientX, onMouseMove, yDomain, zoomedData]);
+    }, [appearanceByGame, gameAtClientX, onMouseMove, yDomain, zoomedData, height]);
 
     const handleMouseUp = useCallback(() => {
         onMouseUp();
@@ -160,11 +163,11 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
-                style={{position: 'relative', height: `${CANVAS_HEIGHT}px`}}
+                style={{position: 'relative', height: `${height}px`}}
             >
                 <canvas
                     ref={canvasRef}
-                    style={{display: 'block', width: '100%', height: `${CANVAS_HEIGHT}px`}}
+                    style={{display: 'block', width: '100%', height: `${height}px`}}
                 />
                 {showTooltip && (
                     <div style={{
@@ -172,7 +175,7 @@ const AppearancesMainChart: React.FC<AppearancesMainChartProps> = ({
                         left: hover!.anchorX > (size?.width ?? 0) - 280
                             ? Math.max(4, hover!.anchorX - 256)
                             : hover!.anchorX + 16,
-                        top: Math.max(4, Math.min(hover!.anchorY - 60, CANVAS_HEIGHT - 120)),
+                        top: Math.max(4, Math.min(hover!.anchorY - 60, height - 120)),
                         pointerEvents: 'none',
                         zIndex: 5,
                     }}>

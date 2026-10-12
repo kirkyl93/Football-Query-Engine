@@ -1,39 +1,65 @@
 import React from "react";
 import PlayerSearchBar from "../../../components/PlayerSearchBar";
-import {PlayerAppearance} from "../../../types/Player";
+import {Player} from "../../../types/Player";
+import PlayerInfoHeader from "./PlayerInfoHeader";
 
 interface PlayerComparisonBarProps {
     comparisonPlayerName: string;
-    onSelectPlayer: (playerName: string, playerGameData: PlayerAppearance[]) => void;
-    onClearComparison: () => void;
+    comparisonPlayer: Player | null;
+    comparisonLoading: boolean;
+    comparisonError: string | null;
+    onSelectPlayerId: (playerId: number, playerName: string) => void;
 }
 
+/**
+ * Compare panel: search for a player, then show their picture and info
+ * mirroring the main player's header, with loading and error states.
+ */
 const PlayerComparisonBar: React.FC<PlayerComparisonBarProps> = ({
     comparisonPlayerName,
-    onSelectPlayer,
-    onClearComparison,
+    comparisonPlayer,
+    comparisonLoading,
+    comparisonError,
+    onSelectPlayerId,
 }) => {
+    if (comparisonPlayerName.length === 0) {
+        return (
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                <label
+                    htmlFor="compare-player-search"
+                    style={{fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap'}}
+                >
+                    Compare against
+                </label>
+                <PlayerSearchBar
+                    placeHolderText={"Search for a player..."}
+                    linkToPlayer={false}
+                    onSelectPlayerId={onSelectPlayerId}
+                    disabled={comparisonLoading}
+                    inputId="compare-player-search"
+                />
+                {comparisonLoading && (
+                    <span style={{fontSize: '14px'}} aria-live="polite">
+                        Loading…
+                    </span>
+                )}
+                {comparisonError && (
+                    <span role="alert" style={{fontSize: '14px', color: '#b00020'}}>
+                        {comparisonError}
+                    </span>
+                )}
+            </div>
+        );
+    }
+
     return (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-            <PlayerSearchBar
-                placeHolderText={"Compare with..."}
-                linkToPlayer={false}
-                onSelectPlayer={onSelectPlayer}
-            />
-            {comparisonPlayerName.length > 0 && <button
-                onClick={onClearComparison}
-                style={{
-                    marginLeft: '3px',
-                    background: 'none',
-                    fontWeight: '550',
-                    fontSize: '14px',
-                    color: 'black',
-                    cursor: 'pointer'
-                }}
-            >
-                X
-            </button>
-            }
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+            {comparisonPlayer && <PlayerInfoHeader playerData={comparisonPlayer} mirror/>}
+            {comparisonError && (
+                <span role="alert" style={{fontSize: '14px', color: '#b00020'}}>
+                    {comparisonError}
+                </span>
+            )}
         </div>
     );
 };

@@ -13,37 +13,37 @@ import { per90Rows, perGameRate, per90Rate, streakRows, teamStreakTypes } from '
 describe('pieChartData', () => {
     it('maps win/draw/loss slices', () => {
         expect(winDrawLossSlices(10, 5, 3)).toEqual([
-            {name: "Win", value: 10, colour: "green"},
-            {name: "Draw", value: 5, colour: "yellow"},
-            {name: "Loss", value: 3, colour: "red"},
+            {name: "Win", value: 10, colour: "#16a34a"},
+            {name: "Draw", value: 5, colour: "#eab308"},
+            {name: "Loss", value: 3, colour: "#ef4444"},
         ]);
     });
 
     it('maps goals-by-game buckets', () => {
         expect(goalsByGameSlices([20, 10, 5, 2])).toEqual([
-            {name: "No goals", value: 20, colour: "red"},
-            {name: "1 goal", value: 10, colour: "yellow"},
-            {name: "2 goals", value: 5, colour: "green"},
-            {name: "3+ goals", value: 2, colour: "gold"},
+            {name: "No goals", value: 20, colour: "#cbd5e1"},
+            {name: "1 goal", value: 10, colour: "#38bdf8"},
+            {name: "2 goals", value: 5, colour: "#16a34a"},
+            {name: "3+ goals", value: 2, colour: "#7c3aed"},
         ]);
     });
 
     it('derives the not-involved slice from team totals', () => {
         const slices = goalContributionSlices(20, 5, 10, 60);
-        expect(slices[3]).toEqual({name: "Not involved", value: 25, colour: "red"});
+        expect(slices[3]).toEqual({name: "Not involved", value: 25, colour: "#e2e8f0"});
     });
 
     it('maps team goals and conceded buckets', () => {
-        expect(teamGoalsByGameSlices([1, 2, 3, 4, 5, 6])[5]).toEqual({name: "5+ goals", value: 6, colour: "gold"});
-        expect(teamGoalsConcededSlices([1, 2, 3, 4, 5, 6])[0]).toEqual({name: "No goals", value: 1, colour: "gold"});
+        expect(teamGoalsByGameSlices([1, 2, 3, 4, 5, 6])[5]).toEqual({name: "5+ goals", value: 6, colour: "#0ea5e9"});
+        expect(teamGoalsConcededSlices([1, 2, 3, 4, 5, 6])[0]).toEqual({name: "No goals", value: 1, colour: "#16a34a"});
     });
 
     it('maps appearance-type buckets', () => {
         expect(appearanceTypeSlices(30, 5, 2, 3)).toEqual([
-            {name: "Full game", value: 30, colour: "green"},
-            {name: "Subbed off", value: 5, colour: "yellow"},
-            {name: "Subbed on", value: 3, colour: "#FFBF00"},
-            {name: "On and off", value: 2, colour: "red"},
+            {name: "Full game", value: 30, colour: "#16a34a"},
+            {name: "Subbed off", value: 5, colour: "#f59e0b"},
+            {name: "Subbed on", value: 3, colour: "#38bdf8"},
+            {name: "On and off", value: 2, colour: "#ef4444"},
         ]);
     });
 });
@@ -55,22 +55,22 @@ describe('streakRows', () => {
         const rows = streakRows(teamStreakTypes, player, createDefaultPlayerStreaks());
 
         expect(rows).toHaveLength(7);
-        expect(rows[0]).toEqual({name: "won", player1: 4, player2: 0});
+        expect(rows[0]).toEqual({name: "won", player1: 4, player2: 0, colour: "#22c55e"});
     });
 });
 
 describe('safePer90Rate', () => {
     it('computes a standard rate', () => {
-        expect(per90Rate(900, 10)).toBe("1.00");
+        expect(per90Rate(900, 10)).toBe(1);
     });
 
     it('returns zero instead of NaN for empty data', () => {
-        expect(per90Rate(0, 0)).toBe("0.00");
-        expect(perGameRate(0, 0)).toBe("0.00");
+        expect(per90Rate(0, 0)).toBe(0);
+        expect(perGameRate(0, 0)).toBe(0);
     });
 
     it('returns zero when nothing was scored', () => {
-        expect(per90Rate(900, 0)).toBe("0.00");
+        expect(per90Rate(900, 0)).toBe(0);
     });
 });
 
@@ -80,7 +80,7 @@ describe('per90Rows', () => {
         const rows = per90Rows(stats, createDefaultPlayerStats());
 
         expect(rows).toHaveLength(7);
-        expect(rows[0]).toEqual({name: "goals", player1: "0.90", player2: "0.00"});
-        expect(rows.every(row => row.player1 !== "NaN" && row.player2 !== "NaN")).toBe(true);
+        expect(rows[0]).toEqual({name: "goals", player1: 0.9, player2: 0, colour: "#22c55e"});
+        expect(rows.every(row => !Number.isNaN(row.player1) && !Number.isNaN(row.player2))).toBe(true);
     });
 });

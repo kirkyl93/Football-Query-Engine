@@ -14,12 +14,13 @@ interface GoalAndAssistContributionProps {
     comparisonPenaltyGoals: number;
     comparisonAssists: number;
     comparisonTotalTeamGoals: number;
+    height?: number;
 }
 
 const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> = (
     {
         playerName, nonPenaltyGoals, penaltyGoals, assists, totalTeamGoals, comparisonPlayerName,
-        comparisonNonPenaltyGoals, comparisonPenaltyGoals, comparisonAssists, comparisonTotalTeamGoals
+        comparisonNonPenaltyGoals, comparisonPenaltyGoals, comparisonAssists, comparisonTotalTeamGoals, height
     }) => {
     return (
         <ComparisonPieChart
@@ -30,6 +31,7 @@ const GoalAndAssistContributionChart: React.FC<GoalAndAssistContributionProps> =
             comparisonSlices={goalContributionSlices(
                 comparisonNonPenaltyGoals, comparisonPenaltyGoals, comparisonAssists, comparisonTotalTeamGoals,
             )}
+            height={height}
         />
     )
 }

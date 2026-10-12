@@ -1,10 +1,13 @@
 import React from "react";
 import {PlayerStats} from "../../../types/Player";
 import ComparisonBarChart from "./charts/ComparisonBarChart";
-import {COMPARISON_COLOUR, PLAYER_COLOUR} from "./charts/StreakTooltipContent";
+import {PLAYER_COLOUR, stripedSwatch} from "./charts/StreakTooltipContent";
 import {per90Rows} from "../lib/barChartData";
-import shared from "../../../styles/shared.module.css";
 import styles from './charts/ComparisonBarChart.module.css';
+
+/** Rates travel as numbers (proper axis scaling); tooltips show 2dp. */
+const formatRate = (value: number | string): string =>
+    typeof value === "number" ? value.toFixed(2) : value;
 
 
 interface Per90Props {
@@ -12,11 +15,12 @@ interface Per90Props {
     playerStats: PlayerStats;
     comparisonPlayerName: string;
     comparisonPlayerStats: PlayerStats;
+    height?: number;
 }
 
 const Per90Chart: React.FC<Per90Props> = (
     {
-        playerName, playerStats, comparisonPlayerName, comparisonPlayerStats
+        playerName, playerStats, comparisonPlayerName, comparisonPlayerStats, height
     }) => {
     return (
         <ComparisonBarChart
@@ -24,21 +28,24 @@ const Per90Chart: React.FC<Per90Props> = (
             playerName={playerName}
             comparisonPlayerName={comparisonPlayerName}
             data={per90Rows(playerStats, comparisonPlayerStats)}
+            height={height}
+            layout="horizontal"
             renderTooltipContent={(row) => {
+                const colour = row.colour ?? PLAYER_COLOUR;
                 if (comparisonPlayerName.length === 0) {
                     return (
                         <p className={styles['tooltip-value']}>
-                            {row.player1}
+                            <span className={styles['legend-solid']} style={{backgroundColor: colour}} /> {formatRate(row.player1)}
                         </p>
                     );
                 }
                 return (
                     <>
                         <p className={styles['tooltip-value']}>
-                            <span className={shared['square-title']} style={{backgroundColor: PLAYER_COLOUR}}></span> {row.player1}
+                            <span className={styles['legend-solid']} style={{backgroundColor: colour}} /> {playerName}: {formatRate(row.player1)}
                         </p>
                         <p className={styles['tooltip-value']}>
-                            <span className={shared['square-title']} style={{backgroundColor: COMPARISON_COLOUR}}></span> {row.player2}
+                            <span className={styles['legend-striped']} style={stripedSwatch(colour)} /> {comparisonPlayerName}: {formatRate(row.player2)}
                         </p>
                     </>
                 );

@@ -5,6 +5,15 @@ import {PlayerAppearance} from "../../../types/Player";
 /** Two fills closer than this count as "the same colour" for clash purposes. */
 export const BAR_FILL_CLASH_THRESHOLD = 80;
 
+/** Canvas background the bars must read against. */
+export const BAR_FILL_BACKGROUND = "#ffffff";
+
+/**
+ * Fills closer than this to the background count as invisible (e.g. Real
+ * Madrid's white primary) and are swapped for a visible club colour.
+ */
+export const BAR_FILL_BACKGROUND_THRESHOLD = 100;
+
 /**
  * One solid fill per appearance, in game order.
  *
@@ -20,7 +29,7 @@ export function resolveBarFills(appearances: PlayerAppearance[]): string[] {
     const fills: string[] = [];
 
     appearances.forEach((appearance, index) => {
-        const colours = getClubColours(appearance.club_id);
+        const colours = visibleOnBackground(getClubColours(appearance.club_id));
         const previousFill = index > 0 ? fills[index - 1] : null;
         const previousClub = index > 0 ? appearances[index - 1].club_id : null;
 
@@ -52,4 +61,21 @@ export function resolveBarFills(appearances: PlayerAppearance[]): string[] {
     });
 
     return fills;
+}
+
+/**
+ * Club colours that read against the canvas background. Near-white
+ * primaries (white shirts on a white chart) fall through to the next
+ * visible colour; if every option is near-white the darkest wins.
+ */
+function visibleOnBackground(colours: string[]): string[] {
+    const visible = colours.filter(
+        (colour) => colourDistance(colour, BAR_FILL_BACKGROUND) >= BAR_FILL_BACKGROUND_THRESHOLD,
+    );
+    if (visible.length > 0) {
+        return visible;
+    }
+    return [...colours].sort(
+        (a, b) => colourDistance(b, BAR_FILL_BACKGROUND) - colourDistance(a, BAR_FILL_BACKGROUND),
+    ).slice(0, 1);
 }

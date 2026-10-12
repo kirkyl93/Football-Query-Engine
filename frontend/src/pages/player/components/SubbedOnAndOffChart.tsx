@@ -14,12 +14,13 @@ interface SubbedOnAndOffProps {
     comparisonStartedAndSubbed: number;
     comparisonSubbedOnAndOff: number;
     comparisonSubbedOnAndFinished: number;
+    height?: number;
 }
 
 const SubbedOnAndOffChart: React.FC<SubbedOnAndOffProps> = (
     {
         playerName, startedAndFinished, startedAndSubbed, subbedOnAndOff, subbedOnAndFinished, comparisonPlayerName,
-        comparisonStartedAndFinished, comparisonStartedAndSubbed, comparisonSubbedOnAndOff, comparisonSubbedOnAndFinished
+        comparisonStartedAndFinished, comparisonStartedAndSubbed, comparisonSubbedOnAndOff, comparisonSubbedOnAndFinished, height
     }) => {
     return (
         <ComparisonPieChart
@@ -30,6 +31,7 @@ const SubbedOnAndOffChart: React.FC<SubbedOnAndOffProps> = (
             comparisonSlices={appearanceTypeSlices(
                 comparisonStartedAndFinished, comparisonStartedAndSubbed, comparisonSubbedOnAndOff, comparisonSubbedOnAndFinished,
             )}
+            height={height}
         />
     )
 }
