@@ -4,6 +4,7 @@ use actix_web::{
     web::{self},
 };
 use dotenv::dotenv;
+use football_game::config::parse_allowed_origins;
 use football_game::services::club::search_clubs::get_clubs;
 use football_game::services::player::search_by_count::search_by_count;
 use football_game::services::player::search_by_game::search_by_game;
@@ -42,13 +43,21 @@ async fn main() -> std::io::Result<()> {
     }
     let query_cache = QueryCache::new(cache_ttl);
 
+    // CORS origins via env, e.g. ALLOWED_ORIGINS="https://myapp.com,https://www.myapp.com"
+    // Falls back to local dev default when unset. Fails fast on typos like
+    // trailing slashes (which browsers would never match).
+    let allowed_origins_raw =
+        std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let allowed_origins =
+        parse_allowed_origins(&allowed_origins_raw).expect("invalid ALLOWED_ORIGINS");
+
     HttpServer::new(move || {
+        let mut cors = Cors::default().max_age(3600);
+        for origin in &allowed_origins {
+            cors = cors.allowed_origin(origin);
+        }
         App::new()
-            .wrap(
-                Cors::default()
-                    .allowed_origin("http://localhost:4173")
-                    .max_age(3600),
-            )
+            .wrap(cors)
             .wrap(query_cache.clone())
             .app_data(web::Data::new(pool.clone()))
             .service(get_players)
