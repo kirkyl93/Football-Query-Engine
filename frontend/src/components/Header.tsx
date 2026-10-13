@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import {Link} from 'react-router-dom';
 import styles from './Header.module.css';
 import PlayerSearchBar from "./PlayerSearchBar";
+import {getDefaultSearchPath} from "../pages/search/lib/defaultSearchFilter";
 
 const Header: React.FC = () => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -35,7 +36,7 @@ const Header: React.FC = () => {
     return (
         <header className={styles['header']}>
             <nav className={styles['nav']}>
-                <Link to="/?seasons=2025&comps=GB1&penalty=ip&home=e&sort=g&scope=o">
+                <Link to={getDefaultSearchPath()}>
                     <img
                         src={'/football.png'}
                         alt={`Football`}

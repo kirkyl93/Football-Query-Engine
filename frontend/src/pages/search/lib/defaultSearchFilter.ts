@@ -1,5 +1,6 @@
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import {HomeOrAwayOptions, PenaltyOptions, SortOptions, StatScope} from "../../../types/SearchOptions";
+import {filterStateToSearchParams} from "./searchParamsSerializer";
 
 export const createDefaultSearchFilterState = (): SearchFilterState => ({
     seasons: [2025],
@@ -30,3 +31,13 @@ export const createDefaultSearchFilterState = (): SearchFilterState => ({
     minimumGoalsAndAssists: undefined,
     maximumGoalsAndAssists: undefined
 });
+
+/**
+ * Single source of truth for the "home page": Premier League top scorers 25/26.
+ * Used by the header logo link and by the redirect from bare `/` with no params.
+ */
+export const getDefaultSearchPath = (): string => {
+    const params = filterStateToSearchParams(createDefaultSearchFilterState());
+    const query = params.toString();
+    return query ? `/?${query}` : '/';
+};
