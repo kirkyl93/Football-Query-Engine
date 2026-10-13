@@ -16,12 +16,12 @@ interface PlayerInfoHeaderProps {
 const PlayerInfoHeader: React.FC<PlayerInfoHeaderProps> = ({playerData, mirror = false}) => {
     const photo = (
         <div style={{fontWeight: "800", fontSize: "14px"}}>
-            <img
-                src={playerData?.image_url}
-                alt={playerData?.first_name + " " + playerData?.last_name}
-                width="95"
-                style={{borderRadius: '25%', marginRight: mirror ? "0" : "10px", marginLeft: mirror ? "10px" : "0"}}
-            />
+            {/*<img*/}
+            {/*    src={playerData?.image_url}*/}
+            {/*    alt={playerData?.first_name + " " + playerData?.last_name}*/}
+            {/*    width="95"*/}
+            {/*    style={{borderRadius: '25%', marginRight: mirror ? "0" : "10px", marginLeft: mirror ? "10px" : "0"}}*/}
+            {/*/>*/}
         </div>
     );
     const details = (

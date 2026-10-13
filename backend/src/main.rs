@@ -46,7 +46,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(
                 Cors::default()
-                    .allowed_origin("http://localhost:3000")
+                    .allowed_origin("http://localhost:4173")
                     .max_age(3600),
             )
             .wrap(query_cache.clone())

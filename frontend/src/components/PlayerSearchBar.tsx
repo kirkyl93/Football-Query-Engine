@@ -197,10 +197,10 @@ const renderPlayerContent = (player: Player) => (
              alt={player.country_of_citizenship}
              style={{ width: '20px', height: '13px', marginRight: '6px', marginLeft: '6px', borderRadius: 1 }}
         />
-        <img src={player.image_url || '/football.png'}
-             alt={`${player.first_name} ${player.last_name}`}
-             style={{ width: '30px', height: '37px', marginRight: '10px', borderRadius: '50%' }}
-        />
+        {/*<img src={player.image_url || '/football.png'}*/}
+        {/*     alt={`${player.first_name} ${player.last_name}`}*/}
+        {/*     style={{ width: '30px', height: '37px', marginRight: '10px', borderRadius: '50%' }}*/}
+        {/*/>*/}
         <span>{`${player.first_name} ${player.last_name}`}</span>
     </>
 );
