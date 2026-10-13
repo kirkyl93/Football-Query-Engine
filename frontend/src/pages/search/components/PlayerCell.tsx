@@ -26,12 +26,12 @@ export const PlayerCell: React.FC<PlayerCellProps> = ({
             src={`https://flagicons.lipis.dev/flags/4x3/${countryCode}.svg`}
             alt={`${countryCode}`}
         />
-        <img
-            className={`${baseStyles['avatar-sm']} ${avatarClassName ?? ''}`}
-            src={imageUrl}
-            alt={playerName}
-            width="50"
-        />
+        {/*<img*/}
+        {/*    className={`${baseStyles['avatar-sm']} ${avatarClassName ?? ''}`}*/}
+        {/*    src={imageUrl}*/}
+        {/*    alt={playerName}*/}
+        {/*    width="50"*/}
+        {/*/>*/}
         <Link
             to={`/player/${playerId}`}
             className={baseStyles['table-link']}
