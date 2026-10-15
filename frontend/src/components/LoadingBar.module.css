@@ -53,9 +53,15 @@
     margin-top: 10px;
 }
 
-.retry-button {
-    margin-left: 12px;
-    padding: 4px 12px;
-    font-size: 14px;
-    cursor: pointer;
+/* Sizing overrides only — all visuals (colors, radius, hover) come from
+   shared apply-button. The .error ancestor gives higher specificity than
+   .apply-button, so these win regardless of stylesheet bundle order. */
+.error .retry-button {
+    width: auto;
+    display: inline-block;
+    min-height: 0;
+    flex-shrink: 0;
+    margin: 0 0 0 12px;
+    padding: 8px 16px;
+    vertical-align: middle;
 }

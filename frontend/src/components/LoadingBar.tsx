@@ -1,5 +1,6 @@
 import React from "react";
 import styles from './LoadingBar.module.css';
+import shared from '../styles/shared.module.css';
 
 interface LoadingProps {
     loading: boolean;
@@ -31,7 +32,7 @@ export const LoadingBar: React.FC<LoadingProps> = (
                 <div className={styles['error']}>
                     <span>{error}</span>
                     {onRetry && (
-                        <button type="button" className={styles['retry-button']} onClick={onRetry}>
+                        <button type="button" className={`${shared['apply-button']} ${styles['retry-button']}`} onClick={onRetry}>
                             Retry
                         </button>
                     )}
