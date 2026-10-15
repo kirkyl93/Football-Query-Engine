@@ -20,7 +20,7 @@ interface SearchByGameTableProps {
 }
 
 export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState, onSortChange}) => {
-    const {data, hasData, hasMore, loading, error, lastElementRef} =
+    const {data, hasData, hasMore, loading, error, lastElementRef, retry} =
         useInfiniteScroll<PlayerGameSearchResult>(fetchPlayerGameData);
 
     return (
@@ -105,6 +105,7 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                 hasData={hasData}
                 hasMore={hasMore}
                 error={error}
+                onRetry={retry}
             />
         </div>
     );

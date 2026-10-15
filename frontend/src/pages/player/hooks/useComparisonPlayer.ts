@@ -59,7 +59,11 @@ export const useComparisonPlayer = (playerId: string | undefined): UseComparison
                 setComparisonPlayerName(playerName);
                 setComparisonPlayerGameData(playerGameData);
             })
-            .catch(() => {
+            .catch((error: unknown) => {
+                console.error('[comparison-player-fetch-failed]', {
+                    selectedPlayerId,
+                    message: error instanceof Error ? error.message : String(error),
+                });
                 setComparisonError('Failed to load comparison player data');
             })
             .finally(() => {

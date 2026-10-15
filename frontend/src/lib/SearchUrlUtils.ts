@@ -3,6 +3,7 @@ import {UrlFilters} from "../types/UrlFilters";
 import {StatScope} from "../types/SearchOptions";
 import {PlayerGameSearchResult, PlayerNumberOfGamesOrSeasonsResult, PlayerSearchResult} from "../types/Player";
 import {API_BASE_URL} from "../config";
+import {fetchJson} from "./apiError";
 
 export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams }: FetchParams): string => {
     let url = `${baseUrl}?page=${page}&limit=${limit}`;
@@ -46,31 +47,16 @@ export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams 
 };
 
 export const fetchNumberOfGamesOrSeasonsResult = async (params: FetchParams): Promise<PlayerNumberOfGamesOrSeasonsResult[]> => {
-    let url = constructSearchUrl(`${API_BASE_URL}/search/occurrences`, params);
-
-    const response = await fetch(url, { signal: params.signal });
-    if (!response.ok) {
-        throw new Error('Failed to fetch player stats');
-    }
-    return response.json();
+    const url = constructSearchUrl(`${API_BASE_URL}/search/occurrences`, params);
+    return fetchJson<PlayerNumberOfGamesOrSeasonsResult[]>('/search/occurrences', url, params.signal);
 }
 
 export const fetchPlayerOverallOrSeasonData = async (params: FetchParams): Promise<PlayerSearchResult[]> => {
-    let url = constructSearchUrl(`${API_BASE_URL}/search`, params);
-
-    const response = await fetch(url, { signal: params.signal });
-    if (!response.ok) {
-        throw new Error('Failed to fetch player stats');
-    }
-    return response.json();
+    const url = constructSearchUrl(`${API_BASE_URL}/search`, params);
+    return fetchJson<PlayerSearchResult[]>('/search', url, params.signal);
 }
 
 export const fetchPlayerGameData = async (params: FetchParams): Promise<PlayerGameSearchResult[]> => {
-    let url = constructSearchUrl(`${API_BASE_URL}/search/game`, params);
-
-    const response = await fetch(url, { signal: params.signal });
-    if (!response.ok) {
-        throw new Error('Failed to fetch player game data');
-    }
-    return response.json();
+    const url = constructSearchUrl(`${API_BASE_URL}/search/game`, params);
+    return fetchJson<PlayerGameSearchResult[]>('/search/game', url, params.signal);
 }

@@ -39,4 +39,37 @@ describe('useInfiniteScroll', () => {
         expect(result.current.error).toBe('Failed to fetch data');
         expect(result.current.hasData).toBe(false);
     });
+
+    it('stops loading after a failure', async () => {
+        const fetchFn = vi.fn(async () => {
+            throw new Error('offline');
+        });
+        const {result} = renderHook(() => useInfiniteScroll(fetchFn), {wrapper});
+
+        await waitFor(() => expect(result.current.error).not.toBeNull());
+
+        expect(result.current.loading).toBe(false);
+    });
+
+    it('clears the error when retry succeeds', async () => {
+        let calls = 0;
+        const fetchFn = vi.fn(async () => {
+            calls += 1;
+            if (calls === 1) {
+                throw new Error('offline');
+            }
+            return [{id: 1}];
+        });
+        const {result} = renderHook(() => useInfiniteScroll(fetchFn), {wrapper});
+
+        await waitFor(() => expect(result.current.error).not.toBeNull());
+
+        result.current.retry();
+
+        await waitFor(() => expect(result.current.hasData).toBe(true));
+
+        expect(result.current.error).toBeNull();
+        expect(result.current.data).toEqual([{id: 1}]);
+        expect(result.current.loading).toBe(false);
+    });
 });
