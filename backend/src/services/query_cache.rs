@@ -278,12 +278,20 @@ where
                         match outcome {
                             Ok(res) => {
                                 let status = res.status();
-                                // Clone headers BEFORE consuming the body:
-                                // downstream middleware (e.g. CORS) may have
-                                // added headers that must survive the rebuild.
+                                // Clone headers BEFORE consuming the body, except
+                                // CORS headers: Cors runs outside this layer
+                                // (see main.rs) and re-adds fresh per-request
+                                // access-control-* headers on every response,
+                                // including HITs. Storing them would serve a
+                                // stale (or missing) ACAO verbatim whenever
+                                // the priming request carried a different
+                                // Origin — or none at all.
                                 let headers: Vec<(HeaderName, HeaderValue)> = res
                                     .headers()
                                     .iter()
+                                    .filter(|(name, _)| {
+                                        !name.as_str().starts_with("access-control-")
+                                    })
                                     .map(|(name, value)| (name.clone(), value.clone()))
                                     .collect();
                                 let (http_req, res) = res.into_parts();
@@ -413,8 +421,9 @@ mod tests {
         };
     }
 
-    fn cache_header(resp: &ServiceResponse<BoxBody>) -> Option<String> {
-        resp.headers()
+    fn cache_header<B>(resp: &ServiceResponse<B>) -> Option<String> {
+        resp.response()
+            .headers()
             .get("X-Cache")
             .and_then(|v| v.to_str().ok())
             .map(str::to_string)
@@ -613,6 +622,82 @@ mod tests {
         }
 
         assert_eq!(counter.load(Ordering::SeqCst), 2);
+    }
+
+    /// Regression test for the CORS-on-HIT bug: QueryCache sits inside Cors
+    /// (see main.rs wrap order), so HITs must still carry fresh per-request
+    /// CORS headers. The entry is primed Origin-less first — before the fix,
+    /// the HIT served the stored (ACAO-less) headers verbatim and browsers
+    /// rejected the 200 with a CORS error.
+    #[actix_web::test]
+    async fn cache_hit_still_carries_cors_headers() {
+        use actix_cors::Cors;
+
+        const ORIGIN: &str = "https://football-query-engine.vercel.app";
+        let counter = test_counter();
+        let app = actix_test::init_service(
+            App::new()
+                .wrap(QueryCache::with_limits(Duration::from_secs(3600), 512))
+                .wrap(Cors::default().allowed_origin(ORIGIN))
+                .app_data(counter.clone())
+                .route("/search", web::get().to(probe)),
+        )
+        .await;
+
+        // Prime the entry with no Origin: MISS, and (correctly) no ACAO.
+        let primed = actix_test::call_service(
+            &app,
+            actix_test::TestRequest::get()
+                .uri("/search?seasons=2025")
+                .to_request(),
+        )
+        .await;
+        assert_eq!(primed.status(), StatusCode::OK);
+        assert_eq!(cache_header(&primed), Some("MISS".to_string()));
+        assert!(
+            primed
+                .headers()
+                .get("access-control-allow-origin")
+                .is_none()
+        );
+
+        // Same key with an allowlisted Origin: HIT, and ACAO must be present.
+        let hit = actix_test::call_service(
+            &app,
+            actix_test::TestRequest::get()
+                .uri("/search?seasons=2025")
+                .insert_header(("Origin", ORIGIN))
+                .to_request(),
+        )
+        .await;
+        assert_eq!(hit.status(), StatusCode::OK);
+        assert_eq!(cache_header(&hit), Some("HIT".to_string()));
+        assert_eq!(
+            hit.headers()
+                .get("access-control-allow-origin")
+                .and_then(|v| v.to_str().ok()),
+            Some(ORIGIN)
+        );
+
+        // Disallowed origins stay disallowed, even on a HIT.
+        let evil = actix_test::call_service(
+            &app,
+            actix_test::TestRequest::get()
+                .uri("/search?seasons=2025")
+                .insert_header(("Origin", "https://evil.example"))
+                .to_request(),
+        )
+        .await;
+        assert_eq!(evil.status(), StatusCode::OK);
+        assert!(
+            evil
+                .headers()
+                .get("access-control-allow-origin")
+                .is_none()
+        );
+
+        // One computation total: the priming MISS only.
+        assert_eq!(counter.load(Ordering::SeqCst), 1);
     }
 
     #[actix_web::test]
