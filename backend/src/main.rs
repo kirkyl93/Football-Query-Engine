@@ -18,6 +18,9 @@ use sqlx::postgres::PgPoolOptions;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    env_logger::Builder::from_default_env()
+        .filter_level(log::LevelFilter::Info)
+        .init();
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = PgPoolOptions::new()
         .max_connections(20)
@@ -57,8 +60,8 @@ async fn main() -> std::io::Result<()> {
             cors = cors.allowed_origin(origin);
         }
         App::new()
-            .wrap(cors)
             .wrap(query_cache.clone())
+            .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .service(get_players)
             .service(fetch_player)
