@@ -130,6 +130,13 @@ export const isCleanSheet = (entry: PlayerAppearance, showCleanSheets: boolean):
         : entry.home_club_goals === 0;
 };
 
+/**
+ * Tick budget for the game-number axis: fewer 12px labels on narrow plots
+ * so they never collide. Wide (desktop) plots keep the historic ~10.
+ */
+export const maxGameTicksForWidth = (plotWidth: number): number =>
+    Math.min(10, Math.max(4, Math.floor(plotWidth / 56)));
+
 /** ~10 evenly spaced integer game numbers spanning the visible window. */
 export const gameTicks = (firstGame: number, lastGame: number, maxTicks = 10): number[] => {
     if (!Number.isFinite(firstGame) || !Number.isFinite(lastGame) || lastGame < firstGame) {

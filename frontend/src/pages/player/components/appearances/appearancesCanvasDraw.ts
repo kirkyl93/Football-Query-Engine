@@ -14,6 +14,7 @@ import {
     barFillAndStrokeAlpha,
     barWidthForSlot,
     gameTicks,
+    maxGameTicksForWidth,
     isCleanSheet,
     minuteTicks,
     plotFrameForSize,
@@ -182,7 +183,7 @@ const drawAxes = (
         ctx.font = TICK_FONT;
         ctx.fillStyle = TICK_FILL;
         ctx.textAlign = "center";
-        for (const tick of gameTicks(firstGame, lastGame)) {
+        for (const tick of gameTicks(firstGame, lastGame, maxGameTicksForWidth(frame.plotWidth))) {
             const index = indexByGame.get(tick);
             if (index === undefined) {
                 continue;
