@@ -19,7 +19,7 @@ interface SearchOverallTableProps {
 }
 
 export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterState, onSortChange}) => {
-    const {data, hasData, hasMore, loading, error, lastElementRef} =
+    const {data, hasData, hasMore, loading, error, lastElementRef, retry} =
         useInfiniteScroll<PlayerSearchResult>(fetchPlayerOverallOrSeasonData);
 
     return (
@@ -110,6 +110,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                 hasData={hasData}
                 hasMore={hasMore}
                 error={error}
+                onRetry={retry}
             />
         </div>
     );

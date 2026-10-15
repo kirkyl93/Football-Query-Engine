@@ -6,6 +6,7 @@ interface LoadingProps {
     hasData: boolean;
     hasMore: boolean;
     error: string | null;
+    onRetry?: () => void;
 }
 
 export const LoadingBar: React.FC<LoadingProps> = (
@@ -13,7 +14,8 @@ export const LoadingBar: React.FC<LoadingProps> = (
         loading,
         hasData,
         hasMore,
-        error
+        error,
+        onRetry
     }) => {
     return (
         <div>
@@ -25,7 +27,16 @@ export const LoadingBar: React.FC<LoadingProps> = (
                 </div>
             </div>}
             {loading && hasData && hasMore && <div className={styles['loading']}>Loading more players...</div>}
-            {error && <div className={styles['error']}>{error}</div>}
+            {error && (
+                <div className={styles['error']}>
+                    <span>{error}</span>
+                    {onRetry && (
+                        <button type="button" className={styles['retry-button']} onClick={onRetry}>
+                            Retry
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     )
 }

@@ -17,7 +17,7 @@ interface SearchByCountTableProps {
 }
 
 export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterState}) => {
-    const {data, hasData, hasMore, loading, error, lastElementRef} =
+    const {data, hasData, hasMore, loading, error, lastElementRef, retry} =
     useInfiniteScroll<PlayerNumberOfGamesOrSeasonsResult>(fetchNumberOfGamesOrSeasonsResult);
 
     return (
@@ -73,6 +73,7 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                 hasData={hasData}
                 hasMore={hasMore}
                 error={error}
+                onRetry={retry}
             />
         </div>
     )
