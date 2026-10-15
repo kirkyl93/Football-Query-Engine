@@ -16,6 +16,10 @@ Finding the answer is now easy! This project aims to get the most out of basic s
 
 **Setup Instructions**
 
+The app is live here: https://football-query-engine.vercel.app
+
+However, if you want to self-manage, instructions can be found below.
+
 - Create a Postgres database and apply the DB Schema provided
 - Download the data linked below and populate the DB tables with this data (the Postgres table names correspond to the Excel file names). These files cover data from 2012 onwards.
 - Pass the DB URL as an environment variable to the Rust app
