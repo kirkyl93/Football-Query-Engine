@@ -33,7 +33,7 @@ const PlayerInfoHeader: React.FC<PlayerInfoHeaderProps> = ({playerData, mirror =
                         className={tableStyles['second-gs-columns-to-hide']}
                     src={`https://flagicons.lipis.dev/flags/4x3/${playerData?.country_code}.svg`}
                     alt={`${playerData?.country_code}`}
-                    style={{width: '17px', height: '13px', marginRight: '5px', marginLeft: '5px'}}
+                    style={{width: '17px', height: '13px', marginRight: '5px', marginLeft: '5px', verticalAlign: 'middle'}}
                 />
                 {playerData?.country_of_citizenship}
             </p>

@@ -7,6 +7,7 @@ import {
     clampOpacity,
     gameIndexAtX,
     gameTicks,
+    maxGameTicksForWidth,
     isCleanSheet,
     minuteTicks,
     plotFrameForSize,
@@ -126,6 +127,18 @@ describe('appearancesCanvasGeometry', () => {
         expect(ticks[ticks.length - 1]).toBe(600);
         expect(gameTicks(5, 5)).toEqual([5]);
         expect(gameTicks(10, 1)).toEqual([]);
+    });
+
+    it('budgets fewer game ticks on narrow plots, ~10 on desktop', () => {
+        expect(maxGameTicksForWidth(1400)).toBe(10);
+        expect(maxGameTicksForWidth(560)).toBe(10);
+        expect(maxGameTicksForWidth(220)).toBe(4);
+        expect(maxGameTicksForWidth(0)).toBe(4);
+        // Narrow budget still spans the window for a full season.
+        const ticks = gameTicks(1, 45, maxGameTicksForWidth(220));
+        expect(ticks[0]).toBe(1);
+        expect(ticks[ticks.length - 1]).toBe(45);
+        expect(ticks.length).toBeLessThanOrEqual(6);
     });
 
     it('picks round minute ticks', () => {
