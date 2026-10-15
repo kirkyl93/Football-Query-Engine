@@ -1,4 +1,5 @@
 import { BrowserRouter as Router } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Header from './components/Header';
 import AppRoutes from "./routes/AppRoutes";
 
@@ -7,6 +8,7 @@ const App: React.FC = () => {
         <Router>
             <Header />
             <AppRoutes />
+            <SpeedInsights />
         </Router>
     );
 };
