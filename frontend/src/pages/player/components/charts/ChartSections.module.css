@@ -7,9 +7,9 @@
         "appearances streaks"
         "player player"
         "team team";
-    gap: 16px;
+    gap: 20px;
     width: 100%;
-    margin-top: 12px;
+    margin-top: 20px;
     align-items: stretch;
     box-sizing: border-box;
 }
@@ -55,7 +55,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 20px;
 }
 
 .section-title {
@@ -69,9 +69,6 @@
     font-size: 12.5px;
     color: #666;
     margin: 2px 0 0;
-    /* Two-line reserve so both tile headers measure the same and the
-       preview cards below start (and end) aligned. */
-    min-height: 2.5em;
 }
 
 /* Previews are hoverable (tooltips) but not selectable. Grows to fill
@@ -153,18 +150,21 @@
     top: 8px;
     right: 8px;
     z-index: 3;
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
-    line-height: 1;
+    padding: 0;
     background: #fff;
     border: 1px solid var(--color-border);
     border-radius: 8px;
     cursor: pointer;
     color: #333;
+}
+
+.mini-expand svg {
+    display: block;
 }
 
 .mini-expand:hover {

@@ -47,17 +47,16 @@ describe('PlayerComparisonBar', () => {
         expect(screen.getByPlaceholderText('Search for a player...')).toBeInTheDocument();
     });
 
-    it('mirrors the selected player picture and info without its own clear button', () => {
+    it('renders the selected player info mirrored without its own clear button', () => {
         const {container} = renderBar({comparisonPlayerName: 'Kane', comparisonPlayer: player});
 
-        expect(screen.getByAltText('Harry Kane')).toBeInTheDocument();
+        // Photos removed: no player picture, info only.
+        expect(screen.queryByAltText('Harry Kane')).not.toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Harry Kane'})).toBeInTheDocument();
         expect(screen.queryByPlaceholderText('Search for a player...')).not.toBeInTheDocument();
-        // Mirrored: details (heading) come before the picture, unlike the
-        // main player's photo-first header.
-        const ordered = Array.from(container.querySelectorAll('h3, img'));
-        expect(ordered[0].tagName).toBe('H3');
-        expect(ordered[ordered.length - 1].getAttribute('alt')).toBe('Harry Kane');
+        // Mirrored layout: header carries the mirror class (right-aligned
+        // details, no photo).
+        expect(container.querySelector('[class*="player-header-mirror"]')).toBeInTheDocument();
         // Clearing lives on the bio-row button, not in the mirror block.
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });

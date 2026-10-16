@@ -42,6 +42,7 @@
     border-bottom: 1px solid #ddd;
     width: fit-content;
     align-items: center;
+    vertical-align: middle;
     white-space: nowrap;
     font-size: 12px;
     min-width: 40px;
@@ -75,6 +76,10 @@
     width: 21px;
     height: 15px;
     margin-right: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    object-fit: cover;
 }
 
 .avatar-sm {
