@@ -25,6 +25,10 @@ export const PlayerCell: React.FC<PlayerCellProps> = ({
             className={`${baseStyles['flag-sm']} ${flagClassName ?? ''}`}
             src={`https://flagicons.lipis.dev/flags/4x3/${countryCode}.svg`}
             alt={`${countryCode}`}
+            width={21}
+            height={15}
+            loading="lazy"
+            decoding="async"
         />
         {/*<img*/}
         {/*    className={`${baseStyles['avatar-sm']} ${avatarClassName ?? ''}`}*/}

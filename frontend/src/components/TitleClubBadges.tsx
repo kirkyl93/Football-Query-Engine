@@ -29,6 +29,10 @@ const TitleClubBadges: React.FC<TitleClubBadgesProps> = ({label, clubIds}) => {
                         src={`https://tmssl.akamaized.net/images/wappen/head/${encodeURIComponent(clubId)}.png`}
                         alt={getClubName(clubId)}
                         title={getClubName(clubId)}
+                        width={20}
+                        height={20}
+                        loading="lazy"
+                        decoding="async"
                     />
                 )))}
         </>

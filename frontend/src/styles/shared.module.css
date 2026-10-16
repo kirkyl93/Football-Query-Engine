@@ -136,7 +136,7 @@
 
 .summary-inline img.club-badge {
     height: 22px;
-    width: auto;
+    width: 22px;
     max-width: 30px;
     object-fit: contain;
 }
@@ -520,9 +520,15 @@
     background-color: #e8e8e8;
 }
 
-/* ---- Club badges (fixed 30px footprint) ---- */
+/* ---- Club badges (fixed footprint reserves space before remote
+   images load, so table rows don't jump) ---- */
 .club-badge {
-    width: 32px;
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
 }
 
 /* ---- Legend swatches ---- */
@@ -562,6 +568,10 @@
 .title-badge {
     vertical-align: middle;
     width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: inline-block;
+    flex-shrink: 0;
     margin: 0 5px;
 }
 

@@ -69,19 +69,27 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                     <img
                                         src={`https://flagcdn.com/w20/${playerGame.competition_country_code}.png`}
                                         alt={playerGame.competition_name}
-                                        style={{marginRight: '5px', width: '18px', height: "auto" }}
+                                        style={{marginRight: '5px', width: '18px', height: '13px', objectFit: 'cover', verticalAlign: 'middle'}}
+                                        width={18}
+                                        height={13}
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                     {playerGame.competition_name}
                                 </td>
                                 <td className={styles['second-columns-to-hide']}>{formatSeason(playerGame.season)}</td>
                                 <td className={styles['third-columns-to-hide']}>{dateFormatter.format(convertDateStringToDate(playerGame.date))}</td>
                                 <td className={styles['first-columns-to-hide']}>{playerGame.sub_position}</td>
-                                <td style={{display: 'flex', gap: '7px'}}>
+                                <td style={{display: 'flex', gap: '7px', alignItems: 'center'}}>
                                     <img
                                         src={`https://tmssl.akamaized.net/images/wappen/head/${playerGame.home_club_id}.png`}
                                         alt={playerGame.home_club_name}
                                         className={shared['club-badge']}
                                         title={playerGame.home_club_name}
+                                        width={32}
+                                        height={32}
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                     <span>{playerGame.home_club_goals} - {playerGame.away_club_goals}</span>
                                     <img
@@ -89,6 +97,10 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                         alt={playerGame.away_club_name}
                                         className={shared['club-badge']}
                                         title={playerGame.away_club_name}
+                                        width={32}
+                                        height={32}
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                 </td>
                                 <td className={styles['first-columns-to-hide']}>{playerGame.minutes_played}</td>

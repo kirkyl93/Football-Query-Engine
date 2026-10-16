@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import AppearancesChartTitle from "./AppearancesChartTitle";
 import AppearancesChartFilterBar from "./AppearancesChartFilterBar";
+import ExpandIcon from "../../../components/ExpandIcon";
 import styles from '../Player.module.css';
 import shared from "../../../styles/shared.module.css";
 import {PlayerAppearance} from "../../../types/Player";
@@ -135,12 +136,14 @@ export function AppearancesChartView({playerName: name, view, compact = false, o
                     <button
                         onClick={handleZoomOut}
                         disabled={!startGame && !endGame}
-                        className={styles['filter-button-player']}
+                        className={styles['icon-button-player']}
                         title="Zoom out to the full range"
+                        aria-label="Zoom out"
                     >
                         <img
                             src={'/magnifying-glass.png'}
-                            alt={`Zoom out`}
+                            alt=""
+                            aria-hidden="true"
                             style={{width: '20px', height: '20px'}}
                         />
                     </button>
@@ -152,9 +155,9 @@ export function AppearancesChartView({playerName: name, view, compact = false, o
                             onClick={onExpand}
                             aria-label={expandLabel}
                             title={expandLabel}
-                            className={styles['filter-button-player']}
+                            className={styles['icon-button-player']}
                         >
-                            ⤢
+                            <ExpandIcon size={18} />
                         </button>
                     )}
                 </div>

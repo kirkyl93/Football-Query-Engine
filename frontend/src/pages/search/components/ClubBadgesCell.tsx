@@ -21,6 +21,10 @@ export const ClubBadgesCell: React.FC<ClubBadgesCellProps> = ({clubIds, cellClas
                     title={clubName}
                     className={shared['club-badge']}
                     style={{marginRight: '5px'}}
+                    width={32}
+                    height={32}
+                    loading="lazy"
+                    decoding="async"
                 />
             );
         })}

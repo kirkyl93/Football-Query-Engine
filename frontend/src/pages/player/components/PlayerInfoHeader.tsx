@@ -27,13 +27,15 @@ const PlayerInfoHeader: React.FC<PlayerInfoHeaderProps> = ({playerData, mirror =
     const details = (
         <div style={{marginRight: mirror ? "0" : "100px"}}>
             <h3>{playerData?.first_name + " " + playerData?.last_name}</h3>
-            <p>
+            <p style={{display: 'flex', alignItems: 'center', justifyContent: mirror ? 'flex-end' : 'flex-start'}}>
                 Nation:
                     <img
                         className={tableStyles['second-gs-columns-to-hide']}
                     src={`https://flagicons.lipis.dev/flags/4x3/${playerData?.country_code}.svg`}
                     alt={`${playerData?.country_code}`}
-                    style={{width: '17px', height: '13px', marginRight: '5px', marginLeft: '5px', verticalAlign: 'middle'}}
+                    width={17}
+                    height={13}
+                    style={{width: '17px', height: '13px', marginRight: '5px', marginLeft: '5px', display: 'block', flexShrink: 0}}
                 />
                 {playerData?.country_of_citizenship}
             </p>

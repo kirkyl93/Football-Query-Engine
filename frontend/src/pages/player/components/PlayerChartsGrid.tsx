@@ -6,6 +6,7 @@ import {
 } from "../../../types/Player";
 import {useAppearanceView, ZOOM_CHANGE_DEBOUNCE_MS} from "../hooks/useAppearanceView";
 import {AppearancesChartView} from "./AppearancesChart";
+import ExpandIcon from "../../../components/ExpandIcon";
 import sectionStyles from './charts/ChartSections.module.css';
 import ChartSectionModal from "./charts/ChartSectionModal";
 import {
@@ -203,7 +204,7 @@ const Mini: React.FC<{ def: StatDef; onExpand: (id: string) => void }> = ({def, 
             title={`Expand ${def.title}`}
             className={sectionStyles['mini-expand']}
         >
-            ⤢
+            <ExpandIcon size={16} />
         </button>
         {def.render(MINI_HEIGHT)}
     </div>
