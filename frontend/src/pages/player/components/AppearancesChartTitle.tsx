@@ -4,14 +4,14 @@ import {constructAppearancesTitle} from "../lib/appearancesTitleBuilders";
 import TitleClubBadges from "../../../components/TitleClubBadges";
 import shared from "../../../styles/shared.module.css";
 
-interface GamesPlayedChartTitleProps {
+interface AppearancesChartTitleProps {
     playerName: string;
     filterState: PlayerFilterState;
-    /** Shows a "(zoom filter applied)" suffix while a zoom window is active. */
+    /** Shows a zoom suffix while a zoom window is active. */
     hasZoomFilter?: boolean;
 }
 
-const AppearancesChartTitle: React.FC<GamesPlayedChartTitleProps> = (
+const AppearancesChartTitle: React.FC<AppearancesChartTitleProps> = (
     {
         playerName,
         filterState,
@@ -25,11 +25,11 @@ const AppearancesChartTitle: React.FC<GamesPlayedChartTitleProps> = (
     return (
         <h4 className={shared['title']}>
             {constructTitle}
+            <TitleClubBadges label="playing for" clubIds={filterState.selectedClubsPlayedFor} />
+            <TitleClubBadges label="playing against" clubIds={filterState.selectedClubsPlayedAgainst} />
             {hasZoomFilter && (
                 <span className={shared['title-suffix']}> (zoom filter applied)</span>
             )}
-            <TitleClubBadges label=" · PLAYING FOR:" clubIds={filterState.selectedClubsPlayedFor} />
-            <TitleClubBadges label="· PLAYING AGAINST:" clubIds={filterState.selectedClubsPlayedAgainst} />
         </h4>
     )
 }

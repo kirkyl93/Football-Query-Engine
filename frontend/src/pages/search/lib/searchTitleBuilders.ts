@@ -1,5 +1,3 @@
-import {competitions} from "../../../data/Competitions";
-import {formatSeason} from "../../../lib/DateUtils";
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import {
     HomeOrAwayOptions,
@@ -9,286 +7,177 @@ import {
     SortOptions,
     StatScope,
 } from "../../../types/SearchOptions";
+import {
+    describeAge,
+    describeCompetitions,
+    describeRange,
+    describeSeasons,
+    describeSpan,
+    findCompetitionNameById,
+    joinClauses,
+    joinList,
+} from "../../../lib/titleUtils";
 
 /**
- * Pure title-string builders for the search header
+ * Pure title-string builders for the search header.
+ * Each builder returns a bare clause; `constructSearchTitle` joins them
+ * under a headline: "Top scorers: Premier League, 2025/26, aged 20–30".
  */
-export const sortByTitle = (filterState: SearchFilterState): string => {
-    let title = "";
-    switch (filterState.sortBy) {
-        case SortOptions.GOALS:
-            title += "Top Scorers ";
-            break;
-        case SortOptions.ASSISTS:
-            title += "Most Assists ";
-            break;
-        case SortOptions.GOALS_AND_ASSISTS:
-            title += "Most Assists + Goals ";
-            break;
-        case SortOptions.APPEARANCES:
-            title += "Most Apps ";
-            break;
-        case SortOptions.MINUTES_PLAYED:
-            title += "Most Mins ";
-            break;
-        case SortOptions.YELLOW_CARDS:
-            title += "Most Yellows ";
-            break;
-        case SortOptions.RED_CARDS:
-            title += "Most Reds ";
-            break;
-        case SortOptions.MINUTES_PER_GOAL:
-            title += "Best Mins Per Goal ";
-            break;
-        case SortOptions.MINUTES_PER_ASSIST:
-            title += "Best Mins Per Assist ";
-            break;
-        case SortOptions.MINUTES_PER_GOAL_OR_ASSIST:
-            title += "Best Mins Per Goal Or Assist ";
-            break;
-        case SortOptions.MINUTES_PER_YELLOW:
-            title += "Fewest Mins Per Yellow ";
-            break;
-        case SortOptions.MINUTES_PER_RED:
-            title += "Fewest Mins Per Red ";
-            break;
-        case SortOptions.NUMBER_OF_GAMES_WITH:
-            title += "Most Games With ";
-            break;
-        case SortOptions.NUMBER_OF_SEASONS_WITH:
-            title += "Most Seasons With "
-            break;
-        default:
-            title += "Top Scorers ";
+
+const SORT_HEADLINES: Record<SortOptions, string> = {
+    [SortOptions.GOALS]: "Top scorers",
+    [SortOptions.ASSISTS]: "Most assists",
+    [SortOptions.GOALS_AND_ASSISTS]: "Most goals and assists",
+    [SortOptions.APPEARANCES]: "Most appearances",
+    [SortOptions.MINUTES_PLAYED]: "Most minutes played",
+    [SortOptions.YELLOW_CARDS]: "Most yellow cards",
+    [SortOptions.RED_CARDS]: "Most red cards",
+    [SortOptions.MINUTES_PER_GOAL]: "Fewest minutes per goal",
+    [SortOptions.MINUTES_PER_ASSIST]: "Fewest minutes per assist",
+    [SortOptions.MINUTES_PER_GOAL_OR_ASSIST]: "Fewest minutes per goal or assist",
+    [SortOptions.MINUTES_PER_YELLOW]: "Fewest minutes per yellow card",
+    [SortOptions.MINUTES_PER_RED]: "Fewest minutes per red card",
+    [SortOptions.NUMBER_OF_GAMES_WITH]: "Most games with",
+    [SortOptions.NUMBER_OF_SEASONS_WITH]: "Most seasons with",
+};
+
+export const sortByTitle = (filterState: SearchFilterState): string =>
+    SORT_HEADLINES[filterState.sortBy];
+
+export const sortCriteriaTitle = (filterState: SearchFilterState): string => {
+    if (minuteBasedSortOptions.includes(filterState.sortBy)) {
+        const minimumAppearances = filterState.minimumAppearances ?? 0;
+        return minimumAppearances > 0 ? `at least ${minimumAppearances} appearances` : "";
     }
 
-    if (minuteBasedSortOptions.includes(filterState.sortBy as SortOptions) &&
-        (filterState.minimumAppearances ?? 0) > 0) {
-        title += `(At Least ${filterState.minimumAppearances} Apps) `;
+    if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy)) {
+        return joinClauses(
+            describeRange(filterState.minimumGoals, filterState.maximumGoals, "goal"),
+            describeRange(filterState.minimumAssists, filterState.maximumAssists, "assist"),
+            describeRange(
+                filterState.minimumGoalsAndAssists,
+                filterState.maximumGoalsAndAssists,
+                "goal and assist",
+                "goals and assists",
+            ),
+        );
     }
 
-    if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy as SortOptions)) {
-        const minimumGoals = filterState.minimumGoals ?? 0;
-        const maximumGoals = filterState.maximumGoals ?? 0;
-        const minimumAssists = filterState.minimumAssists ?? 0;
-        const maximumAssists = filterState.maximumAssists ?? 0;
-        const minimumGoalsAndAssists = filterState.minimumGoalsAndAssists ?? 0;
-        const maximumGoalsAndAssists = filterState.maximumGoalsAndAssists ?? 0;
+    return "";
+};
 
-        if (minimumGoals > 0 && maximumGoals > 0) {
-            if (minimumGoals === maximumGoals) {
-                title += `Exactly ${maximumGoals} Goal${maximumGoals > 1 ? 's' : ''} `
-            } else {
-                title += `Between ${minimumGoals} And ${maximumGoals} Goals `
-            }
-        } else if (minimumGoals > 0) {
-            title += `At Least ${minimumGoals} Goal${minimumGoals > 1 ? 's' : ''} `
-        } else if (maximumGoals > 0) {
-            title += `At Most ${maximumGoals} Goal${maximumGoals > 1 ? 's' : ''} `
-        }
-
-        if ((minimumGoals > 0 || maximumGoals > 0) && (minimumAssists > 0 || maximumAssists > 0)) {
-            title += `And `
-        }
-
-        if (minimumAssists > 0 && maximumAssists > 0) {
-            if (minimumAssists === maximumAssists) {
-                title += `Exactly ${maximumAssists} Assist${maximumAssists > 1 ? `s` : ''} `
-            } else {
-                title += `Between ${minimumAssists} And ${maximumAssists} Assists `
-            }
-        } else if (minimumAssists > 0) {
-            title += `At Least ${minimumAssists} Assist${minimumAssists > 1 ? 's' : ''} `
-        } else if (maximumAssists > 0) {
-            title += `At Most ${maximumAssists} Assist${maximumAssists > 1 ? 's' : ''} `
-        }
-
-        if (minimumGoals > 0 || maximumGoals > 0 || minimumAssists > 0 || maximumAssists > 0) {
-            title += `And `
-        }
-
-        if (minimumGoalsAndAssists > 0 && maximumGoalsAndAssists > 0) {
-            if (minimumGoalsAndAssists === maximumGoalsAndAssists) {
-                title += `Exactly ${maximumGoalsAndAssists} Goal${maximumGoalsAndAssists > 1 ? `s` : ''} And Assist${maximumGoalsAndAssists > 1 ? `s` : ''} `
-            }
-        } else if (minimumGoalsAndAssists > 0) {
-            title += `At Least ${minimumGoalsAndAssists} Goal${minimumGoalsAndAssists > 1 ? `s` : ''} And Assist${minimumGoalsAndAssists > 1 ? `s` : ''} `
-        } else if (maximumAssists > 0) {
-            title += `At Most ${minimumGoalsAndAssists} Goal${maximumGoalsAndAssists > 1 ? `s` : ''} And Assist${maximumGoalsAndAssists > 1 ? `s` : ''} `
-        }
-    }
-
-
+export const statScopeTitle = (filterState: SearchFilterState): string => {
     if (filterState.statScope === StatScope.SEASON) {
-        title += "· Season Scope "
+        return "per-season stats";
     }
 
     if (filterState.statScope === StatScope.GAME) {
-        title += "· Individual Game "
+        return "per-game stats";
     }
 
-    return title;
-}
+    return "";
+};
 
-export const competitionsTitle = (filterState: SearchFilterState): string => {
-    if (filterState.competitions.length === 0) {
-        return "All Comps";
-    }
+export const competitionsTitle = (filterState: SearchFilterState): string =>
+    describeCompetitions(filterState.competitions.map(findCompetitionNameById));
 
-    if (filterState.competitions.length >= 10) {
-        return filterState.competitions.length + " Comps";
-    }
+export const seasonsTitle = (filterState: SearchFilterState): string =>
+    describeSeasons(filterState.seasons);
 
-    const competitionNames = filterState.competitions.map(compId => {
-        const leagueComp = competitions.leagues.find(comp => comp.competitionId === compId);
-        if (leagueComp) {
-            return leagueComp.name;
-        }
-        const euroComp = competitions.europeanCompetitions.find(comp => comp.competitionId === compId);
-        return euroComp ? euroComp.name : compId;
-    });
-    return competitionNames.join(" + ");
-}
-
-export const seasonsTitle = (filterState: SearchFilterState): string => {
-    if (filterState.seasons.length === 0) {
-        return "All Seasons";
-    }
-
-    if (filterState.seasons.length === 1) {
-        return formatSeason(filterState.seasons[0]);
-    }
-
-    const seasons = [...filterState.seasons].sort((a, b) => a - b);
-    const isConsecutive = seasons.every((season, index, arr) => index === 0 || season - arr[index - 1] === 1);
-
-    if (isConsecutive) {
-        return formatSeason(seasons[0]) + "-" + formatSeason(seasons[seasons.length - 1]);
-    }
-
-    if (seasons.length >= 10) {
-        return seasons.length + " Seasons";
-    }
-
-    const formattedSeasons = seasons.map(season => formatSeason(season));
-    return formattedSeasons.join(" · ");
-}
-
-export const positionTitle = (filterState: SearchFilterState): string => {
-    if (filterState.positions.length === 0) {
-        return "";
-    }
-
-    return " · " + filterState.positions.join(" · ");
-}
+export const positionTitle = (filterState: SearchFilterState): string =>
+    joinList(filterState.positions);
 
 export const minsTitle = (filterState: SearchFilterState): string => {
-    let minuteString = "";
-    if ((filterState.minuteFrom ?? 0) > 0) {
-        minuteString += ` · From Minute ${filterState.minuteFrom}`;
+    const from = filterState.minuteFrom ?? 0;
+    const to = filterState.minuteTo ?? 0;
+
+    if (from > 0 && to > 0) {
+        return from === to ? `minute ${from}` : `minutes ${from}–${to}`;
     }
-
-    if ((filterState.minuteTo ?? 0) > 0) {
-        minuteString += ` · Up Until Minute ${filterState.minuteTo}`;
+    if (from > 0) {
+        return `from minute ${from}`;
     }
-    return minuteString;
-}
-
-export const ageTitle = (filterState: SearchFilterState): string => {
-    let ageString = "";
-    if ((filterState.minAge ?? 0) > 0) {
-        ageString += ` · Min Age: ${filterState.minAge}`;
+    if (to > 0) {
+        return `until minute ${to}`;
     }
+    return "";
+};
 
-    if ((filterState.maxAge ?? 0) > 0) {
-        ageString += ` · Max Age: ${filterState.maxAge}`;
-    }
-    return ageString;
-}
+export const ageTitle = (filterState: SearchFilterState): string =>
+    describeAge(filterState.minAge, filterState.maxAge);
 
-export const heightTitle = (filterState: SearchFilterState): string => {
-    let heightString = "";
-    if ((filterState.minHeight ?? 0) > 0) {
-        heightString += ` · Min Height: ${filterState.minHeight}cms`;
-    }
+export const heightTitle = (filterState: SearchFilterState): string =>
+    describeSpan(filterState.minHeight, filterState.maxHeight, "cm");
 
-    if ((filterState.maxHeight ?? 0) > 0) {
-        heightString += ` · Max Height: ${filterState.maxHeight}cms`;
-    }
-    return heightString;
-}
+export const namesTitle = (filterState: SearchFilterState): string =>
+    joinList(filterState.playerNames);
 
-export const namesTitle = (filterState: SearchFilterState): string => {
-    if (filterState.playerNames.length === 0) {
-        return "";
-    }
-
-    return ` · ${filterState.playerNames.map(name => name).join(" or ")}`;
-}
-
-export const countriesTitle = (filterState: SearchFilterState): string => {
-    if (filterState.playerCountries.length === 0) {
-        return "";
-    }
-
-    return ` · ${filterState.playerCountries.map(country => country.name).join(" or ")}`;
-}
+export const countriesTitle = (filterState: SearchFilterState): string =>
+    joinList(filterState.playerCountries.map(country => country.name));
 
 export const subsTitle = (filterState: SearchFilterState): string => {
-    let subString = "";
     if (!filterState.subsOnly) {
-        return subString;
+        return "";
     }
 
-    subString += " · Subs Only";
+    const earliest = filterState.earliestSubOnTime ?? 0;
+    const latest = filterState.latestSubOnTime ?? 0;
 
-    if ((filterState.earliestSubOnTime ?? 0) > 0) {
-        subString += ` · Earliest Sub On Time: ${filterState.earliestSubOnTime}`;
+    let timing = "";
+    if (earliest > 0 && latest > 0) {
+        timing = earliest === latest
+            ? `came on in minute ${earliest}`
+            : `came on between minutes ${earliest} and ${latest}`;
+    } else if (earliest > 0) {
+        timing = `came on from minute ${earliest} onwards`;
+    } else if (latest > 0) {
+        timing = `came on by minute ${latest}`;
     }
 
-    if ((filterState.latestSubOnTime ?? 0) > 0) {
-        subString += ` · Latest Sub On Time: " + ${filterState.latestSubOnTime}`;
-    }
-    return subString;
-}
+    return timing || "subs only";
+};
 
 export const pensTitle = (filterState: SearchFilterState): string => {
     if (filterState.penalties === PenaltyOptions.EXCLUDE_PENALTIES) {
-        return " · Exclude Penalties";
+        return "excluding penalties";
     }
 
     if (filterState.penalties === PenaltyOptions.ONLY_PENALTIES) {
-        return " · Only Penalties";
+        return "penalties only";
     }
 
     return "";
-}
+};
 
 export const homeOrAwayTitle = (filterState: SearchFilterState): string => {
     if (filterState.homeOrAway === HomeOrAwayOptions.HOME) {
-        return " · At Home";
+        return "home matches";
     }
 
     if (filterState.homeOrAway === HomeOrAwayOptions.AWAY) {
-        return " · Away From Home";
+        return "away matches";
     }
 
     return "";
-}
+};
 
 export const constructSearchTitle = (filterState: SearchFilterState): string => {
-    let title = sortByTitle(filterState);
-    title += "· " + competitionsTitle(filterState);
-    title += " · " + seasonsTitle(filterState);
-    title += positionTitle(filterState);
-    title += minsTitle(filterState);
-    title += ageTitle(filterState);
-    title += heightTitle(filterState);
-    title += namesTitle(filterState);
-    title += countriesTitle(filterState);
-    title += subsTitle(filterState);
-    title += pensTitle(filterState);
-    title += homeOrAwayTitle(filterState);
+    const headline = sortByTitle(filterState);
+    const criteria = joinClauses(
+        sortCriteriaTitle(filterState),
+        statScopeTitle(filterState),
+        competitionsTitle(filterState),
+        seasonsTitle(filterState),
+        positionTitle(filterState),
+        minsTitle(filterState),
+        ageTitle(filterState),
+        heightTitle(filterState),
+        namesTitle(filterState),
+        countriesTitle(filterState),
+        subsTitle(filterState),
+        pensTitle(filterState),
+        homeOrAwayTitle(filterState),
+    );
 
-    return title;
+    return criteria ? `${headline}: ${criteria}` : headline;
 }

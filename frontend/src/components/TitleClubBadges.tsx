@@ -9,7 +9,8 @@ interface TitleClubBadgesProps {
 
 /**
  * Shared club-badge strip for page titles (search + player appearances).
- * Shows badges inline, collapsing to a count above 10 clubs.
+ * Owns its ", label: " separator so clause spacing is never caller-owned.
+ * Collapses to a count above 10 clubs.
  */
 const TitleClubBadges: React.FC<TitleClubBadgesProps> = ({label, clubIds}) => {
     if (clubIds.length === 0) {
@@ -18,9 +19,9 @@ const TitleClubBadges: React.FC<TitleClubBadgesProps> = ({label, clubIds}) => {
 
     return (
         <>
-            <span>{label}</span>
+            <span>, {label}:</span>
             {clubIds.length > 10 ? (
-                <span style={{marginLeft: '5px'}}>{clubIds.length} CLUBS SELECTED</span>
+                <span style={{marginLeft: '5px'}}>{clubIds.length} clubs selected</span>
             ) : (
                 clubIds.map(clubId => (
                                 <img

@@ -116,11 +116,11 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
                 <section aria-label="Appearances" className={`${sectionStyles['section-tile']} ${sectionStyles['tile-appearances']}`}>
                     {sectionHead(
                         'Appearances',
-                        hasComparison ? `You vs ${comparisonPlayerName}` : 'Every game, minutes and events',
+                        hasComparison ? `${playerLastName} vs ${comparisonPlayerName}` : 'Every game, minutes and events',
                     )}
                     <div className={sectionStyles['preview']}>
                         <AppearancesChartView
-                            playerName={""}
+                            playerName={hasComparison ? playerLastName : ""}
                             view={mainView}
                             compact
                             onExpand={() => setFocusAppearance('main')}
@@ -133,7 +133,7 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
                                     style={{borderTop: '1px solid var(--color-border)', margin: '12px 0 0'}}
                                 />
                                 <AppearancesChartView
-                                    playerName={""}
+                                    playerName={comparisonPlayerName}
                                     view={comparisonView}
                                     compact
                                     onExpand={() => setFocusAppearance('comparison')}
