@@ -59,7 +59,7 @@ describe('shared appearance view', () => {
             );
         };
         const {rerender} = render(<SharedTitles />);
-        expect(screen.queryByText(/AWAY FROM HOME/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/away matches/)).not.toBeInTheDocument();
 
         // Filter to away games only: both titles rewrite together.
         // (Rerender models the grid re-rendering and passing the view down.)
@@ -71,7 +71,7 @@ describe('shared appearance view', () => {
         });
         rerender(<SharedTitles />);
 
-        expect(screen.getAllByText(/AWAY FROM HOME/)).toHaveLength(2);
+        expect(screen.getAllByText(/away matches/)).toHaveLength(2);
     });
 });
 
@@ -122,6 +122,28 @@ describe('PlayerChartsGrid sections', () => {
         expect(within(dialog).queryByRole('button', {name: /Back to/})).not.toBeInTheDocument();
         fireEvent.keyDown(document, {key: 'Escape'});
         expect(screen.queryByRole('dialog', {name: 'Per 90'})).not.toBeInTheDocument();
+    });
+
+    it('names each appearances chart while comparing', () => {
+        render(
+            <PlayerChartsGrid
+                {...gridProps}
+                comparisonPlayerName="Haaland"
+                comparisonPlayerGameData={data}
+            />,
+        );
+
+        const titles = screen.getAllByRole('heading', {level: 4}).map((heading) => heading.textContent);
+        expect(titles.some((title) => title?.startsWith('Kane: '))).toBe(true);
+        expect(titles.some((title) => title?.startsWith('Haaland: '))).toBe(true);
+        expect(screen.getByText('Kane vs Haaland')).toBeInTheDocument();
+    });
+
+    it('omits the player name when viewing a single player', () => {
+        render(<PlayerChartsGrid {...gridProps} />);
+
+        const titles = screen.getAllByRole('heading', {level: 4}).map((heading) => heading.textContent);
+        expect(titles.some((title) => title?.startsWith('Kane: '))).toBe(false);
     });
 
     it('expands an individual appearances chart fullscreen from level 0', () => {

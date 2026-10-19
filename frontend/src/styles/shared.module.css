@@ -572,7 +572,8 @@
     object-fit: contain;
     display: inline-block;
     flex-shrink: 0;
-    margin: 0 5px;
+    /* Left-only spacing so trailing punctuation hugs the final crest. */
+    margin: 0 0 0 5px;
 }
 
 /* Muted suffix for chart titles with an active zoom filter. */
