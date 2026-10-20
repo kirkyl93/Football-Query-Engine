@@ -1,6 +1,6 @@
 use crate::services::base_query_builder::{BaseQueryMethods, ToolbarSearchParams};
 use crate::services::errors::{db_list_result, db_rows_or_not_found};
-use crate::services::player::sql_models::{Player, PlayerAppearances, PlayerSeasonByCompAndTeam};
+use crate::services::player::sql_models::{Player, PlayerAppearances};
 use actix_web::web::Path;
 use actix_web::{HttpResponse, get, web};
 use sqlx::{PgPool, Postgres, QueryBuilder};
@@ -89,24 +89,6 @@ pub async fn fetch_player(pool: web::Data<PgPool>, path: Path<i32>) -> HttpRespo
         .fetch_all(pool.get_ref())
         .await,
         "No player found",
-    )
-}
-
-#[get("players/{id}/season-stats")]
-pub async fn fetch_player_stats_by_season(
-    pool: web::Data<PgPool>,
-    path: Path<i32>,
-) -> HttpResponse {
-    let id: i32 = path.into_inner();
-
-    db_rows_or_not_found(
-        sqlx::query_as::<_, PlayerSeasonByCompAndTeam>(
-            "SELECT * from player_season_by_comp_view WHERE player_id = $1 ORDER BY season",
-        )
-        .bind(id)
-        .fetch_all(pool.get_ref())
-        .await,
-        "Can't find data",
     )
 }
 

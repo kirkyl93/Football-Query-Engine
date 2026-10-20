@@ -383,40 +383,6 @@ ALTER TABLE ONLY public.competitions
 
 
 --
--- TOC entry 230 (class 1259 OID 16459)
--- Name: player_season_by_comp_view; Type: MATERIALIZED VIEW; Schema: public; Owner: -
---
-
-CREATE MATERIALIZED VIEW public.player_season_by_comp_view AS
- SELECT a.player_id,
-    a.player_name,
-    g.season,
-    c.club_id,
-    c.name AS club_name,
-    comp.competition_id,
-    comp.name AS competition_name,
-    comp.country_name AS competition_country,
-    comp.country_id AS competition_country_id,
-    comp.type AS competition_type,
-    count(*) AS total_appearances,
-    sum(a.goals) AS total_goals,
-    sum(a.assists) AS total_assists,
-    sum(a.yellow_cards) AS total_yellow_cards,
-    sum(a.red_cards) AS total_red_cards,
-    sum(a.minutes_played) AS total_minutes_played,
-    (sum(a.minutes_played) / NULLIF(sum(a.goals), 0)) AS mins_per_goal,
-    (sum(a.minutes_played) / NULLIF(sum(a.assists), 0)) AS mins_per_assist,
-    (sum(a.minutes_played) / NULLIF(sum(a.yellow_cards), 0)) AS mins_per_yellow_card,
-    (sum(a.minutes_played) / NULLIF(sum(a.red_cards), 0)) AS mins_per_red_card
-   FROM (((public.appearances a
-     JOIN public.games g ON ((a.game_id = g.game_id)))
-     JOIN public.clubs c ON ((a.player_club_id = c.club_id)))
-     JOIN public.competitions comp ON (((g.competition_id)::text = (comp.competition_id)::text)))
-  GROUP BY a.player_id, c.club_id, c.name, comp.competition_id, a.player_name, g.season
-  WITH NO DATA;
-
-
---
 -- TOC entry 4896 (class 2606 OID 16467)
 -- Name: appearances appearances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
@@ -474,7 +440,6 @@ CREATE INDEX IF NOT EXISTS idx_enh_player_game ON public.appearances_enhanced US
 CREATE INDEX IF NOT EXISTS idx_enh_comp ON public.appearances_enhanced USING btree (competition_id);
 CREATE INDEX IF NOT EXISTS idx_enh_club ON public.appearances_enhanced USING btree (player_club_id);
 CREATE INDEX IF NOT EXISTS idx_evt_times_player ON public.appearances_with_event_times USING btree (player_id);
-CREATE INDEX IF NOT EXISTS idx_season_comp_player ON public.player_season_by_comp_view USING btree (player_id);
 CREATE INDEX IF NOT EXISTS idx_events_game_cover ON public.game_events USING btree (game_id) INCLUDE (player_id, player_assist_id, type, minute, is_penalty, is_yellow, is_red);
 
 
