@@ -415,68 +415,6 @@ impl<'r> FromRow<'r, PgRow> for PlayerNumberOfGamesOrSeasonsResult {
     }
 }
 
-#[derive(Debug, Serialize, Clone)]
-pub struct PlayerSeasonByCompAndTeam {
-    player_id: i32,
-    season: i32,
-    club_id: i32,
-    club_name: String,
-    competition_id: String,
-    competition_country_code: String,
-    competition_name: Competition,
-    competition_type: CompetitionType,
-    competition_country: Country,
-    competition_country_id: i32,
-    total_appearances: i64,
-    total_goals: i64,
-    total_assists: i64,
-    total_yellow_cards: i64,
-    total_red_cards: i64,
-    total_minutes_played: i64,
-    mins_per_goal: Option<i64>,
-    mins_per_assist: Option<i64>,
-    mins_per_yellow_card: Option<i64>,
-    mins_per_red_card: Option<i64>,
-}
-
-impl<'r> FromRow<'r, PgRow> for PlayerSeasonByCompAndTeam {
-    fn from_row(row: &'r PgRow) -> Result<Self, Error> {
-        let competition_country: &str = row.try_get("competition_country").unwrap_or("Europe");
-        let country = Country::from_str(competition_country);
-        Ok(Self {
-            player_id: try_get_or_default(row, "player_id"),
-            season: try_get_or_default(row, "season"),
-            club_id: try_get_or_default(row, "club_id"),
-            club_name: try_get_or_default(row, "club_name"),
-            competition_id: try_get_or_default(row, "competition_id"),
-            competition_name: Competition::from_str(try_get_or_default(row, "competition_name")),
-            competition_type: CompetitionType::from_str(try_get_or_default(
-                row,
-                "competition_type",
-            )),
-            competition_country_code: country.code().to_string(),
-            competition_country: {
-                if country == Country::Missing {
-                    Country::Europe
-                } else {
-                    country
-                }
-            },
-            competition_country_id: try_get_or_default(row, "competition_country_id"),
-            total_appearances: try_get_or_default(row, "total_appearances"),
-            total_goals: try_get_or_default(row, "total_goals"),
-            total_assists: try_get_or_default(row, "total_assists"),
-            total_yellow_cards: try_get_or_default(row, "total_yellow_cards"),
-            total_red_cards: try_get_or_default(row, "total_red_cards"),
-            total_minutes_played: try_get_or_default(row, "total_minutes_played"),
-            mins_per_goal: try_get_or_default(row, "mins_per_goal"),
-            mins_per_assist: try_get_or_default(row, "mins_per_assist"),
-            mins_per_yellow_card: try_get_or_default(row, "mins_per_yellow_card"),
-            mins_per_red_card: try_get_or_default(row, "mins_per_red_card"),
-        })
-    }
-}
-
 fn calculate_age(date_of_birth: NaiveDate) -> u32 {
     let today = Utc::now().naive_utc().date();
     today.years_since(date_of_birth).unwrap_or_default()

@@ -10,7 +10,7 @@ use football_game::services::player::search_by_count::search_by_count;
 use football_game::services::player::search_by_game::search_by_game;
 use football_game::services::player::search_by_season_or_across_seasons::search_by_season_or_across_seasons;
 use football_game::services::player::search_players::{
-    fetch_player, fetch_player_stats_by_season, get_player_games, get_players,
+    fetch_player, get_player_games, get_players,
 };
 use football_game::services::query_cache::{DEFAULT_TTL_SECS, QueryCache};
 use sqlx::postgres::PgPoolOptions;
@@ -65,7 +65,6 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(pool.clone()))
             .service(get_players)
             .service(fetch_player)
-            .service(fetch_player_stats_by_season)
             .service(search_by_season_or_across_seasons)
             .service(search_by_game)
             .service(get_clubs)
