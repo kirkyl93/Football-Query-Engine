@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use actix_web::{error, post, web, HttpResponse, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -155,7 +153,6 @@ async fn call_llm(
 ) -> Result<String> {
     let response = client
         .post(&cfg.url)
-        .timeout(Duration::from_secs(30))
         .bearer_auth(&cfg.key)
         .json(&json!({
             "model": cfg.model,

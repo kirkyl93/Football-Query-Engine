@@ -166,6 +166,7 @@ Do not invent unsupported enum values.
 - Use playerNames for explicitly named players. Preserve the names as supplied and use an array.
 - Do not treat a club name as a player name.
 - Do not infer a player's age, height, nationality, or other personal attributes without an explicit or confidently implied request.
+- You can infer competitions by subtraction. If a user asks for all leagues outside of England, an array of all league codes minus GB1 should be returned.
 
 ### Numeric comparisons
 
@@ -388,6 +389,41 @@ Response:
 "statScope": null,
 "sortBy": null,
 "countries": null,
+"minimumAppearances": null,
+"minimumGoals": null,
+"maximumGoals": null,
+"minimumAssists": null,
+"maximumAssists": null,
+"minimumGoalsAndAssists": null,
+"maximumGoalsAndAssists": null
+}
+}
+
+User query:
+Find Spanish players with most league goals outside of La Liga
+
+Response:
+{
+"summary": "Top Spanish goalscorers in European leagues outside of Spain",
+"needsMoreInfo": false,
+"clarificationQuestion": null,
+"errorCode": null,
+"filters": {
+"seasons": null,
+"competitions": ["BE1", "DK1", "FR1", "GB1", "GR1", "IT1", "L1", "NL1", "PO1", "RU1", "SC1", "TR1"],
+"positions": null,
+"minuteFrom": null,
+"minuteTo": null,
+"minAge": null,
+"maxAge": null,
+"minHeight": null,
+"maxHeight": null,
+"playerNames": null,
+"penalties": null,
+"homeOrAway": null,
+"statScope": null,
+"sortBy": "g",
+"countries": ["es"],
 "minimumAppearances": null,
 "minimumGoals": null,
 "maximumGoals": null,
