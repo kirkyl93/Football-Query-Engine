@@ -1,9 +1,11 @@
+use std::time::Duration;
 use actix_cors::Cors;
 use actix_web::{
     App, HttpServer,
     web::{self},
 };
 use dotenv::dotenv;
+use reqwest::Client;
 use football_game::config::parse_allowed_origins;
 use football_game::services::club::search_clubs::get_clubs;
 use football_game::services::player::search_by_count::search_by_count;
@@ -13,6 +15,7 @@ use football_game::services::player::search_players::{
     fetch_player, get_player_games, get_players,
 };
 use football_game::services::query_cache::{DEFAULT_TTL_SECS, QueryCache};
+use football_game::services::natural_language_search::translate_search;
 use sqlx::postgres::PgPoolOptions;
 
 #[actix_web::main]
@@ -54,15 +57,26 @@ async fn main() -> std::io::Result<()> {
     let allowed_origins =
         parse_allowed_origins(&allowed_origins_raw).expect("invalid ALLOWED_ORIGINS");
 
+    let http_client = Client::builder()
+        .timeout(Duration::from_secs(10))
+        .pool_max_idle_per_host(10)
+        .build()
+        .expect("Failed to build HTTP client");
+
+    let shared_http_client = web::Data::new(http_client);
+
     HttpServer::new(move || {
         let mut cors = Cors::default().max_age(3600);
+
         for origin in &allowed_origins {
             cors = cors.allowed_origin(origin);
         }
+
         App::new()
             .wrap(query_cache.clone())
             .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
+            .app_data(shared_http_client.clone())
             .service(get_players)
             .service(fetch_player)
             .service(search_by_season_or_across_seasons)
@@ -70,6 +84,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_clubs)
             .service(search_by_count)
             .service(get_player_games)
+            .service(translate_search)
     })
     .bind(("0.0.0.0", 8080))?
     .run()

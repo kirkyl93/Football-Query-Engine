@@ -50,6 +50,24 @@ impl PlayerSubPosition {
             PlayerSubPosition::Missing => "",
         }
     }
+    pub fn as_code(&self) -> &'static str {
+        match self {
+            PlayerSubPosition::Goalkeeper => "GK",
+            PlayerSubPosition::LeftBack => "LB",
+            PlayerSubPosition::CentreBack => "CB",
+            PlayerSubPosition::RightBack => "RB",
+            PlayerSubPosition::DefensiveMidfield => "CDM",
+            PlayerSubPosition::LeftMidfield => "LM",
+            PlayerSubPosition::CentralMidfield => "CM",
+            PlayerSubPosition::RightMidfield => "RM",
+            PlayerSubPosition::LeftWinger => "LW",
+            PlayerSubPosition::RightWinger => "RW",
+            PlayerSubPosition::AttackingMidfield => "CAM",
+            PlayerSubPosition::SecondStriker => "SS",
+            PlayerSubPosition::CentreForward => "CF",
+            PlayerSubPosition::Missing => "",
+        }
+    }
     pub fn from_code(p: &str) -> Self {
         match p {
             "GK" => PlayerSubPosition::Goalkeeper,
