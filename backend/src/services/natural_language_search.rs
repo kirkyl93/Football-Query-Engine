@@ -1,8 +1,9 @@
+use std::time::Duration;
 use actix_web::{error, post, web, HttpResponse, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-
+use sqlx::__rt::sleep;
 use crate::competitions::Competition;
 use crate::countries::Country;
 use crate::services::player::models::{
@@ -232,6 +233,9 @@ pub async fn translate_search(
     for attempt in 1..=MAX_ATTEMPTS {
         // Transport, rate-limit and truncation errors are not retried here:
         // feeding validation feedback back would not fix them
+        if attempt > 1 {
+            sleep(Duration::from_millis(RETRY_DELAY_IN_MS)).await;
+        }
         let raw = call_llm(&client, &cfg, &messages).await?;
 
         match interpret(&raw) {
@@ -259,6 +263,8 @@ pub async fn translate_search(
 
 /// Total provider calls per request: the first try plus one retry.
 const MAX_ATTEMPTS: usize = 2;
+
+const RETRY_DELAY_IN_MS: u64 = 1500;
 
 const MAX_FEEDBACK_REASON_CHARS: usize = 300;
 
@@ -432,7 +438,7 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
             let country = Country::from_code(code);
             country == Country::Missing || country.code() != code.as_str()
         }) {
-            return Err(format!("unsupported country code '{bad}'"));
+            log::warn!("Country code can't be processed: {bad}")
         }
     }
 

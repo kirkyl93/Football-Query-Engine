@@ -162,6 +162,7 @@ Do not invent unsupported enum values.
 - Interpret nationality and country-of-origin requests as country filters, not competition filters.
 - Use standard ISO 3166-1 alpha-2 country codes, except for the UK football-country codes: gb-eng, gb-wls, gb-sct and gb-nir.
 - Only use a country code when the intended country or football nation is clear.
+- If a region or area is specified e.g. Europe, South America, Africa, provide a list of ISO country codes from that region.
 - Do not infer a player's nationality from their name, club, league, or place of employment.
 - Use playerNames for explicitly named players. Preserve the names as supplied and use an array.
 - Do not treat a club name as a player name.
@@ -441,7 +442,7 @@ Before returning JSON, ensure that:
 - Every required top-level property is present.
 - Every filter field is present, using null for unspecified values.
 - All arrays and enum values follow the defined schema.
-- No unsupported competition codes, position codes, or enum values have been invented.
+- No unsupported competition codes, position codes, or enum values have been invented. Absolutely check this!
 - needsMoreInfo and clarificationQuestion are consistent; errorCode is null whenever needsMoreInfo is true.
 - errorCode is null or one of the two permitted error strings.
 - statScope and sortBy are compatible.
