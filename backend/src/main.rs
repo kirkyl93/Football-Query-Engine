@@ -2,6 +2,7 @@ use std::time::Duration;
 use actix_cors::Cors;
 use actix_web::{
     App, HttpServer,
+    http::{header, Method},
     web::{self},
 };
 use dotenv::dotenv;
@@ -16,11 +17,17 @@ use football_game::services::player::search_players::{
 };
 use football_game::services::query_cache::{DEFAULT_TTL_SECS, QueryCache};
 use football_game::services::natural_language_search::translate_search;
+use football_game::services::llm::LlmService;
 use sqlx::postgres::PgPoolOptions;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    let llm_service = web::Data::new(
+        LlmService::from_env().map_err(|message| {
+            std::io::Error::new(std::io::ErrorKind::InvalidInput, message)
+        })?,
+    );
     env_logger::Builder::from_default_env()
         .filter_level(log::LevelFilter::Info)
         .init();
@@ -66,7 +73,10 @@ async fn main() -> std::io::Result<()> {
     let shared_http_client = web::Data::new(http_client);
 
     HttpServer::new(move || {
-        let mut cors = Cors::default().max_age(3600);
+        let mut cors = Cors::default()
+            .allowed_methods([Method::GET, Method::HEAD, Method::POST])
+            .allowed_headers([header::CONTENT_TYPE])
+            .max_age(3600);
 
         for origin in &allowed_origins {
             cors = cors.allowed_origin(origin);
@@ -77,6 +87,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .app_data(shared_http_client.clone())
+            .app_data(llm_service.clone())
             .service(get_players)
             .service(fetch_player)
             .service(search_by_season_or_across_seasons)

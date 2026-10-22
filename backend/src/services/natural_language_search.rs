@@ -1,15 +1,13 @@
-use std::time::Duration;
-use actix_web::{error, post, web, HttpResponse, Result};
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-use sqlx::__rt::sleep;
 use crate::competitions::Competition;
 use crate::countries::Country;
-use crate::services::player::models::{
-    HomeAwayOption, PenaltyOption, SortOption, StatScope,
-};
+use crate::services::llm::{LlmService, ProviderError};
+use crate::services::player::models::{HomeAwayOption, PenaltyOption, SortOption, StatScope};
 use crate::services::player::player_enums::PlayerSubPosition;
+use actix_web::{HttpResponse, ResponseError, http::StatusCode, post, web};
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::time::Duration;
 
 const SYSTEM_PROMPT: &str = include_str!("../prompts/natural_language_search.md");
 
@@ -69,11 +67,9 @@ pub struct FilterProposal {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TranslateSearchResponse {
     pub summary: String,
-    pub needs_more_info: bool,
-    pub clarification_question: Option<String>,
     pub error_code: Option<String>,
     pub filters: FilterProposal,
 }
@@ -82,8 +78,7 @@ pub struct TranslateSearchResponse {
 #[derive(Debug)]
 pub enum Outcome {
     Ok(TranslateSearchResponse),
-    NeedsClarification(TranslateSearchResponse),
-    Unsupported {
+    Rejected {
         error_code: String,
         response: TranslateSearchResponse,
     },
@@ -94,178 +89,146 @@ impl Outcome {
     /// envelope is unified, this is the only function that changes.
     fn into_http(self) -> HttpResponse {
         match self {
-            Outcome::Ok(r) | Outcome::NeedsClarification(r) => {
-                HttpResponse::Ok().json(r)
-            }
-            Outcome::Unsupported { error_code, response } => {
-                HttpResponse::UnprocessableEntity().json(json!({
-                    "error": error_code,
-                    "message": response.summary,
-                    "filters": response.filters
-                }))
-            }
+            Outcome::Ok(r) => HttpResponse::Ok().json(r),
+            Outcome::Rejected {
+                error_code,
+                response,
+            } => HttpResponse::UnprocessableEntity().json(json!({
+                "error": error_code,
+                "message": response.summary,
+                "filters": response.filters
+            })),
         }
     }
 }
 
-#[derive(Debug, Deserialize)]
-struct ChatCompletionResponse {
-    choices: Vec<ChatCompletionChoice>,
+#[derive(Debug)]
+pub enum TranslationError {
+    InvalidQuery,
+    InvalidRequest,
+    Provider(ProviderError),
+    Deadline,
 }
 
-#[derive(Debug, Deserialize)]
-struct ChatCompletionChoice {
-    message: ChatCompletionMessage,
-    finish_reason: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ChatCompletionMessage {
-    content: Option<String>,
-}
-
-struct LlmConfig {
-    url: String,
-    key: String,
-    model: String,
-}
-
-impl LlmConfig {
-    fn from_env() -> Result<Self> {
-        let var = |name: &str, message: &'static str| {
-            std::env::var(name)
-                .map_err(|_| error::ErrorInternalServerError(message))
-        };
-
-        Ok(Self {
-            url: var("LLM_API_URL", "LLM URL is not configured")?,
-            key: var("LLM_API_KEY", "LLM API key is not configured")?,
-            model: var("LLM_MODEL", "LLM model is not configured")?,
-        })
+impl std::fmt::Display for TranslationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.details().1)
     }
 }
 
-/// One provider round trip. Returns the raw model text, or an HTTP-ready error
-/// for transport failures, non-2xx statuses, empty replies and truncation.
-async fn call_llm(
-    client: &Client,
-    cfg: &LlmConfig,
-    messages: &[Value],
-) -> Result<String> {
-    let response = client
-        .post(&cfg.url)
-        .bearer_auth(&cfg.key)
-        .json(&json!({
-            "model": cfg.model,
-            "messages": messages,
-            "temperature": 0,
-            "max_completion_tokens": 1000,
-            "reasoning_effort": "low",
-            "response_format": { "type": "json_object" }
-        }))
-        .send()
-        .await
-        .map_err(|err| {
-            log::error!("Search translation provider request failed: {}", err);
-            error::ErrorBadGateway("Search translation service is unavailable")
-        })?;
+impl TranslationError {
+    fn details(&self) -> (&'static str, &'static str) {
+        match self {
+            Self::InvalidQuery => (
+                "invalid_query",
+                "Query must contain between 1 and 500 characters",
+            ),
+            Self::InvalidRequest => (
+                "invalid_request",
+                "Request must be a JSON object containing a query string",
+            ),
+            Self::Provider(ProviderError::RateLimited(_)) => (
+                "translation_rate_limited",
+                "Search translation is temporarily rate limited. Please try again later.",
+            ),
+            Self::Provider(ProviderError::Configuration) => (
+                "translation_configuration_error",
+                "Search translation is not configured correctly",
+            ),
+            Self::Provider(ProviderError::InvalidResponse) => (
+                "translation_invalid_response",
+                "Search translation returned an invalid result. Please try again.",
+            ),
+            _ => (
+                "translation_unavailable",
+                "Search translation is temporarily unavailable. Please try again later.",
+            ),
+        }
+    }
+}
 
-    if !response.status().is_success() {
-        let status = response.status();
-        log::error!(
-            "Search translation provider returned HTTP status {}",
-            status
-        );
+impl ResponseError for TranslationError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            Self::InvalidQuery | Self::InvalidRequest => StatusCode::BAD_REQUEST,
+            Self::Provider(ProviderError::Configuration) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Provider(ProviderError::InvalidResponse) => StatusCode::BAD_GATEWAY,
+            _ => StatusCode::SERVICE_UNAVAILABLE,
+        }
+    }
 
-        if status.as_u16() == 429 {
-            return Err(error::ErrorServiceUnavailable(
-                "Search translation is temporarily rate limited",
+    fn error_response(&self) -> HttpResponse {
+        let (code, message) = self.details();
+        let mut response = HttpResponse::build(self.status_code());
+        if let Self::Provider(ProviderError::RateLimited(duration)) = self {
+            response.insert_header((
+                "Retry-After",
+                duration
+                    .as_secs()
+                    .saturating_add(u64::from(duration.subsec_nanos() > 0))
+                    .max(1)
+                    .to_string(),
             ));
         }
-
-        return Err(error::ErrorBadGateway(
-            "Could not translate the search query",
-        ));
+        response.json(json!({ "error": code, "message": message }))
     }
-
-    let completion: ChatCompletionResponse =
-        response.json().await.map_err(|err| {
-            log::error!("Invalid search translation provider response: {}", err);
-            error::ErrorBadGateway(
-                "Invalid response from search translation service",
-            )
-        })?;
-
-    let choice = completion.choices.into_iter().next().ok_or_else(|| {
-        error::ErrorBadGateway("Search translation returned no result")
-    })?;
-
-    if choice.finish_reason.as_deref() == Some("length") {
-        log::error!(
-            "Search translation was truncated; consider raising max_completion_tokens"
-        );
-        return Err(error::ErrorBadGateway(
-            "Search translation was truncated",
-        ));
-    }
-
-    choice.message.content.ok_or_else(|| {
-        error::ErrorBadGateway("Search translation returned no result")
-    })
 }
 
 #[post("/natural-language-search")]
 pub async fn translate_search(
-    request: web::Json<TranslateSearchRequest>,
+    request: Result<web::Json<TranslateSearchRequest>, actix_web::Error>,
     client: web::Data<Client>,
-) -> Result<HttpResponse> {
+    providers: web::Data<LlmService>,
+) -> Result<HttpResponse, TranslationError> {
+    let request = request.map_err(|_| TranslationError::InvalidRequest)?;
     let query = request.query.trim();
-
     if query.is_empty() || query.chars().count() > 500 {
-        return Err(error::ErrorBadRequest(
-            "Query must contain between 1 and 500 characters",
-        ));
+        return Err(TranslationError::InvalidQuery);
     }
 
-    let cfg = LlmConfig::from_env()?;
+    translate_with_deadline(query, &client, &providers, TRANSLATION_DEADLINE).await
+}
+
+async fn translate_with_deadline(
+    query: &str,
+    client: &Client,
+    providers: &LlmService,
+    deadline: Duration,
+) -> Result<HttpResponse, TranslationError> {
+    tokio::time::timeout(deadline, translate(query, client, providers))
+        .await
+        .map_err(|_| TranslationError::Deadline)?
+}
+
+async fn translate(
+    query: &str,
+    client: &Client,
+    providers: &LlmService,
+) -> Result<HttpResponse, TranslationError> {
     let mut messages = initial_messages(query);
-
+    let mut using_fallback = false;
     for attempt in 1..=MAX_ATTEMPTS {
-        // Transport, rate-limit and truncation errors are not retried here:
-        // feeding validation feedback back would not fix them
-        if attempt > 1 {
-            sleep(Duration::from_millis(RETRY_DELAY_IN_MS)).await;
-        }
-        let raw = call_llm(&client, &cfg, &messages).await?;
-
+        let raw = providers
+            .complete(client, &messages, &mut using_fallback)
+            .await
+            .map_err(TranslationError::Provider)?;
         match interpret(&raw) {
             Ok(outcome) => return Ok(outcome.into_http()),
             Err(reason) => {
-                if attempt == MAX_ATTEMPTS {
-                    log::error!(
-                        "Search translation rejected after {attempt} attempts: {reason}"
-                    );
-                    break;
+                // Validation reasons can contain model output; keep that out of logs.
+                log::warn!("Search translation failed validation (attempt {attempt})");
+                if attempt < MAX_ATTEMPTS {
+                    append_retry_feedback(&mut messages, &raw, &reason);
                 }
-
-                log::warn!(
-                    "Search translation rejected (attempt {attempt}), retrying: {reason}"
-                );
-                append_retry_feedback(&mut messages, &raw, &reason);
             }
         }
     }
-
-    Err(error::ErrorBadGateway(
-        "Search translation returned an invalid result",
-    ))
+    Err(TranslationError::Provider(ProviderError::InvalidResponse))
 }
 
-/// Total provider calls per request: the first try plus one retry.
+// Two model outputs, with at most one additional provider call for failover.
 const MAX_ATTEMPTS: usize = 2;
-
-const RETRY_DELAY_IN_MS: u64 = 1500;
-
+const TRANSLATION_DEADLINE: Duration = Duration::from_secs(25);
 const MAX_FEEDBACK_REASON_CHARS: usize = 300;
 
 fn initial_messages(query: &str) -> Vec<Value> {
@@ -293,8 +256,8 @@ fn append_retry_feedback(messages: &mut Vec<Value>, raw: &str, reason: &str) {
 
 /// Parses, normalizes, validates and classifies a raw model reply.
 ///
-/// The `Err` string describes what was wrong with the reply. It is only logged
-/// today; the retry step will feed it back to the model.
+/// The `Err` string describes what was wrong with the reply and is fed back to
+/// the model on a correction attempt, without logging model-provided values.
 pub fn interpret(raw: &str) -> std::result::Result<Outcome, String> {
     let mut result: TranslateSearchResponse = serde_json::from_str(raw)
         .map_err(|err| format!("response was not valid JSON for the schema: {err}"))?;
@@ -310,21 +273,15 @@ pub fn interpret(raw: &str) -> std::result::Result<Outcome, String> {
     if let Some(error_code) = result.error_code.clone() {
         if !matches!(
             error_code.as_str(),
-            "unsupported_competition" | "unsupported_filter"
+            "unsupported_competition" | "unsupported_filter" | "ambiguous_query"
         ) {
             return Err(format!("unknown errorCode '{error_code}'"));
-        }
-
-        if result.needs_more_info {
-            return Err(
-                "errorCode and needsMoreInfo must not both be set".into()
-            );
         }
 
         // Supported filters retained alongside the error must still be valid.
         validate_filters(&result.filters)?;
 
-        return Ok(Outcome::Unsupported {
+        return Ok(Outcome::Rejected {
             error_code,
             response: result,
         });
@@ -332,30 +289,21 @@ pub fn interpret(raw: &str) -> std::result::Result<Outcome, String> {
 
     validate_filters(&result.filters)?;
 
-    if result.needs_more_info {
-        let question = result
-            .clarification_question
-            .as_deref()
-            .map(str::trim)
-            .filter(|q| !q.is_empty())
-            .ok_or("needsMoreInfo is true but clarificationQuestion is missing")?;
-
-        if question.chars().count() > 300 {
-            return Err("clarificationQuestion is longer than 300 characters".into());
-        }
-
-        result.clarification_question = Some(question.to_string());
-        return Ok(Outcome::NeedsClarification(result));
-    }
-
-    result.clarification_question = None;
     Ok(Outcome::Ok(result))
 }
 fn normalize_country_codes(filters: &mut FilterProposal) {
     if let Some(countries) = &mut filters.countries {
-        for country in countries {
-            *country = country.trim().to_ascii_lowercase();
-        }
+        countries.retain_mut(|code| {
+            *code = code.trim().to_ascii_lowercase();
+            let country = Country::from_code(code);
+            let recognised = country != Country::Missing && country.code() == code.as_str();
+            if !recognised {
+                // Codes are model output: bound their length and escape control characters.
+                let logged_code: String = code.chars().take(16).collect();
+                log::warn!("Dropping unrecognised country code in search translation: {logged_code:?}");
+            }
+            recognised
+        });
     }
 }
 
@@ -392,17 +340,19 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
     }
 
     if let Some(competitions) = &filters.competitions {
-        if let Some(bad) = competitions.iter().find(|code| {
-            Competition::from_code(code).competition_code() != code.as_str()
-        }) {
+        if let Some(bad) = competitions
+            .iter()
+            .find(|code| Competition::from_code(code).competition_code() != code.as_str())
+        {
             return Err(format!("unsupported competition code '{bad}'"));
         }
     }
 
     if let Some(positions) = &filters.positions {
-        if let Some(bad) = positions.iter().find(|code| {
-            PlayerSubPosition::from_code(code).as_code() != code.as_str()
-        }) {
+        if let Some(bad) = positions
+            .iter()
+            .find(|code| PlayerSubPosition::from_code(code).as_code() != code.as_str())
+        {
             return Err(format!("unsupported position code '{bad}'"));
         }
     }
@@ -414,9 +364,7 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
     }
 
     if let Some(home_or_away) = &filters.home_or_away {
-        if HomeAwayOption::from_code(home_or_away).as_code()
-            != home_or_away.as_str()
-        {
+        if HomeAwayOption::from_code(home_or_away).as_code() != home_or_away.as_str() {
             return Err(format!("unsupported homeOrAway value '{home_or_away}'"));
         }
     }
@@ -433,21 +381,10 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
         }
     }
 
-    if let Some(countries) = &filters.countries {
-        if let Some(bad) = countries.iter().find(|code| {
-            let country = Country::from_code(code);
-            country == Country::Missing || country.code() != code.as_str()
-        }) {
-            log::warn!("Country code can't be processed: {bad}")
-        }
-    }
-
     let scope = filters.stat_scope.as_deref().unwrap_or("o");
     let sort = filters.sort_by.as_deref().unwrap_or("g");
 
-    if (scope == "g" && !matches!(sort, "g" | "a" | "ga"))
-        || (scope == "s" && sort == "sw")
-    {
+    if (scope == "g" && !matches!(sort, "g" | "a" | "ga")) || (scope == "s" && sort == "sw") {
         return Err(format!(
             "sortBy '{sort}' is not compatible with statScope '{scope}'"
         ));
@@ -456,12 +393,11 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
     if let Some(names) = &filters.player_names {
         if names.len() > 10
             || names
-            .iter()
-            .any(|n| n.trim().is_empty() || n.chars().count() > 100)
+                .iter()
+                .any(|n| n.trim().is_empty() || n.chars().count() > 100)
         {
             return Err(
-                "playerNames must have at most 10 non-empty names of at most 100 characters"
-                    .into(),
+                "playerNames must have at most 10 non-empty names of at most 100 characters".into(),
             );
         }
     }
@@ -508,6 +444,189 @@ fn validate_range(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::llm::tests::{completion, mock, mock_with_delay, service};
+    use actix_web::{App, test as webtest};
+
+    #[actix_web::test]
+    async fn overall_deadline_returns_json_service_unavailable() {
+        let groq = mock_with_delay(
+            vec![(200, None, completion("late"))],
+            Duration::from_secs(1),
+        );
+        let error = translate_with_deadline(
+            "query",
+            &Client::new(),
+            &service(&groq, None),
+            Duration::from_millis(30),
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(error.status_code(), StatusCode::SERVICE_UNAVAILABLE);
+        let body = actix_web::body::to_bytes(error.error_response().into_body())
+            .await
+            .unwrap();
+        let body: Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["error"], "translation_unavailable");
+    }
+
+    #[actix_web::test]
+    async fn route_returns_json_rate_limit_error_and_retry_after() {
+        let groq = mock(vec![(429, Some("120"), json!({"secret": "must not leak"}))]);
+        let gemini = mock(vec![(429, Some("60"), json!({"secret": "must not leak"}))]);
+        let app = webtest::init_service(
+            App::new()
+                .app_data(web::Data::new(Client::new()))
+                .app_data(web::Data::new(service(&groq, Some(&gemini))))
+                .service(translate_search),
+        )
+        .await;
+        let request = webtest::TestRequest::post()
+            .uri("/natural-language-search")
+            .set_json(json!({"query": "top scorers"}))
+            .to_request();
+        let response = webtest::call_service(&app, request).await;
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(response.headers().get("retry-after").unwrap(), "60");
+        let body: Value = webtest::read_body_json(response).await;
+        assert_eq!(body["error"], "translation_rate_limited");
+        assert!(body["message"].as_str().unwrap().contains("rate limited"));
+        assert!(!body.to_string().contains("secret"));
+    }
+
+    #[actix_web::test]
+    async fn route_returns_json_for_invalid_queries_and_malformed_requests() {
+        let groq = mock(vec![]);
+        let app = webtest::init_service(
+            App::new()
+                .app_data(web::Data::new(Client::new()))
+                .app_data(web::Data::new(service(&groq, None)))
+                .service(translate_search),
+        )
+        .await;
+        for (payload, expected_code) in [
+            (json!({"query": " "}), "invalid_query"),
+            (json!({"query": "x".repeat(501)}), "invalid_query"),
+            (json!({"query": 123}), "invalid_request"),
+            (json!({"query": "q", "extra": true}), "invalid_request"),
+        ] {
+            let response = webtest::call_service(
+                &app,
+                webtest::TestRequest::post()
+                    .uri("/natural-language-search")
+                    .set_json(payload)
+                    .to_request(),
+            )
+            .await;
+            assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+            let body: Value = webtest::read_body_json(response).await;
+            assert_eq!(body["error"], expected_code);
+        }
+        let response = webtest::call_service(
+            &app,
+            webtest::TestRequest::post()
+                .uri("/natural-language-search")
+                .insert_header(("content-type", "application/json"))
+                .set_payload("broken json")
+                .to_request(),
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let body: Value = webtest::read_body_json(response).await;
+        assert_eq!(body["error"], "invalid_request");
+        assert!(groq.requests.lock().unwrap().is_empty());
+    }
+
+    #[actix_web::test]
+    async fn fallback_validation_correction_preserves_messages_and_success_contract() {
+        let groq = mock(vec![(429, None, json!({}))]);
+        let gemini = mock(vec![
+            (200, None, completion("not json")),
+            (200, None, completion(&reply(json!({})))),
+        ]);
+        let response = translate(
+            "top scorers",
+            &Client::new(),
+            &service(&groq, Some(&gemini)),
+        )
+        .await
+        .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body: Value = serde_json::from_slice(
+            &actix_web::body::to_bytes(response.into_body())
+                .await
+                .unwrap(),
+        )
+        .unwrap();
+        assert!(body.get("filters").is_some());
+        assert_eq!(body["errorCode"], Value::Null);
+        assert_eq!(body.as_object().unwrap().len(), 3);
+        assert_eq!(groq.requests.lock().unwrap().len(), 1);
+        let requests = gemini.requests.lock().unwrap();
+        assert_eq!(requests.len(), 2);
+        assert_eq!(requests[1]["messages"][0], requests[0]["messages"][0]);
+        assert_eq!(requests[1]["messages"][1]["content"], "top scorers");
+        assert_eq!(requests[1]["messages"][2]["content"], "not json");
+        assert_eq!(requests[1]["messages"][3]["role"], "user");
+    }
+
+    #[actix_web::test]
+    async fn rejected_queries_return_actionable_messages_without_retry() {
+        for error_code in ["ambiguous_query", "unsupported_filter", "unsupported_competition"] {
+            let explanation = "Specify a competition, such as the Premier League or La Liga.";
+            let groq = mock(vec![(200, None, completion(&reply(json!({
+                "errorCode": error_code,
+                "summary": explanation
+            }))))]);
+            let gemini = mock(vec![]);
+            let response = translate("query", &Client::new(), &service(&groq, Some(&gemini)))
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
+            let body: Value = serde_json::from_slice(
+                &actix_web::body::to_bytes(response.into_body()).await.unwrap()
+            ).unwrap();
+            assert_eq!(body["error"], error_code);
+            assert_eq!(body["message"], explanation);
+            assert_eq!(body["filters"]["competitions"], json!(["GB1"]));
+            assert_eq!(groq.requests.lock().unwrap().len(), 1);
+            assert!(gemini.requests.lock().unwrap().is_empty());
+        }
+    }
+
+    #[actix_web::test]
+    async fn invalid_output_has_one_correction_and_no_fallback() {
+        let groq = mock(vec![
+            (200, None, completion("bad")),
+            (200, None, completion("bad")),
+        ]);
+        let gemini = mock(vec![]);
+        let failure = translate("query", &Client::new(), &service(&groq, Some(&gemini)))
+            .await
+            .unwrap_err();
+        assert_eq!(failure.status_code(), StatusCode::BAD_GATEWAY);
+        assert_eq!(groq.requests.lock().unwrap().len(), 2);
+        assert!(gemini.requests.lock().unwrap().is_empty());
+    }
+
+    #[actix_web::test]
+    async fn consecutive_queries_start_with_fresh_messages() {
+        let groq = mock(vec![
+            (200, None, completion(&reply(json!({})))),
+            (200, None, completion(&reply(json!({})))),
+        ]);
+        let providers = service(&groq, None);
+        let client = Client::new();
+        for query in ["Premier League top scorers", "La Liga top assist makers"] {
+            assert_eq!(translate(query, &client, &providers).await.unwrap().status(), StatusCode::OK);
+        }
+        let requests = groq.requests.lock().unwrap();
+        assert_eq!(requests.len(), 2);
+        for (request, query) in requests.iter().zip(["Premier League top scorers", "La Liga top assist makers"]) {
+            assert_eq!(request["messages"].as_array().unwrap().len(), 2);
+            assert_eq!(request["messages"][0]["role"], "system");
+            assert_eq!(request["messages"][1]["content"], query);
+        }
+    }
 
     #[test]
     fn accepts_valid_age_range() {
@@ -576,17 +695,36 @@ mod tests {
         let mut f = valid_filters();
         f.countries = Some(vec![" ES ".into(), "GB-ENG".into()]);
         normalize_country_codes(&mut f);
-        assert_eq!(f.countries, Some(vec!["es".to_string(), "gb-eng".to_string()]));
+        assert_eq!(
+            f.countries,
+            Some(vec!["es".to_string(), "gb-eng".to_string()])
+        );
         assert!(validate_filters(&f).is_ok());
     }
 
     #[test]
-    fn rejects_invalid_country_code() {
+    fn interpret_drops_all_unrecognised_countries_without_failing_translation() {
         for code in ["xx", "", "  "] {
-            let mut f = valid_filters();
-            f.countries = Some(vec![code.into()]);
-            assert!(validate_filters(&f).is_err(), "code {code:?}");
+            let raw = reply(json!({"filters": {"countries": [code]}}));
+            let Outcome::Ok(response) = interpret(&raw).unwrap() else {
+                panic!("unknown country codes must not reject a translation");
+            };
+            assert_eq!(response.filters.countries, Some(vec![]), "code {code:?}");
         }
+    }
+
+    #[test]
+    fn interpret_drops_unrecognised_countries_and_keeps_normalised_recognised_codes() {
+        let raw = reply(json!({
+            "filters": {"countries": [" ES ", "xx", "GB-ENG"], "sortBy": "g"}
+        }));
+        let Outcome::Ok(response) = interpret(&raw).unwrap() else {
+            panic!("unknown country codes must not reject a translation");
+        };
+        assert_eq!(
+            response.filters.countries,
+            Some(vec!["es".into(), "gb-eng".into()])
+        );
     }
 
     #[test]
@@ -625,8 +763,6 @@ mod tests {
     fn reply(overrides: serde_json::Value) -> String {
         let mut base = json!({
             "summary": "Premier League top scorers",
-            "needsMoreInfo": false,
-            "clarificationQuestion": null,
             "errorCode": null,
             "filters": { "competitions": ["GB1"], "sortBy": "g" }
         });
@@ -643,48 +779,8 @@ mod tests {
     }
 
     #[test]
-    fn interpret_clears_stray_clarification_on_ok() {
-        let out = interpret(&reply(json!({ "clarificationQuestion": "leftover?" }))).unwrap();
-        match out {
-            Outcome::Ok(r) => assert!(r.clarification_question.is_none()),
-            other => panic!("expected Ok, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn interpret_clarification() {
-        let out = interpret(&reply(json!({
-            "needsMoreInfo": true,
-            "clarificationQuestion": "  Goals, assists or appearances?  "
-        })))
-            .unwrap();
-        match out {
-            Outcome::NeedsClarification(r) => assert_eq!(
-                r.clarification_question.as_deref(),
-                Some("Goals, assists or appearances?")
-            ),
-            other => panic!("expected NeedsClarification, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn interpret_clarification_requires_question() {
-        assert!(interpret(&reply(json!({ "needsMoreInfo": true }))).is_err());
-        assert!(interpret(&reply(json!({
-            "needsMoreInfo": true,
-            "clarificationQuestion": "   "
-        })))
-            .is_err());
-    }
-
-    #[test]
-    fn interpret_rejects_overlong_clarification() {
-        let long = "x".repeat(301);
-        assert!(interpret(&reply(json!({
-            "needsMoreInfo": true,
-            "clarificationQuestion": long
-        })))
-            .is_err());
+    fn interpret_rejects_unexpected_response_fields() {
+        assert!(interpret(&reply(json!({"conversation": []}))).is_err());
     }
 
     #[test]
@@ -694,13 +790,16 @@ mod tests {
             "summary": "Third tier is not supported",
             "filters": { "sortBy": "mpr", "minimumAppearances": 15 }
         })))
-            .unwrap();
+        .unwrap();
         match out {
-            Outcome::Unsupported { error_code, response } => {
+            Outcome::Rejected {
+                error_code,
+                response,
+            } => {
                 assert_eq!(error_code, "unsupported_competition");
                 assert_eq!(response.filters.minimum_appearances, Some(15));
             }
-            other => panic!("expected Unsupported, got {other:?}"),
+            other => panic!("expected Rejected, got {other:?}"),
         }
     }
 
@@ -710,22 +809,14 @@ mod tests {
     }
 
     #[test]
-    fn interpret_rejects_error_with_clarification() {
-        assert!(interpret(&reply(json!({
-            "errorCode": "unsupported_filter",
-            "needsMoreInfo": true,
-            "clarificationQuestion": "Which?"
-        })))
-            .is_err());
-    }
-
-    #[test]
     fn interpret_validates_filters_alongside_error() {
-        assert!(interpret(&reply(json!({
-            "errorCode": "unsupported_filter",
-            "filters": { "competitions": ["NOPE"] }
-        })))
-            .is_err());
+        assert!(
+            interpret(&reply(json!({
+                "errorCode": "unsupported_filter",
+                "filters": { "competitions": ["NOPE"] }
+            })))
+            .is_err()
+        );
     }
 
     #[test]
@@ -740,7 +831,7 @@ mod tests {
         let out = interpret(&reply(json!({
             "filters": { "countries": [" GB-ENG "] }
         })))
-            .unwrap();
+        .unwrap();
         match out {
             Outcome::Ok(r) => {
                 assert_eq!(r.filters.countries, Some(vec!["gb-eng".to_string()]))
