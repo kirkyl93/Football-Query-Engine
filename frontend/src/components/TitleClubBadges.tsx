@@ -5,6 +5,7 @@ import shared from "../styles/shared.module.css";
 interface TitleClubBadgesProps {
     label: string;
     clubIds: number[];
+    separator?: string;
 }
 
 /**
@@ -12,14 +13,14 @@ interface TitleClubBadgesProps {
  * Owns its ", label: " separator so clause spacing is never caller-owned.
  * Collapses to a count above 10 clubs.
  */
-const TitleClubBadges: React.FC<TitleClubBadgesProps> = ({label, clubIds}) => {
+const TitleClubBadges: React.FC<TitleClubBadgesProps> = ({label, clubIds, separator = ", "}) => {
     if (clubIds.length === 0) {
         return null;
     }
 
     return (
         <>
-            <span>, {label}:</span>
+            <span>{separator}{label}:</span>
             {clubIds.length > 10 ? (
                 <span style={{marginLeft: '5px'}}>{clubIds.length} clubs selected</span>
             ) : (

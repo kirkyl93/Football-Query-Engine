@@ -1,6 +1,5 @@
 import React from "react";
 import styles from './LoadingBar.module.css';
-import shared from '../styles/shared.module.css';
 
 interface LoadingProps {
     loading: boolean;
@@ -29,11 +28,18 @@ export const LoadingBar: React.FC<LoadingProps> = (
             </div>}
             {loading && hasData && hasMore && <div className={styles['loading']}>Loading more players...</div>}
             {error && (
-                <div className={styles['error']}>
-                    <span>{error}</span>
+                <div className={styles['error']} role="alert">
+                    <div className={styles['error-content']}>
+                        <p className={styles['error-title']}>{hasData ? "Unable to load more results" : "Unable to load results"}</p>
+                        <p className={styles['error-message']}>{error}</p>
+                    </div>
                     {onRetry && (
-                        <button type="button" className={`${shared['apply-button']} ${styles['retry-button']}`} onClick={onRetry}>
-                            Retry
+                        <button type="button" className={styles['retry-button']} onClick={onRetry} disabled={loading}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M20 7v5h-5" />
+                                <path d="M20 12a8 8 0 1 0-2 5" />
+                            </svg>
+                            {loading ? "Retrying…" : "Retry"}
                         </button>
                     )}
                 </div>

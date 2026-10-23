@@ -181,3 +181,21 @@ export const constructSearchTitle = (filterState: SearchFilterState): string => 
 
     return criteria ? `${headline}: ${criteria}` : headline;
 }
+
+/** Display the ranking separately from complete, independently wrapping filters. */
+export const constructSearchTitleParts = (filterState: SearchFilterState) => {
+    const isCount = numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy);
+    const criteria = sortCriteriaTitle(filterState);
+    const headline = isCount
+        ? criteria ? `${sortByTitle(filterState)} ${criteria}`
+            : filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? "Most qualifying seasons" : "Most qualifying games"
+        : sortByTitle(filterState);
+    const filters = [
+        competitionsTitle(filterState), seasonsTitle(filterState), statScopeTitle(filterState),
+        positionTitle(filterState), minsTitle(filterState), ageTitle(filterState),
+        heightTitle(filterState), namesTitle(filterState), countriesTitle(filterState),
+        subsTitle(filterState), pensTitle(filterState), homeOrAwayTitle(filterState),
+        isCount ? "" : criteria,
+    ].filter(Boolean);
+    return {headline, filters};
+};

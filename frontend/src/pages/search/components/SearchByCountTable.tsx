@@ -27,13 +27,13 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                     <table className={baseStyles['generic-table']}>
                         <thead>
                         <tr>
-                            <th>Rank</th>
+                            <th className={baseStyles.numeric}>Rank</th>
                             <th className={baseStyles['player-name']}>Player</th>
                             <th className={styles['first-gs-columns-to-hide']}>Clubs</th>
                             <th className={styles['first-gs-columns-to-hide']}>Position</th>
                             {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Season</th>}
-                            {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th>Number of seasons</th>}
-                            {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Number of games</th>}
+                            {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th className={baseStyles.numeric}>Number of seasons</th>}
+                            {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles.numeric}>Number of games</th>}
                         </tr>
                         </thead>
                         <tbody>
@@ -41,7 +41,7 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                             <tr key={player.player_id.toString() + player.season.toString()}
                                 ref={data.length === index + 1 ? lastElementRef : null}
                             >
-                                <td>
+                                <td className={baseStyles.numeric}>
                                     {player.rank}.
                                 </td>
                                 <td>
@@ -60,8 +60,8 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                                 />
                                 <td className={styles['first-gs-columns-to-hide']}>{player.sub_position}</td>
                                 {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{formatSeason(player.season)}</td>}
-                                {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td>{player.number_of_seasons}</td>}
-                                {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{player.number_of_games}</td>}
+                                {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td className={baseStyles.numeric}>{player.number_of_seasons}</td>}
+                                {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td className={baseStyles.numeric}>{player.number_of_games}</td>}
                             </tr>
                         ))}
                         </tbody>

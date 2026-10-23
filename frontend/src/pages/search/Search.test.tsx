@@ -31,7 +31,7 @@ describe("results-page question disclosure", () => {
         renderSearch();
         expect(screen.getByText("Results table")).toBeVisible();
         expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-        const button = screen.getByRole("button", {name: "Ask another question"});
+        const button = screen.getByRole("button", {name: "Ask a question"});
         expect(button).toHaveAttribute("aria-expanded", "false");
 
         await userEvent.setup().click(button);
@@ -43,13 +43,13 @@ describe("results-page question disclosure", () => {
     it("preserves the draft when closed and restores focus to the trigger on Escape", async () => {
         const user = userEvent.setup();
         renderSearch();
-        await user.click(screen.getByRole("button", {name: "Ask another question"}));
+        await user.click(screen.getByRole("button", {name: "Ask a question"}));
         await user.type(screen.getByRole("textbox"), "Most away assists");
         await user.keyboard("{Escape}");
         expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-        expect(screen.getByRole("button", {name: "Ask another question"})).toHaveFocus();
+        expect(screen.getByRole("button", {name: "Ask a question"})).toHaveFocus();
 
-        await user.click(screen.getByRole("button", {name: "Ask another question"}));
+        await user.click(screen.getByRole("button", {name: "Ask a question"}));
         expect(screen.getByRole("textbox")).toHaveValue("Most away assists");
         await user.click(screen.getByRole("button", {name: "Close question"}));
         expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
@@ -63,11 +63,11 @@ describe("results-page question disclosure", () => {
         vi.mocked(naturalLanguageFiltersToSearchState).mockReturnValue(createDefaultSearchFilterState());
         const user = userEvent.setup();
         renderSearch();
-        await user.click(screen.getByRole("button", {name: "Ask another question"}));
+        await user.click(screen.getByRole("button", {name: "Ask a question"}));
         await user.type(screen.getByRole("textbox"), "Premier League top scorers{enter}");
 
         await waitFor(() => expect(screen.queryByRole("textbox")).not.toBeInTheDocument());
-        expect(screen.getByRole("button", {name: "Ask another question"})).toHaveFocus();
+        expect(screen.getByRole("button", {name: "Ask a question"})).toHaveFocus();
         expect(screen.getByText("Results table")).toBeVisible();
     });
 
@@ -75,7 +75,7 @@ describe("results-page question disclosure", () => {
         vi.mocked(translateNaturalLanguageSearch).mockRejectedValue(new Error("Try again later"));
         const user = userEvent.setup();
         renderSearch();
-        await user.click(screen.getByRole("button", {name: "Ask another question"}));
+        await user.click(screen.getByRole("button", {name: "Ask a question"}));
         await user.type(screen.getByRole("textbox"), "Most away goals{enter}");
 
         expect(await screen.findByRole("alert")).toHaveTextContent("Try again later");

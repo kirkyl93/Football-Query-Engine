@@ -1,5 +1,10 @@
 @import './styles/tokens.css';
 
+html {
+    /* Keep the page width stable when asynchronous results add a scrollbar. */
+    scrollbar-gutter: stable;
+}
+
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

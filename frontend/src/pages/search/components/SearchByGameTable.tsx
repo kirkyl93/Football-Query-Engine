@@ -30,7 +30,7 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                     <table className={baseStyles['generic-table']}>
                         <thead>
                         <tr>
-                            <th>Rank</th>
+                            <th className={baseStyles.numeric}>Rank</th>
                             <th className={baseStyles['player-name']}>Player</th>
                             <th className={styles['first-columns-to-hide']}>Club</th>
                             <th className={styles['second-columns-to-hide']}>Competition</th>
@@ -38,7 +38,7 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                             <th className={styles['third-columns-to-hide']}>Date</th>
                             <th className={styles['first-columns-to-hide']}>Position</th>
                             <th>Result</th>
-                            <th className={styles['first-columns-to-hide']}>Mins Played</th>
+                            <th className={`${baseStyles.numeric} ${styles['first-columns-to-hide']}`}>Mins Played</th>
                             <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} onSort={onSortChange} />
                             <SortableTh label="Assists" columnSort={SortOptions.ASSISTS} activeSort={filterState.sortBy} onSort={onSortChange} />
                         </tr>
@@ -48,7 +48,7 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                             <tr key={playerGame.player_id.toString() + playerGame.date.toString()}
                                 ref={data.length === index + 1 ? lastElementRef : null}
                             >
-                                <td>
+                                <td className={baseStyles.numeric}>
                                     {playerGame.rank}.
                                 </td>
                                 <td>
@@ -80,14 +80,15 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                 <td className={styles['second-columns-to-hide']}>{formatSeason(playerGame.season)}</td>
                                 <td className={styles['third-columns-to-hide']}>{dateFormatter.format(convertDateStringToDate(playerGame.date))}</td>
                                 <td className={styles['first-columns-to-hide']}>{playerGame.sub_position}</td>
-                                <td style={{display: 'flex', gap: '7px', alignItems: 'center'}}>
+                                <td>
+                                    <span className={baseStyles['match-result']}>
                                     <img
                                         src={`https://tmssl.akamaized.net/images/wappen/head/${playerGame.home_club_id}.png`}
                                         alt={playerGame.home_club_name}
                                         className={shared['club-badge']}
                                         title={playerGame.home_club_name}
-                                        width={32}
-                                        height={32}
+                                        width={38}
+                                        height={38}
                                         loading="lazy"
                                         decoding="async"
                                     />
@@ -97,15 +98,16 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                         alt={playerGame.away_club_name}
                                         className={shared['club-badge']}
                                         title={playerGame.away_club_name}
-                                        width={32}
-                                        height={32}
+                                        width={38}
+                                        height={38}
                                         loading="lazy"
                                         decoding="async"
                                     />
+                                    </span>
                                 </td>
-                                <td className={styles['first-columns-to-hide']}>{playerGame.minutes_played}</td>
-                                <td>{playerGame.goals}</td>
-                                <td>{playerGame.assists}</td>
+                                <td className={`${baseStyles.numeric} ${styles['first-columns-to-hide']}`}>{playerGame.minutes_played}</td>
+                                <td className={baseStyles.numeric}>{playerGame.goals}</td>
+                                <td className={baseStyles.numeric}>{playerGame.assists}</td>
                             </tr>
                         ))}
                         </tbody>
