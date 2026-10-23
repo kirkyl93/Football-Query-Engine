@@ -57,9 +57,9 @@
     padding: 16px;
     font: inherit;
     color: var(--color-ink);
-    background: color-mix(in srgb, var(--example-accent) 24%, var(--color-surface));
-    border: 1px solid color-mix(in srgb, var(--example-accent) 55%, var(--color-surface));
-    border-top: 3px solid var(--example-accent);
+    background: var(--example-accent);
+    border: 1px solid var(--color-ink);
+    border-top: 3px solid var(--color-ink);
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.15s ease, border-color 0.15s ease;
@@ -70,12 +70,12 @@
 }
 
 .example:nth-child(3) {
-    --example-accent: var(--color-chart-default);
+    --example-accent: #3b82f6;
 }
 
 .example:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--example-accent) 34%, var(--color-surface));
-    border-color: var(--example-accent);
+    background: color-mix(in srgb, var(--example-accent) 90%, var(--color-surface));
+    border-color: var(--color-ink);
 }
 
 .example-label {
@@ -88,18 +88,19 @@
 }
 
 .example-label span {
-    color: color-mix(in srgb, var(--example-accent) 45%, var(--color-ink));
+    color: inherit;
 }
 
 .example-query {
     font-size: 13px;
     line-height: 1.6;
-    color: var(--color-ink-soft);
+    color: var(--color-ink);
 }
 
 @media (max-width: 600px) {
     .nl-hero-intro { font-size: 14px; }
     .example-grid { grid-template-columns: 1fr; gap: 8px; }
     .example { gap: 6px; padding: 14px 16px; }
+    .example:nth-child(n + 3) { display: none; }
     .examples { margin-top: 28px; }
 }
