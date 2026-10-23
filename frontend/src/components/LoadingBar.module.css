@@ -47,21 +47,43 @@
 }
 
 .error {
-    text-align: center;
-    color: red;
-    font-size: 16px;
-    margin-top: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 24px;
+    width: min(640px, calc(100vw - 64px));
+    max-width: 100%;
+    margin: 24px auto;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: #f9fafb;
+    font-family: var(--font-sans);
+    text-align: left;
 }
 
-/* Sizing overrides only — all visuals (colors, radius, hover) come from
-   shared apply-button. The .error ancestor gives higher specificity than
-   .apply-button, so these win regardless of stylesheet bundle order. */
-.error .retry-button {
-    width: auto;
-    display: inline-block;
-    min-height: 0;
-    flex-shrink: 0;
-    margin: 0 0 0 12px;
-    padding: 8px 16px;
-    vertical-align: middle;
+.error-content { flex: 1 1 240px; min-width: 0; }
+.error-title { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--color-ink); }
+.error-message { margin: 0; font-size: 13px; line-height: 1.6; color: var(--color-muted); overflow-wrap: anywhere; }
+
+.retry-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 9px 14px;
+    border: 1px solid var(--color-ink);
+    border-radius: 5px;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
 }
+.retry-button svg { width: 16px; height: 16px; }
+.retry-button:hover:not(:disabled) { background: #e8eef3; color: #14532d; }
+.retry-button:focus-visible { outline: 2px solid #14532d; outline-offset: 3px; }
+.retry-button:disabled { opacity: 0.65; cursor: progress; }
