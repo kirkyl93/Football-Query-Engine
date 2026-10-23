@@ -1,0 +1,114 @@
+.supported {
+    border-top: 1px solid var(--color-border);
+    padding-top: 28px;
+}
+
+.supported-heading {
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    margin: 0 0 20px;
+}
+
+.supported-tiles {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    text-align: left;
+}
+
+.supported-tile {
+    padding: 16px;
+    border: 1px solid #929292;
+    border-radius: 5px;
+    background: var(--color-surface);
+}
+
+.supported-tile-title {
+    font-size: 12px;
+    font-weight: 650;
+    margin: 0 0 8px;
+}
+
+.supported-tile-body {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--color-muted);
+    margin: 0;
+}
+
+.coverage {
+    margin-top: 24px;
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: 16px;
+}
+
+.coverage summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.8;
+}
+
+.coverage summary:hover {
+    color: #14532d;
+}
+
+.coverage summary:focus-visible {
+    outline: 2px solid #14532d;
+    outline-offset: 4px;
+}
+
+.coverage-count {
+    display: inline-block;
+    margin-left: 12px;
+    font-weight: 400;
+    color: var(--color-muted);
+}
+
+.coverage-groups {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.supported-competitions {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.supported-competitions li {
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--color-ink-soft);
+    padding: 5px 9px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--competition-accent) 12%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--competition-accent) 35%, var(--color-surface));
+}
+
+.league-competitions {
+    --competition-accent: #3b82f6;
+}
+
+.european-competitions {
+    --competition-accent: var(--color-chart-default);
+}
+
+@media (max-width: 800px) {
+    .supported-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+    .supported-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .coverage-groups { grid-template-columns: 1fr; }
+    .coverage-count { display: block; margin-left: 16px; }
+}
