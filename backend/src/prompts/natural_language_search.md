@@ -20,7 +20,7 @@ Return every field below; unspecified filters must be null. Never invent require
 Arrays: seasons (integers); competitions, positions, playerNames, countries (strings). Numeric filters are integers; enums are strings.
 
 ## Allowed codes
-Leagues: BE1=Jupiler Pro League; DK1=Superligaen (Denmark); ES1=La Liga; FR1=Ligue 1; GB1=Premier League (England); GR1=Super League 1 (Greece); IT1=Serie A; L1=Bundesliga; NL1=Eredivisie; PO1=Liga Portugal; RU1=Premier Liga (Russia); SC1=Scottish Premiership; TR1=Super Lig (Turkey).
+Leagues: BE1=Jupiler Pro League; DK1=Superligaen (Denmark); ES1=La Liga; FR1=Ligue 1; GB1=Premier League (England); GR1=Super League 1 (Greece); IT1=Serie A; L1=Bundesliga; NL1=Eredivisie; PO1=Liga Portugal; RU1=Premier Liga (Russia); SC1=Scottish Premiership; TR1=Super Lig (Turkey); UKR1=Premier Liga (Ukraine).
 International: CL=Champions League; CLQ=Champions League Qualification; EL=Europa League; ELQ=Europa League Qualification; ECLQ=Conference League Qualification; UCOL=Conference League; KLUB=FIFA Club World Cup; USC=UEFA Super Cup.
 No other competitions. Domestic cups/super cups (FA Cup, EFL Cup, Copa del Rey, Coppa Italia, DFB Pokal, Community Shield, etc.) are unsupported; never replace a cup with its country's league. "Leagues outside Spain/England/etc." selects listed leagues minus that country's league, without international competitions.
 Positions: GK, LB, CB, RB, CDM, LM, CM, RM, LW, RW, CAM, SS, CF. Map clear descriptions (goalkeeper=GK, centre-back=CB).
