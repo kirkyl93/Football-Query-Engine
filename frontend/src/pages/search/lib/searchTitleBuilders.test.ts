@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDefaultSearchFilterState } from './defaultSearchFilter';
 import {
     constructSearchTitle,
+    constructSearchTitleParts,
     minsTitle,
     seasonsTitle,
     sortByTitle,
@@ -182,6 +183,27 @@ describe('minsTitle', () => {
     it('handles a single bound', () => {
         expect(minsTitle({...createDefaultSearchFilterState(), minuteFrom: 60})).toBe('from minute 60');
         expect(minsTitle({...createDefaultSearchFilterState(), minuteTo: 75})).toBe('until minute 75');
+    });
+});
+
+describe('constructSearchTitleParts', () => {
+    it('keeps qualifying thresholds in the count-ranking headline', () => {
+        const parts = constructSearchTitleParts({
+            ...createDefaultSearchFilterState(),
+            sortBy: SortOptions.NUMBER_OF_SEASONS_WITH,
+            minimumGoals: 20,
+            minimumAssists: 10,
+        });
+        expect(parts.headline).toBe('Most seasons with at least 20 goals, at least 10 assists');
+        expect(parts.filters).toEqual(['Premier League', '2025/26']);
+    });
+
+    it('uses a complete count headline when no thresholds are selected', () => {
+        const parts = constructSearchTitleParts({
+            ...createDefaultSearchFilterState(),
+            sortBy: SortOptions.NUMBER_OF_GAMES_WITH,
+        });
+        expect(parts.headline).toBe('Most qualifying games');
     });
 });
 
