@@ -45,7 +45,7 @@ export const SortableTh: React.FC<SortableThProps> = ({
 
     return (
         <th
-            className={className}
+            className={`${baseStyles.numeric} ${className ?? ""}`}
             aria-sort={
                 isActive
                     ? SORT_DIRECTIONS[activeSort] === 'asc'

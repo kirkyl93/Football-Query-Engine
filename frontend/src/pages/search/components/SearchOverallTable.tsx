@@ -29,7 +29,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                     <table className={baseStyles['generic-table']}>
                         <thead>
                         <tr>
-                            <th>Rank</th>
+                            <th className={baseStyles.numeric}>Rank</th>
                             <th className={baseStyles['player-name']}>Player</th>
                             <th className={styles['first-columns-to-hide']}>Clubs</th>
                             {filterState.statScope === StatScope.SEASON && <th>Season</th>}
@@ -50,7 +50,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                 <SortableTh label="Mins per Yellow" columnSort={SortOptions.MINUTES_PER_YELLOW} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />}
                             {filterState.sortBy === SortOptions.MINUTES_PER_RED &&
                                 <SortableTh label="Mins per Red" columnSort={SortOptions.MINUTES_PER_RED} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />}
-                            <th className={styles['small-screen-display']}>
+                            <th className={`${baseStyles.numeric} ${styles['small-screen-display']}`}>
                                 {getDisplayTitleForSmallScreen(filterState.sortBy)}
                             </th>
                         </tr>
@@ -60,7 +60,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                             <tr key={player.player_id.toString() + player.season.toString()}
                                 ref={data.length === index + 1 ? lastElementRef : null}
                             >
-                                <td>
+                                <td className={baseStyles.numeric}>
                                     {player.rank}.
                                 </td>
                                 <td>
@@ -78,24 +78,24 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                 />
                                 {filterState.statScope === StatScope.SEASON && <td>{formatSeason(player.season)}</td>}
                                 <td className={styles['second-columns-to-hide']}>{player.sub_position}</td>
-                                <td className={styles['third-columns-to-hide']}><strong>{player.total_appearances}</strong>
+                                <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}><strong>{player.total_appearances}</strong>
                                     {!filterState.subsOnly && (<> ({player.substitute_appearances})</>)}</td>
-                                <td className={styles['third-columns-to-hide']}>{player.total_minutes_played}</td>
-                                <td className={styles['third-columns-to-hide']}>{player.total_goals}</td>
-                                <td className={styles['third-columns-to-hide']}>{player.total_assists}</td>
-                                <td className={styles['third-columns-to-hide']}>{player.total_yellow_cards}</td>
-                                <td className={styles['third-columns-to-hide']}>{player.total_red_cards}</td>
+                                <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.total_minutes_played}</td>
+                                <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.total_goals}</td>
+                                <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.total_assists}</td>
+                                <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.total_yellow_cards}</td>
+                                <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.total_red_cards}</td>
                                 {filterState.sortBy === SortOptions.MINUTES_PER_GOAL &&
-                                    <td className={styles['third-columns-to-hide']}>{player.mins_per_goal}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_goal}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_ASSIST &&
-                                    <td className={styles['third-columns-to-hide']}>{player.mins_per_assist}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_assist}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_GOAL_OR_ASSIST &&
-                                    <td className={styles['third-columns-to-hide']}>{player.mins_per_goal_or_assist}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_goal_or_assist}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_YELLOW &&
-                                    <td className={styles['third-columns-to-hide']}>{player.mins_per_yellow}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_yellow}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_RED &&
-                                    <td className={styles['third-columns-to-hide']}>{player.mins_per_red}</td>}
-                                <td className={styles['small-screen-display']}>
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_red}</td>}
+                                <td className={`${baseStyles.numeric} ${styles['small-screen-display']}`}>
                                     {getDisplayStatForSmallScreen(filterState.sortBy, player)}
                                 </td>
 
