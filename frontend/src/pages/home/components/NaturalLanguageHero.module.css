@@ -57,9 +57,9 @@
     padding: 16px;
     font: inherit;
     color: var(--color-ink);
-    background: var(--example-accent);
-    border: 1px solid var(--color-ink);
-    border-top: 3px solid var(--color-ink);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-top: 4px solid var(--example-accent);
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.15s ease, border-color 0.15s ease;
@@ -74,8 +74,7 @@
 }
 
 .example:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--example-accent) 90%, var(--color-surface));
-    border-color: var(--color-ink);
+    background: color-mix(in srgb, var(--example-accent) 5%, var(--color-surface));
 }
 
 .example-label {
