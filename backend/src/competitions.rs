@@ -81,6 +81,8 @@ pub enum Competition {
     SuperLig,
     #[serde(rename = "UEFA Conference League")]
     UEFAConferenceLeague,
+    #[serde(rename = "Premier Liga Ukraine")]
+    UkrainianPremierLeague,
     #[serde(rename = "Ukrainian Cup")]
     UkrainianCup,
     #[serde(rename = "Ukrainian Super Cup")]
@@ -182,6 +184,7 @@ impl Competition {
             Competition::Supercopa => "SUC",
             Competition::SuperLig => "TR1",
             Competition::UEFAConferenceLeague => "UCOL",
+            Competition::UkrainianPremierLeague => "UKR1",
             Competition::UkrainianCup => "UKRP",
             Competition::UkrainianSuperCup => "UKRS",
             Competition::UEFASuperCup => "USC",
@@ -230,6 +233,7 @@ impl Competition {
             "SUC" => Competition::Supercopa,
             "TR1" => Competition::SuperLig,
             "UCOL" => Competition::UEFAConferenceLeague,
+            "UKR1" => Competition::UkrainianPremierLeague,
             "UKRP" => Competition::UkrainianCup,
             "UKRS" => Competition::UkrainianSuperCup,
             "USC" => Competition::UEFASuperCup,
