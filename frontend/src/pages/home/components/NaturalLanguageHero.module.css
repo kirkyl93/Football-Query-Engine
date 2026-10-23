@@ -1,0 +1,105 @@
+.nl-hero {
+    text-align: center;
+}
+
+.nl-hero-heading {
+    font-size: clamp(28px, 4vw, 36px);
+    line-height: 1.12;
+    letter-spacing: -0.045em;
+    font-weight: 750;
+    margin: 0 0 20px;
+}
+
+.nl-hero-intro {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-muted);
+    max-width: 520px;
+    margin: 0 auto 30px;
+}
+
+.example:focus-visible {
+    outline: 2px solid #14532d;
+    outline-offset: 4px;
+}
+
+.example:disabled {
+    cursor: progress;
+    opacity: 0.65;
+}
+
+.examples {
+    max-width: 820px;
+    margin: 38px auto 0;
+    text-align: left;
+}
+
+.examples-heading {
+    margin: 0 0 12px;
+    color: var(--color-muted);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+.example-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.example {
+    --example-accent: var(--color-player1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+    padding: 16px;
+    font: inherit;
+    color: var(--color-ink);
+    background: color-mix(in srgb, var(--example-accent) 24%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--example-accent) 55%, var(--color-surface));
+    border-top: 3px solid var(--example-accent);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.example:nth-child(2) {
+    --example-accent: var(--color-player2);
+}
+
+.example:nth-child(3) {
+    --example-accent: var(--color-chart-default);
+}
+
+.example:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--example-accent) 34%, var(--color-surface));
+    border-color: var(--example-accent);
+}
+
+.example-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.example-label span {
+    color: color-mix(in srgb, var(--example-accent) 45%, var(--color-ink));
+}
+
+.example-query {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-ink-soft);
+}
+
+@media (max-width: 600px) {
+    .nl-hero-intro { font-size: 14px; }
+    .example-grid { grid-template-columns: 1fr; gap: 8px; }
+    .example { gap: 6px; padding: 14px 16px; }
+    .examples { margin-top: 28px; }
+}

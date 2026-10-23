@@ -1,14 +1,14 @@
-import {Navigate, Route, Routes, useLocation} from "react-router-dom";
+import {Route, Routes, useLocation} from "react-router-dom";
 import Search from "../pages/search/Search";
 import Player from "../pages/player/Player";
-import {getDefaultSearchPath} from "../pages/search/lib/defaultSearchFilter";
+import HomePage from "../pages/home/HomePage";
 
 const SearchRoute = () => {
     const location = useLocation();
-    // Bare `/` (no query params) redirects to the home view:
-    // Premier League top scorers 25/26 — same destination as the header logo.
+    // Bare `/` (no query params) is the landing page. Any query string
+    // switches to the search view, whose state lives in the URL.
     if (!new URLSearchParams(location.search).toString()) {
-        return <Navigate to={getDefaultSearchPath()} replace />;
+        return <HomePage />;
     }
     return <Search />;
 };

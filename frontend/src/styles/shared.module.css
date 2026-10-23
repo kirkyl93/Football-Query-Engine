@@ -83,6 +83,13 @@
     margin-bottom: 20px;
 }
 
+.filter-description {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--color-muted);
+    margin: 8px 0;
+}
+
 .dropdown-title, .sub-dropdown-title {
     display: flex;
     font-size: 13px;

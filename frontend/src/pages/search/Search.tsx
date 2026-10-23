@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import SearchFilterBar from "./components/SearchFilterBar";
+import NaturalLanguageSearchBar from "./components/NaturalLanguageSearchBar";
 import styles from './Search.module.css';
 import {useLocation, useNavigate} from "react-router-dom";
 import {SearchOverallTable} from "./components/SearchOverallTable";
@@ -17,6 +18,8 @@ import {filterStateToSearchParams} from "./lib/searchParamsSerializer";
 
 const Search: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isQuestionOpen, setIsQuestionOpen] = useState(false);
+    const questionButtonRef = useRef<HTMLButtonElement>(null);
     const drawerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const location = useLocation();
@@ -58,6 +61,19 @@ const Search: React.FC = () => {
         }, {replace: true});
     };
 
+    const handleNaturalLanguageSearch = (filterState: SearchFilterState) => {
+        // Push (not replace) so each natural-language search is its own
+        // history entry and the back button undoes the previous query.
+        const params = filterStateToSearchParams(filterState);
+
+        navigate({
+            pathname: location.pathname,
+            search: params.toString() ? `?${params.toString()}` : ''
+        });
+        setIsQuestionOpen(false);
+        questionButtonRef.current?.focus();
+    };
+
     const handleSortChange = (sortBy: SortOptions) => {
         handleFilterChange({...filterState, sortBy});
     };
@@ -69,7 +85,22 @@ const Search: React.FC = () => {
     return (
         <div className={styles['player-filter-screen']}>
             <div className={styles['content-wrapper']}>
-                <SearchHeader filterState={filterState} onOpenFilters={toggleDrawer} />
+                <SearchHeader
+                    filterState={filterState}
+                    onOpenFilters={toggleDrawer}
+                    isQuestionOpen={isQuestionOpen}
+                    onToggleQuestion={() => setIsQuestionOpen(open => !open)}
+                    questionButtonRef={questionButtonRef}
+                />
+                <div id="natural-language-search-panel" hidden={!isQuestionOpen}
+                    onKeyDown={event => {
+                        if (event.key === "Escape") {
+                            setIsQuestionOpen(false);
+                            questionButtonRef.current?.focus();
+                        }
+                    }}>
+                    <NaturalLanguageSearchBar isOpen={isQuestionOpen} onApplyFilters={handleNaturalLanguageSearch} />
+                </div>
 
                 {selectedScope !== StatScope.GAME &&
                     !numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&

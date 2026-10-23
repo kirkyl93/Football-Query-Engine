@@ -5,6 +5,7 @@ import shared from '../../../../styles/shared.module.css';
 
 interface MinMaxSelectSectionProps {
     title: string;
+    description?: string;
     options: number[];
     minLabel: string;
     maxLabel: string;
@@ -18,6 +19,7 @@ interface MinMaxSelectSectionProps {
 /** Shared min/max dropdown pair used by MINUTES, AGE and HEIGHT. */
 const MinMaxSelectSection: React.FC<MinMaxSelectSectionProps> = ({
     title,
+    description,
     options,
     minLabel,
     maxLabel,
@@ -29,6 +31,7 @@ const MinMaxSelectSection: React.FC<MinMaxSelectSectionProps> = ({
 }) => {
     return (
         <FilterSection title={title} summary={minMaxSummary(minValue, maxValue, summaryUnit)}>
+            {description && <p className={shared['filter-description']}>{description}</p>}
             <div className={shared['minute-and-age-and-sub-dropdown-group']}>
                 <label>{minLabel}</label>
                 <select value={minValue ?? ''} onChange={onMinChange}>

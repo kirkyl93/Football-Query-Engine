@@ -1,0 +1,13 @@
+.nl-search {
+    max-width: 720px;
+    margin: 24px auto;
+    font-family: var(--font-sans);
+}
+
+.nl-search-summary {
+    color: #14532d;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 12px 0 0;
+    overflow-wrap: anywhere;
+}

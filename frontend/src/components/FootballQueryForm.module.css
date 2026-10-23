@@ -1,0 +1,93 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: left;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+}
+
+.label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.box {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    border: 1px solid var(--color-ink);
+    border-radius: 5px;
+    background: var(--color-surface);
+    padding: 6px;
+}
+
+.box:focus-within {
+    border-color: #14532d;
+    box-shadow: 0 0 0 3px #e8eef3;
+}
+
+.input {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 12px 10px;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--color-ink);
+    max-height: 240px;
+    resize: none;
+}
+
+.input::placeholder { color: var(--color-muted); }
+.input:disabled { opacity: 0.7; }
+
+.send {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 2px;
+    background: #121212;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.send:hover:not(:disabled) { background: #e8eef3; color: #14532d; }
+.send:focus-visible { outline: 2px solid #14532d; outline-offset: 4px; }
+.send:disabled { cursor: progress; opacity: 0.65; }
+.send svg { width: 20px; height: 20px; }
+.loading svg { animation: query-spin 1s linear infinite; }
+
+@keyframes query-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .loading svg { animation: none; } }
+
+.hint {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--color-muted);
+    margin: 0;
+}
+
+.message {
+    color: #b91c1c;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 12px 14px;
+    border-left: 3px solid #b91c1c;
+    background: #fff5f5;
+    margin: 0;
+    overflow-wrap: anywhere;
+}

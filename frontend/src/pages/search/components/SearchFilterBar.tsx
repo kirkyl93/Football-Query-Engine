@@ -238,6 +238,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
                 />
                 <MinMaxSelectSection
                     title="AGE"
+                    description="Age on the match date, not current age. Older players can appear for performances within this age range."
                     options={ages}
                     minLabel="Min age:"
                     maxLabel="Max age:"

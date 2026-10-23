@@ -119,6 +119,7 @@ describe('SearchFilterBar', () => {
         renderFilterBar({onFilterChange});
 
         await user.click(screen.getByText('AGE'));
+        expect(screen.getByText(/Age on the match date, not current age/)).toBeInTheDocument();
         const [minAge, maxAge] = screen.getAllByRole('combobox');
         fireEvent.change(minAge, {target: {value: '30'}});
         fireEvent.change(maxAge, {target: {value: '25'}});
