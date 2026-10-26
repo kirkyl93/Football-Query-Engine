@@ -34,3 +34,11 @@ Data can be downloaded here: https://www.kaggle.com/datasets/davidcariboo/player
 
 Big thanks to https://github.com/dcaribou/transfermarkt-datasets
 
+## Tests and continuous integration
+
+Rust integration tests use a small synthetic Postgres fixture, not the development database or the downloaded football dataset. Create a new dedicated test database, populate it once using the real schema and [fixture bootstrap](backend/tests/fixtures/README.md), set `TEST_DATABASE_URL` in the environment or `backend/.env`, then run `cargo test --locked --all-targets` from `backend`. Unit tests alone can run without Postgres using `cargo test --locked --lib`.
+
+From `frontend`, use `npm ci`, `npm test -- --maxWorkers=2`, and `npm run build`. The test script already runs Vitest in non-watch mode (`vitest run`).
+
+The [GitHub Actions workflow](.github/workflows/ci.yml) runs these checks on pull requests and pushes to `master`. Its backend job starts a fresh PostgreSQL 18 service and seeds it once before all Rust tests. No real-database credentials are required. The fixture guide documents the data, expected totals, minute-boundary conventions, and coverage retained from the historical tests.
+

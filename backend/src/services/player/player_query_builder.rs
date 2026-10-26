@@ -343,6 +343,7 @@ impl PlayerMinuteFilterMethods for QueryBuilder<Postgres> {
 }
 
 trait PrivatePlayerMinuteFilterMethods {
+    fn add_credited_minutes_expression(&mut self, window: MinuteWindow) -> &mut Self;
     fn add_all_minute_filters(&mut self, window: MinuteWindow) -> &mut Self;
     fn add_appearances_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
     fn add_goals_minute_filter(&mut self, window: MinuteWindow) -> &mut Self;
@@ -354,6 +355,23 @@ trait PrivatePlayerMinuteFilterMethods {
 }
 
 impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
+    fn add_credited_minutes_expression(&mut self, window: MinuteWindow) -> &mut Self {
+        // Minute labels are inclusive, including the substitution minute. Cap
+        // that estimate by the appearance's recorded duration and the window
+        // length. Do not impose a regulation-time ceiling: recorded appearances
+        // can include extra time. Minute 0 is the start boundary, so 0–45 and
+        // 1–45 both contain at most 45 credited minutes.
+        self.push("LEAST(a.minutes_played, ")
+            .push_bind((window.to - window.from.max(1) + 1).max(0))
+            .push(", GREATEST(LEAST(")
+            .push_bind(window.to)
+            // Match appearances_with_event_times: a half-time entry at 46
+            // with 45 recorded minutes ends at 90, rather than 91.
+            .push(", subbed_off_minute, CASE WHEN played_from_minute = 46 AND a.minutes_played = 45 THEN 90 ELSE played_from_minute + a.minutes_played END) - GREATEST(")
+            .push_bind(window.from)
+            .push(", played_from_minute) + 1, 0))")
+    }
+
     fn add_all_minute_filters(&mut self, window: MinuteWindow) -> &mut Self {
         self.add_appearances_minute_filter(window)
             .add_goals_minute_filter(window)
@@ -365,21 +383,9 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
     }
 
     fn add_appearances_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
-        self.push(
-            "
-            MIN(CASE WHEN a.played_from_minute <= ",
-        )
-        .push_bind(window.to)
-        .push(" AND (subbed_off_minute IS NULL OR subbed_off_minute > ")
-        .push_bind(window.from)
-        .push(
-            ")
-                AND played_from_minute + minutes_played >= ",
-        )
-        .push_bind(window.from)
-        .push(" THEN 1 ELSE 0 END) AS appearances,");
-
-        self
+        self.push("\n            MIN(CASE WHEN ")
+            .add_credited_minutes_expression(window)
+            .push(" > 0 THEN 1 ELSE 0 END) AS appearances,")
     }
 
     fn add_goals_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
@@ -468,16 +474,9 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
     }
 
     fn add_minutes_played_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
-        self.push(
-            "
-            GREATEST(MIN(LEAST(",
-        )
-        .push_bind(window.to)
-        .push(", subbed_off_minute, played_from_minute + minutes_played) - GREATEST(")
-        .push_bind(window.from)
-        .push(", played_from_minute)) + 1, 0) AS minutes_played,");
-
-        self
+        self.push("\n            MIN(")
+            .add_credited_minutes_expression(window)
+            .push(") AS minutes_played,")
     }
 }
 
