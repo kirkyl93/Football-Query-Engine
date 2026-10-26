@@ -1,0 +1,223 @@
+[
+  {
+    "game_number": 1,
+    "club_id": 101,
+    "home_club_id": 101,
+    "home_club_name": "Northbridge FC",
+    "away_club_id": 102,
+    "away_club_name": "Riverside FC",
+    "competition_id": "GB1",
+    "competition_name": "Premier League",
+    "competition_type": "League",
+    "date": "2024-08-10",
+    "season": 2024,
+    "goals": 2,
+    "penalty_goals": 1,
+    "assists": 1,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "played_from_minute": 0,
+    "subbed_off_minute": 0,
+    "home_club_goals": 3,
+    "away_club_goals": 1,
+    "goal_minutes": [
+      10
+    ],
+    "penalty_goal_minutes": [
+      45
+    ],
+    "own_goal_minutes": [],
+    "assist_minutes": [
+      46
+    ],
+    "yellow_minutes": [],
+    "red_minutes": [],
+    "minutes_played": [
+      0,
+      90
+    ],
+    "result": "Win"
+  },
+  {
+    "game_number": 2,
+    "club_id": 101,
+    "home_club_id": 102,
+    "home_club_name": "Riverside FC",
+    "away_club_id": 101,
+    "away_club_name": "Northbridge FC",
+    "competition_id": "GB1",
+    "competition_name": "Premier League",
+    "competition_type": "League",
+    "date": "2024-08-17",
+    "season": 2024,
+    "goals": 0,
+    "penalty_goals": 0,
+    "assists": 1,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "played_from_minute": 0,
+    "subbed_off_minute": 0,
+    "home_club_goals": 2,
+    "away_club_goals": 2,
+    "goal_minutes": [],
+    "penalty_goal_minutes": [],
+    "own_goal_minutes": [],
+    "assist_minutes": [
+      77
+    ],
+    "yellow_minutes": [],
+    "red_minutes": [],
+    "minutes_played": [
+      0,
+      90
+    ],
+    "result": "Draw"
+  },
+  {
+    "game_number": 3,
+    "club_id": 101,
+    "home_club_id": 101,
+    "home_club_name": "Northbridge FC",
+    "away_club_id": 103,
+    "away_club_name": "Hilltown FC",
+    "competition_id": "GB1",
+    "competition_name": "Premier League",
+    "competition_type": "League",
+    "date": "2024-09-07",
+    "season": 2024,
+    "goals": 2,
+    "penalty_goals": 0,
+    "assists": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "played_from_minute": 0,
+    "subbed_off_minute": 0,
+    "home_club_goals": 3,
+    "away_club_goals": 2,
+    "goal_minutes": [
+      46,
+      85
+    ],
+    "penalty_goal_minutes": [],
+    "own_goal_minutes": [],
+    "assist_minutes": [],
+    "yellow_minutes": [],
+    "red_minutes": [],
+    "minutes_played": [
+      0,
+      90
+    ],
+    "result": "Win"
+  },
+  {
+    "game_number": 4,
+    "club_id": 101,
+    "home_club_id": 101,
+    "home_club_name": "Northbridge FC",
+    "away_club_id": 103,
+    "away_club_name": "Hilltown FC",
+    "competition_id": "CL",
+    "competition_name": "Champions League",
+    "competition_type": "Europe",
+    "date": "2024-10-01",
+    "season": 2024,
+    "goals": 4,
+    "penalty_goals": 1,
+    "assists": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "played_from_minute": 0,
+    "subbed_off_minute": 0,
+    "home_club_goals": 4,
+    "away_club_goals": 2,
+    "goal_minutes": [
+      10,
+      46,
+      85
+    ],
+    "penalty_goal_minutes": [
+      45
+    ],
+    "own_goal_minutes": [],
+    "assist_minutes": [],
+    "yellow_minutes": [],
+    "red_minutes": [],
+    "minutes_played": [
+      0,
+      90
+    ],
+    "result": "Win"
+  },
+  {
+    "game_number": 5,
+    "club_id": 101,
+    "home_club_id": 103,
+    "home_club_name": "Hilltown FC",
+    "away_club_id": 101,
+    "away_club_name": "Northbridge FC",
+    "competition_id": "GB1",
+    "competition_name": "Premier League",
+    "competition_type": "League",
+    "date": "2025-08-10",
+    "season": 2025,
+    "goals": 1,
+    "penalty_goals": 0,
+    "assists": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "played_from_minute": 0,
+    "subbed_off_minute": 0,
+    "home_club_goals": 1,
+    "away_club_goals": 1,
+    "goal_minutes": [
+      15
+    ],
+    "penalty_goal_minutes": [],
+    "own_goal_minutes": [],
+    "assist_minutes": [],
+    "yellow_minutes": [],
+    "red_minutes": [],
+    "minutes_played": [
+      0,
+      90
+    ],
+    "result": "Draw"
+  },
+  {
+    "game_number": 6,
+    "club_id": 102,
+    "home_club_id": 101,
+    "home_club_name": "Northbridge FC",
+    "away_club_id": 102,
+    "away_club_name": "Riverside FC",
+    "competition_id": "GB1",
+    "competition_name": "Premier League",
+    "competition_type": "League",
+    "date": "2025-08-17",
+    "season": 2025,
+    "goals": 2,
+    "penalty_goals": 1,
+    "assists": 0,
+    "yellow_cards": 0,
+    "red_cards": 0,
+    "played_from_minute": 0,
+    "subbed_off_minute": 0,
+    "home_club_goals": 1,
+    "away_club_goals": 2,
+    "goal_minutes": [
+      10
+    ],
+    "penalty_goal_minutes": [
+      88
+    ],
+    "own_goal_minutes": [],
+    "assist_minutes": [],
+    "yellow_minutes": [],
+    "red_minutes": [],
+    "minutes_played": [
+      0,
+      90
+    ],
+    "result": "Win"
+  }
+]

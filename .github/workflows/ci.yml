@@ -1,0 +1,79 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test -- --maxWorkers=2
+      - name: Build production frontend
+        run: npm run build
+
+  backend:
+    name: Rust unit and Postgres integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/football_game_test
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: football_game_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d football_game_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend -> target
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes pkg-config libssl-dev
+      - name: Bootstrap schema and fixture once
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          # Use the service's Postgres 18 client for the version-18 schema dump.
+          # Preserve relative paths so CI and local runs use the same bootstrap.
+          docker exec "$POSTGRES_CONTAINER" mkdir -p /tmp/football-tests/backend/tests
+          docker cp dbschema.sql "$POSTGRES_CONTAINER:/tmp/football-tests/dbschema.sql"
+          docker cp backend/tests/fixtures "$POSTGRES_CONTAINER:/tmp/football-tests/backend/tests/fixtures"
+          docker exec "$POSTGRES_CONTAINER" psql -X --username=postgres --dbname=football_game_test --file=/tmp/football-tests/backend/tests/fixtures/bootstrap.sql
+      - name: Run all Rust tests against the seeded database
+        working-directory: backend
+        run: cargo test --locked --all-targets

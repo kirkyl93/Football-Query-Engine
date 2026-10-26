@@ -124,7 +124,8 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
         JOIN
             games ON a.game_id = games.game_id
         JOIN
-            competitions c ON c.competition_id = games.competition_id")
+            competitions c ON c.competition_id = games.competition_id
+        WHERE a.appearances > 0")
         .add_order_by(&params.sort, goals_calculation)
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 

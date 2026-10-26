@@ -149,7 +149,7 @@ fn build_number_of_games_query_from_events(
                 players p on p.player_id = a.player_id
             JOIN
                 games g ON g.game_id = a.game_id
-            WHERE 1 = 1")
+            WHERE a.appearances > 0")
         .add_game_filters(goals_calculation, &params).push("
             GROUP BY a.player_id, player_name, p.image_url, p.country_of_citizenship, p.sub_position")
         .push(if params.scope == StatScope::Season {", g.season"} else {""}).push("

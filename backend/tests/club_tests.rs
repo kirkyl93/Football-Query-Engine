@@ -1,16 +1,46 @@
-use crate::common::test_search;
-use actix_web::test;
-use football_game::club::Club;
+mod common;
+use common::{fixture_pool, get_rows};
+use serde_json::json;
 
-const BASE_CLUB_URL: &str = "/clubs?";
-pub mod common;
-#[test]
-async fn test_get_clubs() {
-    test_search(
-        BASE_CLUB_URL,
-        "search_name=lee",
-        4,
-        Club::new(399, "Leeds United".to_string()),
-    )
-    .await;
+#[actix_web::test]
+async fn club_search_matches_code_tokens_case_insensitively_and_orders_by_capacity() {
+    let pool = fixture_pool().await;
+    for query in ["search_name=lee", "search_name=LEE"] {
+        assert_eq!(
+            get_rows(&pool, "/clubs", query).await,
+            vec![
+                json!({"club_id":301,"name":"Leeds Grove"}),
+                json!({"club_id":302,"name":"Lee Harbour"})
+            ]
+        );
+    }
+    assert_eq!(
+        get_rows(&pool, "/clubs", "search_name=leeds%20grove").await,
+        vec![json!({"club_id":301,"name":"Leeds Grove"})]
+    );
+}
+
+#[actix_web::test]
+async fn club_pagination_and_empty_search_results_are_exact() {
+    let pool = fixture_pool().await;
+    for (query, expected) in [
+        (
+            "search_name=lee&limit=1&page=0",
+            json!([{"club_id":301,"name":"Leeds Grove"}]),
+        ),
+        (
+            "search_name=lee&limit=1&page=1",
+            json!([{"club_id":302,"name":"Lee Harbour"}]),
+        ),
+        ("search_name=lee&limit=1&page=2", json!([])),
+        ("search_name=not-a-club", json!([])),
+        ("search_name=%25", json!([])),
+        ("search_name=%5F", json!([])),
+    ] {
+        assert_eq!(
+            json!(get_rows(&pool, "/clubs", query).await),
+            expected,
+            "{query}"
+        );
+    }
 }
