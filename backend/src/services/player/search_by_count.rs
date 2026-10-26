@@ -207,15 +207,33 @@ trait GoalsAndAssistsFilters {
     fn add_maximum_season_goals(&mut self, maximum_season_goals: i32) -> &mut Self;
     fn add_minimum_season_assists(&mut self, minimum_season_assists: i32) -> &mut Self;
     fn add_maximum_season_assists(&mut self, maximum_season_assists: i32) -> &mut Self;
-    fn add_minimum_season_goals_and_assists(&mut self, minimum_season_goals_and_assists: i32) -> &mut Self;
-    fn add_maximum_season_goals_and_assists(&mut self, maximum_season_goals_and_assists: i32) -> &mut Self;
-    fn add_game_filters(&mut self, goals_calculation: &str, params: &ProcessedSearchParams) -> &mut Self;
+    fn add_minimum_season_goals_and_assists(
+        &mut self,
+        minimum_season_goals_and_assists: i32,
+    ) -> &mut Self;
+    fn add_maximum_season_goals_and_assists(
+        &mut self,
+        maximum_season_goals_and_assists: i32,
+    ) -> &mut Self;
+    fn add_game_filters(
+        &mut self,
+        goals_calculation: &str,
+        params: &ProcessedSearchParams,
+    ) -> &mut Self;
     fn add_minimum_game_goals(&mut self, goals_calculation: &str, minimum_goals: i32) -> &mut Self;
     fn add_maximum_game_goals(&mut self, goals_calculation: &str, maximum_goals: i32) -> &mut Self;
     fn add_minimum_game_assists(&mut self, minimum_assists: i32) -> &mut Self;
     fn add_maximum_game_assists(&mut self, maximum_assists: i32) -> &mut Self;
-    fn add_minimum_game_goals_and_assists(&mut self, goals_calculation: &str, minimum_game_goals_and_assists: i32) -> &mut Self;
-    fn add_maximum_game_goals_and_assists(&mut self, goals_calculation: &str, maximum_game_goals_and_assists: i32) -> &mut Self;
+    fn add_minimum_game_goals_and_assists(
+        &mut self,
+        goals_calculation: &str,
+        minimum_game_goals_and_assists: i32,
+    ) -> &mut Self;
+    fn add_maximum_game_goals_and_assists(
+        &mut self,
+        goals_calculation: &str,
+        maximum_game_goals_and_assists: i32,
+    ) -> &mut Self;
 }
 
 impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
@@ -229,7 +247,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
     }
 
     fn add_minimum_season_goals(&mut self, minimum_goals: i32) -> &mut Self {
-        if minimum_goals <= 0 {
+        if minimum_goals < 0 {
             return self;
         }
 
@@ -243,7 +261,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
     }
 
     fn add_maximum_season_goals(&mut self, maximum_goals: i32) -> &mut Self {
-        if maximum_goals <= 0 {
+        if maximum_goals < 0 {
             return self;
         }
 
@@ -257,7 +275,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
     }
 
     fn add_minimum_season_assists(&mut self, minimum_assists: i32) -> &mut Self {
-        if minimum_assists <= 0 {
+        if minimum_assists < 0 {
             return self;
         }
 
@@ -271,7 +289,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
     }
 
     fn add_maximum_season_assists(&mut self, maximum_assists: i32) -> &mut Self {
-        if maximum_assists <= 0 {
+        if maximum_assists < 0 {
             return self;
         }
 
@@ -288,7 +306,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
         &mut self,
         minimum_goals_and_assists: i32,
     ) -> &mut Self {
-        if minimum_goals_and_assists <= 0 {
+        if minimum_goals_and_assists < 0 {
             return self;
         }
 
@@ -305,7 +323,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
         &mut self,
         maximum_goals_and_assists: i32,
     ) -> &mut Self {
-        if maximum_goals_and_assists <= 0 {
+        if maximum_goals_and_assists < 0 {
             return self;
         }
 
@@ -327,12 +345,18 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
             .add_maximum_game_goals(goals_calculation, params.thresholds.max_goals)
             .add_minimum_game_assists(params.thresholds.min_assists)
             .add_maximum_game_assists(params.thresholds.max_assists)
-            .add_minimum_game_goals_and_assists(goals_calculation, params.thresholds.min_goals_and_assists)
-            .add_maximum_game_goals_and_assists(goals_calculation, params.thresholds.max_goals_and_assists)
+            .add_minimum_game_goals_and_assists(
+                goals_calculation,
+                params.thresholds.min_goals_and_assists,
+            )
+            .add_maximum_game_goals_and_assists(
+                goals_calculation,
+                params.thresholds.max_goals_and_assists,
+            )
     }
 
     fn add_minimum_game_goals(&mut self, goals_calculation: &str, minimum_goals: i32) -> &mut Self {
-        if minimum_goals <= 0 {
+        if minimum_goals < 0 {
             return self;
         }
 
@@ -348,7 +372,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
     }
 
     fn add_maximum_game_goals(&mut self, goals_calculation: &str, maximum_goals: i32) -> &mut Self {
-        if maximum_goals <= 0 {
+        if maximum_goals < 0 {
             return self;
         }
 
@@ -364,7 +388,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
     }
 
     fn add_minimum_game_assists(&mut self, minimum_assists: i32) -> &mut Self {
-        if minimum_assists <= 0 {
+        if minimum_assists < 0 {
             return self;
         }
 
@@ -378,7 +402,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
     }
 
     fn add_maximum_game_assists(&mut self, maximum_assists: i32) -> &mut Self {
-        if maximum_assists <= 0 {
+        if maximum_assists < 0 {
             return self;
         }
 
@@ -396,7 +420,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
         goals_calculation: &str,
         minimum_goals_and_assists: i32,
     ) -> &mut Self {
-        if minimum_goals_and_assists <= 0 {
+        if minimum_goals_and_assists < 0 {
             return self;
         }
 
@@ -416,7 +440,7 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
         goals_calculation: &str,
         maximum_goals_and_assists: i32,
     ) -> &mut Self {
-        if maximum_goals_and_assists <= 0 {
+        if maximum_goals_and_assists < 0 {
             return self;
         }
 
@@ -429,5 +453,69 @@ impl GoalsAndAssistsFilters for QueryBuilder<Postgres> {
         .push_bind(maximum_goals_and_assists);
 
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn maximum_bounds_apply_in_all_count_query_paths() {
+        for sort in ["gw", "sw"] {
+            for minute_filter in ["", "&minfrom=46"] {
+                for penalty in ["ip", "ep", "op"] {
+                    for (key, game_column, season_column) in [
+                        (
+                            "maxg",
+                            get_goals_calculation(
+                                &crate::services::player::models::PenaltyOption::from_code(penalty),
+                                TotalsKind::PerGame,
+                            )
+                            .to_string(),
+                            "total_goals",
+                        ),
+                        ("maxa", "assists".to_string(), "total_assists"),
+                        (
+                            "maxga",
+                            format!(
+                                "{} + assists",
+                                get_goals_calculation(
+                                    &crate::services::player::models::PenaltyOption::from_code(
+                                        penalty
+                                    ),
+                                    TotalsKind::PerGame
+                                )
+                            ),
+                            "total_goals + total_assists",
+                        ),
+                    ] {
+                        for bound in [None, Some(-1), Some(0), Some(3)] {
+                            let mut query_string =
+                                format!("sort={sort}&penalty={penalty}{minute_filter}");
+                            if let Some(value) = bound {
+                                query_string.push_str(&format!("&{key}={value}"));
+                            }
+                            let params: SearchParams =
+                                serde_urlencoded::from_str(&query_string).unwrap();
+                            let query = construct_number_of_games_or_seasons_query_from_params(
+                                params.to_processed(),
+                            );
+                            let column = if sort == "sw" {
+                                season_column
+                            } else {
+                                &game_column
+                            };
+                            assert_eq!(
+                                query.sql().as_str().contains(&format!("{column} <= $")),
+                                bound.is_some_and(|value| value >= 0),
+                                "{query_string}: {}",
+                                query.sql().as_str(),
+                            );
+                        }
+                    }
+                }
+            }
+        }
     }
 }

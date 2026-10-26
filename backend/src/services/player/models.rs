@@ -163,12 +163,12 @@ impl SearchParams {
             },
             thresholds: StatThresholds {
                 min_appearances: self.minimum_appearances.unwrap_or(0).max(0),
-                min_goals: self.minimum_goals.unwrap_or(0).max(0),
-                max_goals: self.maximum_goals.unwrap_or(0).max(0),
-                min_assists: self.minimum_assists.unwrap_or(0).max(0),
-                max_assists: self.maximum_assists.unwrap_or(0).max(0),
-                min_goals_and_assists: self.minimum_goals_and_assists.unwrap_or(0).max(0),
-                max_goals_and_assists: self.maximum_goals_and_assists.unwrap_or(0).max(0),
+                min_goals: self.minimum_goals.unwrap_or(-1).max(-1),
+                max_goals: self.maximum_goals.unwrap_or(-1).max(-1),
+                min_assists: self.minimum_assists.unwrap_or(-1).max(-1),
+                max_assists: self.maximum_assists.unwrap_or(-1).max(-1),
+                min_goals_and_assists: self.minimum_goals_and_assists.unwrap_or(-1).max(-1),
+                max_goals_and_assists: self.maximum_goals_and_assists.unwrap_or(-1).max(-1),
             },
             seasons: parse_csv_i32(self.seasons.as_ref()),
             competitions,
@@ -253,7 +253,7 @@ pub struct SubFilter {
     pub latest_on: i32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StatThresholds {
     pub min_appearances: i32,
     pub min_goals: i32,
@@ -262,6 +262,21 @@ pub struct StatThresholds {
     pub max_assists: i32,
     pub min_goals_and_assists: i32,
     pub max_goals_and_assists: i32,
+}
+
+impl Default for StatThresholds {
+    fn default() -> Self {
+        Self {
+            min_appearances: 0,
+            // Negative thresholds mean no bound; zero is a real filter value.
+            min_goals: -1,
+            max_goals: -1,
+            min_assists: -1,
+            max_assists: -1,
+            min_goals_and_assists: -1,
+            max_goals_and_assists: -1,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -478,6 +493,23 @@ mod tests {
     }
 
     #[test]
+    fn zero_stat_thresholds_are_distinct_from_missing_bounds() {
+        for value in [-2, -1, 0, 3] {
+            let params: SearchParams = serde_urlencoded::from_str(&format!(
+                "ming={value}&maxg={value}&mina={value}&maxa={value}&minga={value}&maxga={value}"
+            ))
+            .unwrap();
+            let thresholds = params.to_processed().thresholds;
+            assert_eq!(thresholds.min_goals, value.max(-1));
+            assert_eq!(thresholds.max_goals, value.max(-1));
+            assert_eq!(thresholds.min_assists, value.max(-1));
+            assert_eq!(thresholds.max_assists, value.max(-1));
+            assert_eq!(thresholds.min_goals_and_assists, value.max(-1));
+            assert_eq!(thresholds.max_goals_and_assists, value.max(-1));
+        }
+    }
+
+    #[test]
     fn test_to_processed_defaults() {
         let result = SearchParams::default().to_processed();
 
@@ -505,12 +537,7 @@ mod tests {
         assert_eq!(result.scope, StatScope::Overall);
         assert_eq!(result.sort, SortOption::Goals);
         assert_eq!(result.thresholds.min_appearances, 0);
-        assert_eq!(result.thresholds.min_goals, 0);
-        assert_eq!(result.thresholds.max_goals, 0);
-        assert_eq!(result.thresholds.min_assists, 0);
-        assert_eq!(result.thresholds.max_assists, 0);
-        assert_eq!(result.thresholds.min_goals_and_assists, 0);
-        assert_eq!(result.thresholds.max_goals_and_assists, 0);
+        assert_eq!(result.thresholds, StatThresholds::default());
     }
 
     #[test]

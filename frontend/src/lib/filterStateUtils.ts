@@ -7,5 +7,7 @@
 export const toggleArrayValue = <T>(values: T[], value: T): T[] =>
     values.includes(value) ? values.filter(v => v !== value) : [...values, value];
 
-export const parseOptionalNumber = (value: string): number | undefined =>
-    value ? parseInt(value, 10) : undefined;
+export const parseOptionalNumber = (value: string): number | undefined => {
+    const parsed = parseInt(value, 10);
+    return Number.isNaN(parsed) ? undefined : parsed;
+};

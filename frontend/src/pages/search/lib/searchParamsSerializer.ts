@@ -11,8 +11,11 @@ export const filterStateToSearchParams = (filterState: SearchFilterState): URLSe
     const params = new URLSearchParams();
 
     const addParam = (key: string, value: unknown) => {
-        if (value !== undefined && value !== null && value != '') {
-            params.append(key, value.toString().trim());
+        if (value !== undefined && value !== null) {
+            const serialized = value.toString().trim();
+            if (serialized !== '') {
+                params.append(key, serialized);
+            }
         }
     }
     addParam(UrlFilters.SEASONS, filterState.seasons.join(','));

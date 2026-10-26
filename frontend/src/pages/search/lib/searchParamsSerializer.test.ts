@@ -16,6 +16,10 @@ describe('filterStateToSearchParams', () => {
         expect(params.get(UrlFilters.SCOPE)).toBe('o');
         expect(params.has(UrlFilters.SUBS_ONLY)).toBe(false);
         expect(params.has(UrlFilters.MINUTE_FROM)).toBe(false);
+        expect(params.has(UrlFilters.PLAYER_NAMES)).toBe(false);
+        expect(params.has(UrlFilters.PLAYER_COUNTRIES)).toBe(false);
+        expect(params.has(UrlFilters.CLUBS_PLAYED_FOR)).toBe(false);
+        expect(params.has(UrlFilters.CLUBS_PLAYED_AGAINST)).toBe(false);
     });
 
     it('includes sub-on times only when subs-only is set', () => {

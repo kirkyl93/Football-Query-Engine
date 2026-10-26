@@ -20,9 +20,9 @@ export const heights = Array.from({length: 120}, (_, i) => i + 120);
 
 export const appearances = Array.from({length: 249}, (_, i) => i + 2);
 
-export const season_goals_or_assists = Array.from({length: 50}, (_, i) => i + 1);
+export const season_goals_or_assists = Array.from({length: 51}, (_, i) => i);
 
-export const game_goals_or_assists = Array.from({length: 8}, (_, i) => i + 1);
+export const game_goals_or_assists = Array.from({length: 9}, (_, i) => i);
 
 export const penaltyOptions = [
     {name: "Include penalties", id: PenaltyOptions.INCLUDE_PENALTIES},

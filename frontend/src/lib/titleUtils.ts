@@ -76,19 +76,19 @@ export const describeRange = (
     singular: string,
     plural = `${singular}s`,
 ): string => {
-    const lo = min ?? 0;
-    const hi = max ?? 0;
+    const lo = min ?? -1;
+    const hi = max ?? -1;
 
-    if (lo > 0 && hi > 0) {
+    if (lo >= 0 && hi >= 0) {
         if (lo === hi) {
             return `exactly ${lo} ${lo === 1 ? singular : plural}`;
         }
         return `between ${lo} and ${hi} ${plural}`;
     }
-    if (lo > 0) {
+    if (lo >= 0) {
         return `at least ${lo} ${lo === 1 ? singular : plural}`;
     }
-    if (hi > 0) {
+    if (hi >= 0) {
         return `at most ${hi} ${hi === 1 ? singular : plural}`;
     }
     return "";
