@@ -65,6 +65,15 @@ describe('sortByTitle', () => {
 });
 
 describe('sortCriteriaTitle', () => {
+    it.each([SortOptions.NUMBER_OF_GAMES_WITH, SortOptions.NUMBER_OF_SEASONS_WITH])(
+        'includes zero maximums in the title for %s', sortBy => {
+            expect(sortCriteriaTitle({
+                ...createDefaultSearchFilterState(), sortBy,
+                maximumGoals: 0, maximumAssists: 0, maximumGoalsAndAssists: 0,
+            })).toBe('no goals, no assists, no goals or assists');
+        },
+    );
+
     const withSort = (sortBy: SortOptions, bounds: Partial<ReturnType<typeof createDefaultSearchFilterState>>) => ({
         ...createDefaultSearchFilterState(),
         sortBy,

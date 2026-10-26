@@ -1,9 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import SearchFilterBar from './SearchFilterBar';
 import { createDefaultSearchFilterState } from '../lib/defaultSearchFilter';
 import { SortOptions } from '../../../types/SearchOptions';
+import { filterStateToSearchParams } from '../lib/searchParamsSerializer';
+import { UrlFilters } from '../../../types/UrlFilters';
 
 const renderFilterBar = (props?: Partial<React.ComponentProps<typeof SearchFilterBar>>) => render(
     <SearchFilterBar
@@ -20,6 +22,49 @@ afterEach(() => {
 });
 
 describe('SearchFilterBar', () => {
+    it.each([SortOptions.NUMBER_OF_GAMES_WITH, SortOptions.NUMBER_OF_SEASONS_WITH])(
+        'applies zero maximums and can clear them back to Any for %s', async sortBy => {
+            const user = userEvent.setup();
+            const onFilterChange = vi.fn();
+            renderFilterBar({
+                filterState: {...createDefaultSearchFilterState(), sortBy},
+                onFilterChange,
+            });
+            await user.click(screen.getByText('SORT BY'));
+            const selects = screen.getAllByRole('combobox');
+            for (const select of [selects[0], selects[2], selects[4]]) {
+                expect(within(select).queryByRole('option', {name: '0'})).not.toBeInTheDocument();
+                expect(within(select).getByRole('option', {name: '1'})).toBeInTheDocument();
+            }
+            const maximums = [selects[1], selects[3], selects[5]];
+            for (const select of maximums) {
+                await user.selectOptions(select, '0');
+                expect(select).toHaveValue('0');
+            }
+            await user.click(screen.getByText('APPLY'));
+            const applied = onFilterChange.mock.calls[0][0];
+            expect(applied).toMatchObject({
+                maximumGoals: 0, maximumAssists: 0, maximumGoalsAndAssists: 0,
+            });
+            const params = filterStateToSearchParams(applied);
+            for (const key of [UrlFilters.MAXIMUM_GOALS, UrlFilters.MAXIMUM_ASSISTS, UrlFilters.MAXIMUM_GOALS_AND_ASSISTS]) {
+                expect(params.get(key)).toBe('0');
+            }
+            for (const select of maximums) {
+                await user.selectOptions(select, '');
+            }
+            await user.click(screen.getByText('APPLY'));
+            const cleared = onFilterChange.mock.calls[1][0];
+            expect(cleared.maximumGoals).toBeUndefined();
+            expect(cleared.maximumAssists).toBeUndefined();
+            expect(cleared.maximumGoalsAndAssists).toBeUndefined();
+            const clearedParams = filterStateToSearchParams(cleared);
+            for (const key of [UrlFilters.MAXIMUM_GOALS, UrlFilters.MAXIMUM_ASSISTS, UrlFilters.MAXIMUM_GOALS_AND_ASSISTS]) {
+                expect(clearedParams.has(key)).toBe(false);
+            }
+        },
+    );
+
     it('renders the header, all section titles and the apply button', () => {
         renderFilterBar();
 

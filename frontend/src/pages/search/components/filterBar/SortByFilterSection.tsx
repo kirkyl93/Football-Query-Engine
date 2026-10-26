@@ -48,6 +48,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
     const goalOptions = filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH
         ? game_goals_or_assists
         : season_goals_or_assists;
+    const minimumGoalOptions = goalOptions.filter(value => value > 0);
 
     return (
         <FilterSection
@@ -104,7 +105,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                         <select value={filterState.minimumGoals ?? ''}
                                 onChange={onMinimumGoalsChange}>
                             <option value="">Any</option>
-                            {goalOptions.map(goal => (
+                            {minimumGoalOptions.map(goal => (
                                 <option key={goal} value={goal}>{goal}</option>))}
                         </select>
                     </div>
@@ -122,7 +123,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                         <select value={filterState.minimumAssists ?? ''}
                                 onChange={onMinimumAssistsChange}>
                             <option value="">Any</option>
-                            {goalOptions.map(goal => (
+                            {minimumGoalOptions.map(goal => (
                                 <option key={goal} value={goal}>{goal}</option>))}
                         </select>
                     </div>
@@ -142,7 +143,7 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                         <select value={filterState.minimumGoalsAndAssists ?? ''}
                                 onChange={onMinimumGoalsAndAssistsChange}>
                             <option value="">Any</option>
-                            {goalOptions.map(goal_or_assists => (
+                            {minimumGoalOptions.map(goal_or_assists => (
                                 <option key={goal_or_assists} value={goal_or_assists}>{goal_or_assists}</option>))}
                         </select>
                     </div>

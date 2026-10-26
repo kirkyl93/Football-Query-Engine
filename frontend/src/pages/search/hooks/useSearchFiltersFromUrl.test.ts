@@ -2,8 +2,25 @@ import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { HomeOrAwayOptions, PenaltyOptions, SortOptions, StatScope } from '../../../types/SearchOptions';
 import { useSearchFiltersFromUrl } from './useSearchFiltersFromUrl';
+import { filterStateToSearchParams } from '../lib/searchParamsSerializer';
+import { createDefaultSearchFilterState } from '../lib/defaultSearchFilter';
 
 describe('useSearchFiltersFromUrl', () => {
+    it.each([SortOptions.NUMBER_OF_GAMES_WITH, SortOptions.NUMBER_OF_SEASONS_WITH])(
+        'preserves zero bounds through a URL round trip for %s', sortBy => {
+            const bounds = {
+                minimumGoals: 0, maximumGoals: 0,
+                minimumAssists: 0, maximumAssists: 0,
+                minimumGoalsAndAssists: 0, maximumGoalsAndAssists: 0,
+            };
+            const search = '?' + filterStateToSearchParams({
+                ...createDefaultSearchFilterState(), sortBy, ...bounds,
+            });
+            const {result} = renderHook(() => useSearchFiltersFromUrl(search));
+            expect(result.current).toMatchObject(bounds);
+        },
+    );
+
     it('returns defaults for an empty query string', () => {
         const {result} = renderHook(({search}) => useSearchFiltersFromUrl(search), {
             initialProps: {search: ''},

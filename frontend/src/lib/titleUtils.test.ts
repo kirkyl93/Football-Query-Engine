@@ -63,6 +63,13 @@ describe('competition lookup', () => {
 });
 
 describe('describeRange', () => {
+    it('distinguishes zero bounds from missing bounds', () => {
+        expect(describeRange(undefined, 0, 'goal')).toBe('at most 0 goals');
+        expect(describeRange(0, 0, 'assist')).toBe('exactly 0 assists');
+        expect(describeRange(0, 3, 'goal')).toBe('between 0 and 3 goals');
+        expect(describeRange(0, undefined, 'assist')).toBe('at least 0 assists');
+    });
+
     it('describes exact, between, minimum and maximum bounds', () => {
         expect(describeRange(2, 2, 'goal')).toBe('exactly 2 goals');
         expect(describeRange(1, 3, 'goal')).toBe('between 1 and 3 goals');

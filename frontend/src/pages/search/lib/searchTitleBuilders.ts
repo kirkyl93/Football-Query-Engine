@@ -51,14 +51,25 @@ export const sortCriteriaTitle = (filterState: SearchFilterState): string => {
     }
 
     if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy)) {
+        const describeStatRange = (
+            min: number | undefined,
+            max: number | undefined,
+            singular: string,
+            plural = `${singular}s`,
+            zeroLabel = plural,
+        ): string => max === 0 && (min ?? 0) <= 0
+            ? `no ${zeroLabel}`
+            : describeRange(min, max, singular, plural);
+
         return joinClauses(
-            describeRange(filterState.minimumGoals, filterState.maximumGoals, "goal"),
-            describeRange(filterState.minimumAssists, filterState.maximumAssists, "assist"),
-            describeRange(
+            describeStatRange(filterState.minimumGoals, filterState.maximumGoals, "goal"),
+            describeStatRange(filterState.minimumAssists, filterState.maximumAssists, "assist"),
+            describeStatRange(
                 filterState.minimumGoalsAndAssists,
                 filterState.maximumGoalsAndAssists,
                 "goal and assist",
                 "goals and assists",
+                "goals or assists",
             ),
         );
     }
