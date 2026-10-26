@@ -41,7 +41,7 @@ The bootstrap uses the real root `dbschema.sql`, inserts `football.sql`, `extra_
 
 ## GitHub Actions
 
-`.github/workflows/ci.yml` runs on pushes and pull requests, with an optional manual run. Separate jobs execute:
+`.github/workflows/ci.yml` runs on pull requests and pushes to `master`, with an optional manual run. Separate jobs execute:
 
 - Frontend: Node 24, `npm ci`, the full Vitest suite with two workers, and the production build.
 - Backend: stable Rust, a healthy Postgres 18 service, the guarded schema/fixture bootstrap once, then `cargo test --locked --all-targets`.
