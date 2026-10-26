@@ -1,5 +1,7 @@
 **Football Query Engine**
 
+[![Tests](https://github.com/kirkyl93/Football-Query-Engine/actions/workflows/ci.yml/badge.svg)](https://github.com/kirkyl93/Football-Query-Engine/actions/workflows/ci.yml)
+
 Ever wondered which Premier League footballer under 173cm with a minimum of 50 appearances has the best ratio of goals and assists in the second half of games?
 
 <img width="1908" height="953" alt="image" src="https://github.com/user-attachments/assets/8e393308-cc0f-4928-a61f-8b95f3663278" />
