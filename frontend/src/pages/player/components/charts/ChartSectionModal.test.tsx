@@ -34,3 +34,15 @@ describe('ChartSectionModal', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 });
+
+it('traps keyboard focus in the modal and restores it to the opener', () => {
+    const opener = document.createElement('button');
+    document.body.appendChild(opener); opener.focus();
+    const {unmount} = render(<ChartSectionModal title="Details" onClose={vi.fn()}><button>Last control</button></ChartSectionModal>);
+    expect(screen.getByRole('button', {name: 'Close Details'})).toHaveFocus();
+    fireEvent.keyDown(document, {key: 'Tab', shiftKey: true});
+    expect(screen.getByRole('button', {name: 'Last control'})).toHaveFocus();
+    fireEvent.keyDown(document, {key: 'Tab'});
+    expect(screen.getByRole('button', {name: 'Close Details'})).toHaveFocus();
+    unmount(); expect(opener).toHaveFocus(); opener.remove();
+});

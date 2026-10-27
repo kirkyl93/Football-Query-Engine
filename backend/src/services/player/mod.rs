@@ -6,3 +6,4 @@ pub mod search_by_game;
 pub mod search_by_season_or_across_seasons;
 pub mod search_players;
 pub mod sql_models;
+pub mod search_details;

@@ -116,7 +116,7 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
         "
     SELECT ").add_rank(&params.sort, goals_calculation)
         .push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, club_id,
-        c.competition_id, c.name AS competition_name, c.country_name AS competition_country, date, season, home_club_id, home_club_name,
+        c.competition_id, c.name AS competition_name, c.country_name AS competition_country, date, a.season AS season, home_club_id, home_club_name,
         home_club_goals, away_club_id, away_club_name, away_club_goals, minutes_played, ")
         .push(goals_calculation).push(" AS goals, assists
         FROM

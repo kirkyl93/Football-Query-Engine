@@ -1,6 +1,8 @@
+import playerStyles from '../../player/Player.module.css';
 import {useInfiniteScroll} from "../hooks/useInfiniteScroll";
 import {fetchNumberOfGamesOrSeasonsResult} from "../../../lib/SearchUrlUtils";
 import baseStyles from './SearchBaseTable.module.css';
+import detailStyles from './SearchDetails.module.css';
 import styles from './SearchByCountTable.module.css';
 import React from "react";
 import {formatSeason} from "../../../lib/DateUtils";
@@ -14,9 +16,10 @@ import {ClubBadgesCell} from "./ClubBadgesCell";
 
 interface SearchByCountTableProps {
     filterState: SearchFilterState;
+    onViewDetails: (player: PlayerNumberOfGamesOrSeasonsResult) => void;
 }
 
-export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterState}) => {
+export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterState, onViewDetails}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef, retry} =
     useInfiniteScroll<PlayerNumberOfGamesOrSeasonsResult>(fetchNumberOfGamesOrSeasonsResult);
 
@@ -34,6 +37,7 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                             {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Season</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th className={baseStyles.numeric}>Number of seasons</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles.numeric}>Number of games</th>}
+                            <th>Details</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -62,6 +66,7 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                                 {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{formatSeason(player.season)}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td className={baseStyles.numeric}>{player.number_of_seasons}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td className={baseStyles.numeric}>{player.number_of_games}</td>}
+                                <td><button type="button" className={`${playerStyles['filter-button-player']} ${detailStyles.detailsButton}`} onClick={() => onViewDetails(player)} aria-label={`View ${filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? "seasons" : "games"} for ${player.player_name}`}>View {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? "seasons" : "games"}</button></td>
                             </tr>
                         ))}
                         </tbody>

@@ -354,7 +354,8 @@ async fn transfers_count_as_one_season_and_return_both_historical_clubs() {
             vec![json!({"rank":1,"player_id":1,"player_name":"Alex Striker",
             "country_of_citizenship":"England","country_code":"gb-eng","sub_position":"CF",
             "image_url":"https://example.invalid/player-1.png","clubs_played_for":[101,102],
-            "season":0,"number_of_games":0,"number_of_seasons":1})]
+            "season":0,"number_of_games":0,"number_of_seasons":1,
+            "qualifying_game_ids":[],"qualifying_seasons":[2025]})]
         );
     }
 }

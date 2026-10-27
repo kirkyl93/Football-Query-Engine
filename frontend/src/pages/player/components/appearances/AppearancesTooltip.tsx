@@ -4,7 +4,17 @@ import {getClubName, getClubPrimary} from "../../../../lib/ClubDirectory";
 import {PlayerAppearance} from "../../../../types/Player";
 import styles from './AppearancesTooltip.module.css';
 
+export interface AppearanceTooltipStats {
+    minutes: number;
+    goals: number;
+    assists: number;
+    yellows: number;
+    reds: number;
+}
+
 interface AppearancesTooltipProps {
+    /** Authoritative search statistics, including inclusive minute windows. */
+    statsByGame?: ReadonlyMap<number, AppearanceTooltipStats>;
     active?: boolean;
     payload?: { payload: any }[];
     filteredData: PlayerAppearance[];
@@ -14,7 +24,7 @@ interface AppearancesTooltipProps {
     filteredByGame?: Map<number, PlayerAppearance>;
 }
 
-const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload, filteredData, barFillsByGame, filteredByGame}) => {
+const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload, filteredData, barFillsByGame, filteredByGame, statsByGame}) => {
     const gameNumber = active && payload?.length ? payload[0].payload?.game_number : undefined;
 
     const appearance = useMemo(() => {
@@ -46,6 +56,7 @@ const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload,
         return null;
     }
 
+    const stats = statsByGame?.get(appearance.game_number);
     const swatchFill = barFillsByGame?.get(appearance.game_number) ?? getClubPrimary(appearance.club_id);
 
     return (
@@ -89,12 +100,12 @@ const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload,
                 />
                 {getClubName(appearance.club_id)}
             </p>
-            <p>Minutes: {appearance.minutes_played[1] - appearance.minutes_played[0]}</p>
-            <p>Goals: {appearance.goals}</p>
+            <p>Minutes: {stats?.minutes ?? appearance.minutes_played[1] - appearance.minutes_played[0]}</p>
+            <p>Goals: {stats?.goals ?? appearance.goals}</p>
             <p>Own goals: {appearance.own_goal_minutes.length}</p>
-            <p>Assists: {appearance.assists}</p>
-            <p>Yellows: {appearance.yellow_cards}</p>
-            <p>Reds: {appearance.red_cards}</p>
+            <p>Assists: {stats?.assists ?? appearance.assists}</p>
+            <p>Yellows: {stats?.yellows ?? appearance.yellow_cards}</p>
+            <p>Reds: {stats?.reds ?? appearance.red_cards}</p>
         </div>
     );
 };
@@ -112,14 +123,16 @@ const areTooltipPropsEqual = (prev: AppearancesTooltipProps, next: AppearancesTo
     if (!next.active) {
         return prev.filteredData === next.filteredData
             && prev.barFillsByGame === next.barFillsByGame
-            && prev.filteredByGame === next.filteredByGame;
+            && prev.filteredByGame === next.filteredByGame
+            && prev.statsByGame === next.statsByGame;
     }
     const prevGame = prev.payload?.[0]?.payload?.game_number;
     const nextGame = next.payload?.[0]?.payload?.game_number;
     return prevGame === nextGame
         && prev.filteredData === next.filteredData
         && prev.barFillsByGame === next.barFillsByGame
-        && prev.filteredByGame === next.filteredByGame;
+        && prev.filteredByGame === next.filteredByGame
+        && prev.statsByGame === next.statsByGame;
 };
 
 export default React.memo(AppearancesTooltip, areTooltipPropsEqual);

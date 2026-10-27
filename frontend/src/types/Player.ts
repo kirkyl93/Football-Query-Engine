@@ -17,6 +17,7 @@ export interface Player {
 }
 
 export interface PlayerAppearance {
+    game_id?: number,
     game_number: number,
     club_id: number,
     home_club_id: number,
@@ -48,6 +49,7 @@ export interface PlayerAppearance {
 }
 
 export interface PlayerSearchResult {
+    qualifying_game_ids: number[],
     rank: number,
     player_id: number,
     player_name: string,
@@ -96,6 +98,8 @@ export interface PlayerGameSearchResult {
 }
 
 export interface PlayerNumberOfGamesOrSeasonsResult {
+    qualifying_game_ids: number[],
+    qualifying_seasons: number[],
     rank: number,
     player_id: number,
     player_name: string,
