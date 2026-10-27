@@ -189,3 +189,6 @@
         padding: 16px 12px 20px;
     }
 }
+
+.modal-heading { flex: 1; min-width: 0; }
+.modal-subtitle { margin-top: 8px; }

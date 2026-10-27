@@ -1,5 +1,6 @@
 [
   {
+    "qualifying_game_ids": [1,2,3,4,5],
     "rank": 1, "player_id": 1, "player_name": "Alex Striker", "country_of_citizenship": "England",
     "country_code": "gb-eng", "sub_position": "CF", "image_url": "https://example.invalid/player-1.png", "season": 0,
     "total_appearances": 5, "substitute_appearances": 0, "total_goals": 7, "total_assists": 2,
@@ -7,6 +8,7 @@
     "mins_per_goal": 64, "mins_per_assist": 225, "mins_per_goal_or_assist": 50, "mins_per_yellow": 0, "mins_per_red": 0
   },
   {
+    "qualifying_game_ids": [1,2,3,4,5],
     "rank": 2, "player_id": 2, "player_name": "Jamie Creator", "country_of_citizenship": "Spain",
     "country_code": "es", "sub_position": "CM", "image_url": "https://example.invalid/player-2.png", "season": 0,
     "total_appearances": 5, "substitute_appearances": 0, "total_goals": 4, "total_assists": 4,
@@ -14,6 +16,7 @@
     "mins_per_goal": 112, "mins_per_assist": 112, "mins_per_goal_or_assist": 56, "mins_per_yellow": 0, "mins_per_red": 0
   },
   {
+    "qualifying_game_ids": [1,2,4],
     "rank": 2, "player_id": 4, "player_name": "David Finch", "country_of_citizenship": "Togo",
     "country_code": "tg", "sub_position": "CF", "image_url": "https://example.invalid/player-4.png", "season": 0,
     "total_appearances": 3, "substitute_appearances": 0, "total_goals": 4, "total_assists": 0,
@@ -21,6 +24,7 @@
     "mins_per_goal": 67, "mins_per_assist": 0, "mins_per_goal_or_assist": 67, "mins_per_yellow": 270, "mins_per_red": 0
   },
   {
+    "qualifying_game_ids": [3,4],
     "rank": 4, "player_id": 5, "player_name": "David Vale", "country_of_citizenship": "Australia",
     "country_code": "au", "sub_position": "CF", "image_url": "https://example.invalid/player-5.png", "season": 0,
     "total_appearances": 2, "substitute_appearances": 1, "total_goals": 2, "total_assists": 0,
@@ -28,6 +32,7 @@
     "mins_per_goal": 38, "mins_per_assist": 0, "mins_per_goal_or_assist": 38, "mins_per_yellow": 38, "mins_per_red": 76
   },
   {
+    "qualifying_game_ids": [1,2,3,4,5],
     "rank": 5, "player_id": 3, "player_name": "Sam Defender", "country_of_citizenship": "England",
     "country_code": "gb-eng", "sub_position": "CB", "image_url": "https://example.invalid/player-3.png", "season": 0,
     "total_appearances": 5, "substitute_appearances": 0, "total_goals": 1, "total_assists": 0,
@@ -35,6 +40,7 @@
     "mins_per_goal": 410, "mins_per_assist": 0, "mins_per_goal_or_assist": 410, "mins_per_yellow": 136, "mins_per_red": 205
   },
   {
+    "qualifying_game_ids": [3],
     "rank": 6, "player_id": 6, "player_name": "Pat Forward", "country_of_citizenship": "France",
     "country_code": "fr", "sub_position": "CF", "image_url": "https://example.invalid/player-6.png", "season": 0,
     "total_appearances": 1, "substitute_appearances": 0, "total_goals": 0, "total_assists": 0,

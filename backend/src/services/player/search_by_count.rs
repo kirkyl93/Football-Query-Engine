@@ -63,7 +63,8 @@ fn build_number_of_seasons_query_from_events(
             RANK() OVER (ORDER BY COUNT(DISTINCT ps.season) DESC) AS rank,
             ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position,
             STRING_AGG(DISTINCT club_id::TEXT, ', ') AS clubs_played_for,
-            COUNT(DISTINCT ps.season) AS number_of_seasons
+            ARRAY_AGG(DISTINCT ps.season ORDER BY ps.season) AS qualifying_seasons,
+        COUNT(DISTINCT ps.season) AS number_of_seasons
         FROM
             player_season_goals ps,
             LATERAL UNNEST(ps.unique_clubs_played_for) AS club_id
@@ -89,6 +90,7 @@ fn build_number_of_games_query_from_appearances(
         RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) DESC) AS rank,
         a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
         STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
+        ARRAY_AGG(DISTINCT a.game_id ORDER BY a.game_id) AS qualifying_game_ids,
         COUNT(DISTINCT a.game_id) AS number_of_games",
         )
         .push(if params.scope == StatScope::Season {
@@ -139,7 +141,8 @@ fn build_number_of_games_query_from_events(
         SELECT RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) DESC) AS rank,
             a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
             STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
-            COUNT(DISTINCT a.game_id) AS number_of_games")
+            ARRAY_AGG(DISTINCT a.game_id ORDER BY a.game_id) AS qualifying_game_ids,
+        COUNT(DISTINCT a.game_id) AS number_of_games")
         .push(if params.scope == StatScope::Season {", g.season"} else {""}).push("
             FROM
                 games_minute_appearance_filter a
@@ -188,6 +191,7 @@ fn build_number_of_seasons_query_from_appearances(
         RANK() OVER (ORDER BY COUNT(DISTINCT ps.season) DESC) AS rank,
         ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position,
         STRING_AGG(DISTINCT club_id::TEXT, ', ') AS clubs_played_for,
+        ARRAY_AGG(DISTINCT ps.season ORDER BY ps.season) AS qualifying_seasons,
         COUNT(DISTINCT ps.season) AS number_of_seasons
         FROM
             player_season_goals ps,

@@ -2,7 +2,7 @@ use crate::competitions::Competition;
 use crate::countries::Country;
 use crate::services::base_query_builder::escape_like_pattern;
 use crate::services::player::models::{
-    AgeRange, HeightRange, HomeAwayOption, MinuteWindow, PenaltyOption, ProcessedSearchParams, StatScope, SubFilter
+    AgeRange, HeightRange, HomeAwayOption, MinuteWindow, PenaltyOption, ProcessedSearchParams, SubFilter
 };
 use crate::services::player::player_enums::PlayerSubPosition;
 use sqlx::{Postgres, QueryBuilder};
@@ -291,6 +291,12 @@ impl PrivatePlayerFilterMethods for QueryBuilder<Postgres> {
 }
 
 pub trait PlayerMinuteFilterMethods {
+    /// Builds per-game appearances with a stable column set, including season.
+    fn construct_player_appearances_using_minute_filters(
+        &mut self,
+        params: &ProcessedSearchParams,
+        player_id: Option<i32>,
+    ) -> &mut Self;
     fn construct_appearances_table_using_minute_filters(
         &mut self,
         params: &ProcessedSearchParams,
@@ -302,16 +308,19 @@ impl PlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         &mut self,
         params: &ProcessedSearchParams,
     ) -> &mut Self {
+        self.construct_player_appearances_using_minute_filters(params, None)
+    }
+
+    fn construct_player_appearances_using_minute_filters(
+        &mut self,
+        params: &ProcessedSearchParams,
+        player_id: Option<i32>,
+    ) -> &mut Self {
         self.push(
             "
         WITH games_minute_appearance_filter AS
-        (SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, c.club_id, g.game_id,",
+        (SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, c.club_id, g.game_id, g.season,",
         )
-        .push(if params.scope == StatScope::Season {
-            " g.season AS season,"
-        } else {
-            ""
-        })
         .add_all_minute_filters(params.minute_window)
         .push(
             "
@@ -331,9 +340,12 @@ impl PlayerMinuteFilterMethods for QueryBuilder<Postgres> {
         .push(
             "
             WHERE 1 = 1",
-        )
-        .add_player_filters(params)
-        .push(
+        );
+        if let Some(id) = player_id {
+            self.push(" AND a.player_id = ").push_bind(id);
+        }
+        self.add_player_filters(params)
+            .push(
             "
             GROUP BY a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, c.club_id, g.game_id)
 

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import SearchFilterBar from "./components/SearchFilterBar";
 import NaturalLanguageSearchBar from "./components/NaturalLanguageSearchBar";
 import styles from './Search.module.css';
@@ -16,6 +16,9 @@ import {SearchFilterState} from "../../types/SearchFilterState";
 import {useSearchFiltersFromUrl} from "./hooks/useSearchFiltersFromUrl";
 import {filterStateToSearchParams} from "./lib/searchParamsSerializer";
 
+import {SearchDetailsModal} from "./components/SearchDetailsModal";
+import {DetailResult} from "./lib/searchDetails";
+
 const Search: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isQuestionOpen, setIsQuestionOpen] = useState(false);
@@ -23,6 +26,10 @@ const Search: React.FC = () => {
     const drawerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const [detail, setDetail] = useState<{result: DetailResult; search: string} | null>(null);
+    const closeDetails = useCallback(() => setDetail(null), []);
+    const viewDetails = (result: DetailResult) => setDetail({result, search: location.search});
+    useEffect(() => setDetail(null), [location.search]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -107,12 +114,14 @@ const Search: React.FC = () => {
                     <SearchOverallTable
                         filterState={filterState}
                         onSortChange={handleSortChange}
+                        onViewDetails={viewDetails}
                     />
                 }
 
                 {selectedScope !== StatScope.GAME &&
                     numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
                     <SearchByCountTable
+                        onViewDetails={viewDetails}
                         filterState={filterState}
                     />
                 }
@@ -125,6 +134,9 @@ const Search: React.FC = () => {
                 }
             </div>
 
+            {detail && detail.search === location.search && <SearchDetailsModal
+                result={detail.result} search={detail.search} filterState={filterState} onClose={closeDetails}
+            />}
             <div ref={drawerRef}>
                 <SearchFilterBar
                     isOpen={isDrawerOpen}

@@ -1,5 +1,7 @@
+import playerStyles from '../../player/Player.module.css';
 import {useInfiniteScroll} from "../hooks/useInfiniteScroll";
 import baseStyles from './SearchBaseTable.module.css';
+import detailStyles from './SearchDetails.module.css';
 import styles from './SearchOverallTable.module.css';
 import {formatSeason} from "../../../lib/DateUtils";
 import React from "react";
@@ -16,9 +18,10 @@ import {getDisplayStatForSmallScreen, getDisplayTitleForSmallScreen} from "../li
 interface SearchOverallTableProps {
     filterState: SearchFilterState;
     onSortChange: (sortBy: SortOptions) => void;
+    onViewDetails: (player: PlayerSearchResult) => void;
 }
 
-export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterState, onSortChange}) => {
+export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterState, onSortChange, onViewDetails}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef, retry} =
         useInfiniteScroll<PlayerSearchResult>(fetchPlayerOverallOrSeasonData);
 
@@ -53,6 +56,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                             <th className={`${baseStyles.numeric} ${styles['small-screen-display']}`}>
                                 {getDisplayTitleForSmallScreen(filterState.sortBy)}
                             </th>
+                            <th>Details</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -99,6 +103,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                     {getDisplayStatForSmallScreen(filterState.sortBy, player)}
                                 </td>
 
+                                <td><button type="button" className={`${playerStyles['filter-button-player']} ${detailStyles.detailsButton}`} onClick={() => onViewDetails(player)} aria-label={`View games for ${player.player_name}`}>View games</button></td>
                             </tr>
                         ))}
                         </tbody>

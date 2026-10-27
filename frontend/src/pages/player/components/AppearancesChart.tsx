@@ -59,6 +59,7 @@ type AppearancesChartViewProps = {
 export function AppearancesChartView({playerName: name, view, compact = false, onExpand, expandLabel = "Expand chart"}: AppearancesChartViewProps) {
     const [isPlayerDrawerOpen, setIsPlayerDrawerOpen] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
+    const chartRef = useRef<HTMLDivElement>(null);
 
     const {
         filteredData,
@@ -125,7 +126,7 @@ export function AppearancesChartView({playerName: name, view, compact = false, o
     }, [isPlayerDrawerOpen]);
 
     return (
-        <div className={styles['chart-container']}>
+        <div ref={chartRef} className={styles['chart-container']}>
             <div className={shared['header-container']}>
                 <AppearancesChartTitle
                     playerName={name}
@@ -193,6 +194,7 @@ export function AppearancesChartView({playerName: name, view, compact = false, o
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 height={compact ? 280 : undefined}
+                tooltipBoundaryRef={compact ? chartRef : undefined}
             />
         </div>
     );

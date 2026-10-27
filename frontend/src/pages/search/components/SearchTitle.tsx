@@ -6,17 +6,18 @@ import styles from "./SearchTitle.module.css";
 
 interface SearchTitleProps {
     filterState: SearchFilterState;
+    compact?: boolean;
 }
 
 const SearchTitle: React.FC<SearchTitleProps> = (
     {
-        filterState
+        filterState, compact = false
     }) => {
     const {headline, filters} = useMemo(() => constructSearchTitleParts(filterState), [filterState]);
 
     return (
-        <div className={styles.title}>
-            <h1 className={styles.headline}>{headline}</h1>
+        <div className={`${styles.title} ${compact ? styles.compact : ""}`}>
+            {compact ? <p className={styles.headline}>{headline}</p> : <h1 className={styles.headline}>{headline}</h1>}
             <ul className={styles.filters} aria-label="Applied filters">
                 {filters.map((filter, index) => <li key={`${index}-${filter}`}>{filter}</li>)}
                 {filterState.clubsPlayedFor.length > 0 && <li>

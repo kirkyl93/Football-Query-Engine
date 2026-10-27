@@ -8,6 +8,7 @@ use sqlx::{Error, FromRow, Row};
 
 #[derive(Debug, Serialize, Clone, Deserialize)]
 pub struct PlayerAppearances {
+    game_id: i32,
     game_number: i64,
     club_id: i32,
     home_club_id: i32,
@@ -41,6 +42,7 @@ pub struct PlayerAppearances {
 impl<'r> FromRow<'r, PgRow> for PlayerAppearances {
     fn from_row(row: &'r PgRow) -> Result<Self, Error> {
         Ok(Self {
+            game_id: row.try_get("game_id")?,
             game_number: try_get_or_default(row, "game_number"),
             club_id: try_get_or_default(row, "club_id"),
             home_club_id: try_get_or_default(row, "home_club_id"),
@@ -121,6 +123,7 @@ impl<'r> FromRow<'r, PgRow> for Player {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct PlayerSearchResult {
+    qualifying_game_ids: Vec<i32>,
     rank: i64,
     player_id: i32,
     player_name: String,
@@ -170,6 +173,7 @@ impl PlayerSearchResult {
         season: i32,
     ) -> Self {
         Self {
+            qualifying_game_ids: Vec::new(),
             rank,
             player_id,
             player_name,
@@ -200,6 +204,7 @@ impl<'r> FromRow<'r, PgRow> for PlayerSearchResult {
         let country_of_citizenship =
             Country::from_str(try_get_or_default(row, "country_of_citizenship"));
         Ok(Self {
+            qualifying_game_ids: row.try_get("qualifying_game_ids")?,
             rank: try_get_or_default(row, "rank"),
             player_id: try_get_or_default(row, "player_id"),
             player_name: try_get_or_default(row, "player_name"),
@@ -347,6 +352,8 @@ impl<'r> FromRow<'r, PgRow> for PlayerGameSearchResult {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PlayerNumberOfGamesOrSeasonsResult {
+    qualifying_game_ids: Vec<i32>,
+    qualifying_seasons: Vec<i32>,
     rank: i64,
     player_id: i32,
     player_name: String,
@@ -376,6 +383,8 @@ impl PlayerNumberOfGamesOrSeasonsResult {
         number_of_seasons: i64,
     ) -> Self {
         Self {
+            qualifying_game_ids: Vec::new(),
+            qualifying_seasons: Vec::new(),
             rank,
             player_id,
             player_name,
@@ -396,6 +405,8 @@ impl<'r> FromRow<'r, PgRow> for PlayerNumberOfGamesOrSeasonsResult {
         let country_of_citizenship =
             Country::from_str(try_get_or_default(row, "country_of_citizenship"));
         Ok(Self {
+            qualifying_game_ids: try_get_or_default(row, "qualifying_game_ids"),
+            qualifying_seasons: try_get_or_default(row, "qualifying_seasons"),
             rank: try_get_or_default(row, "rank"),
             player_id: try_get_or_default(row, "player_id"),
             player_name: try_get_or_default(row, "player_name"),

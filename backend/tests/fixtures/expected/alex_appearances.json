@@ -36,7 +36,8 @@
       0,
       90
     ],
-    "result": "Win"
+    "result": "Win",
+    "game_id": 1
   },
   {
     "game_number": 2,
@@ -71,7 +72,8 @@
       0,
       90
     ],
-    "result": "Draw"
+    "result": "Draw",
+    "game_id": 2
   },
   {
     "game_number": 3,
@@ -107,7 +109,8 @@
       0,
       90
     ],
-    "result": "Win"
+    "result": "Win",
+    "game_id": 3
   },
   {
     "game_number": 4,
@@ -146,7 +149,8 @@
       0,
       90
     ],
-    "result": "Win"
+    "result": "Win",
+    "game_id": 6
   },
   {
     "game_number": 5,
@@ -181,7 +185,8 @@
       0,
       90
     ],
-    "result": "Draw"
+    "result": "Draw",
+    "game_id": 4
   },
   {
     "game_number": 6,
@@ -218,6 +223,7 @@
       0,
       90
     ],
-    "result": "Win"
+    "result": "Win",
+    "game_id": 5
   }
 ]

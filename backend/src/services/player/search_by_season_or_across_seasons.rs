@@ -64,6 +64,7 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
         .push(
             "
         a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
+        ARRAY_AGG(DISTINCT a.game_id ORDER BY a.game_id) AS qualifying_game_ids,
         COUNT(*) AS total_appearances,
         SUM(CASE WHEN a.played_from_minute > 0 THEN 1 ELSE 0 END) AS substitute_appearances,
         ",
@@ -128,6 +129,7 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
         )
         .push(
             "player_id, player_name, image_url, country_of_citizenship, sub_position,
+        ARRAY_AGG(DISTINCT a.game_id ORDER BY a.game_id) AS qualifying_game_ids,
         COUNT(*) AS total_appearances,
         SUM(substitute_appearances) AS substitute_appearances,
 	    ",

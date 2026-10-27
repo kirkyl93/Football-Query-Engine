@@ -10,6 +10,7 @@ use reqwest::Client;
 use football_game::config::parse_allowed_origins;
 use football_game::services::club::search_clubs::get_clubs;
 use football_game::services::player::search_by_count::search_by_count;
+use football_game::services::player::search_details::search_details;
 use football_game::services::player::search_by_game::search_by_game;
 use football_game::services::player::search_by_season_or_across_seasons::search_by_season_or_across_seasons;
 use football_game::services::player::search_players::{
@@ -95,6 +96,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_clubs)
             .service(search_by_count)
             .service(get_player_games)
+            .service(search_details)
             .service(translate_search)
     })
     .bind(("0.0.0.0", 8080))?

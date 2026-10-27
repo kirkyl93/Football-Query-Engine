@@ -40,7 +40,7 @@ pub async fn get_player_games(pool: web::Data<PgPool>, path: Path<i32>) -> HttpR
 
     let mut query = QueryBuilder::new(
         "
-    SELECT RANK() OVER (ORDER BY g.date) AS game_number, player_club_id as club_id, home_club_id,
+    SELECT a.game_id, ROW_NUMBER() OVER (ORDER BY g.date, a.game_id) AS game_number, player_club_id as club_id, home_club_id,
     home_club_name, away_club_id, away_club_name, a.competition_id, c.name as competition_name, c.type as competition_type, a.date, g.season,
     yellow_cards, red_cards, goals, penalty_goals, assists, minutes_played, played_from_minute, subbed_off_minute, home_club_goals, away_club_goals,
     goal_minutes, penalty_goal_minutes, own_goal_minutes, assist_minutes, yellow_minutes, red_minutes,
