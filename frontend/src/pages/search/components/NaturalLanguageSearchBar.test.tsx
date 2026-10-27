@@ -39,13 +39,13 @@ describe("NaturalLanguageSearchBar", () => {
         const onApplyFilters = vi.fn();
         mockedTranslate.mockResolvedValue(makeResponse());
         mockedGetIssue.mockReturnValue(null);
-        mockedToSearchState.mockReturnValue(mappedState);
+        mockedToSearchState.mockResolvedValue(mappedState);
 
         render(<NaturalLanguageSearchBar onApplyFilters={onApplyFilters} />);
         await userEvent.type(screen.getByRole("textbox"), "top scorers in England{enter}");
 
         await waitFor(() => expect(onApplyFilters).toHaveBeenCalledWith(mappedState));
-        expect(mockedToSearchState).toHaveBeenCalledWith(makeResponse().filters);
+        expect(mockedToSearchState).toHaveBeenCalledWith(makeResponse().filters, expect.any(AbortSignal));
         expect(screen.getByText(/Results for: English strikers/)).toBeInTheDocument();
     });
 
@@ -83,7 +83,7 @@ describe("NaturalLanguageSearchBar", () => {
     it("allows multiline editing and submits with the in-box arrow", async () => {
         mockedTranslate.mockResolvedValue(makeResponse());
         mockedGetIssue.mockReturnValue(null);
-        mockedToSearchState.mockReturnValue(mappedState);
+        mockedToSearchState.mockResolvedValue(mappedState);
         const onApplyFilters = vi.fn();
         render(<NaturalLanguageSearchBar onApplyFilters={onApplyFilters} />);
         const user = userEvent.setup();

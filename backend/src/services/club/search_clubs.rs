@@ -27,7 +27,11 @@ pub async fn get_clubs(
     query
         .push("SELECT club_id, name FROM clubs WHERE 1=1 ")
         .add_club_name_to_query(params.search_name_or_empty())
-        .push(" ORDER BY stadium_seats DESC NULLS LAST, name")
+        .push(
+            " ORDER BY CASE domestic_competition_id \
+             WHEN 'GB1' THEN 0 WHEN 'ES1' THEN 1 WHEN 'IT1' THEN 2 WHEN 'FR1' THEN 3 \
+             ELSE 4 END, stadium_seats DESC NULLS LAST, name",
+        )
         .add_limit_and_offset(limit, page);
 
     db_list_result(

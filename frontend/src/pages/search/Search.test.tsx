@@ -60,7 +60,7 @@ describe("results-page question disclosure", () => {
             summary: "Premier League top scorers", errorCode: null, filters: {},
         });
         vi.mocked(getNaturalLanguageSearchIssue).mockReturnValue(null);
-        vi.mocked(naturalLanguageFiltersToSearchState).mockReturnValue(createDefaultSearchFilterState());
+        vi.mocked(naturalLanguageFiltersToSearchState).mockResolvedValue(createDefaultSearchFilterState());
         const user = userEvent.setup();
         renderSearch();
         await user.click(screen.getByRole("button", {name: "Ask a question"}));
