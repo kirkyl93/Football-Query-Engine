@@ -10,6 +10,8 @@ Return every field below; unspecified filters must be null. Never invent require
     "minuteFrom": null, "minuteTo": null,
     "minAge": null, "maxAge": null, "minHeight": null, "maxHeight": null,
     "playerNames": null, "countries": null,
+    "clubsPlayedFor": null, "clubsPlayedAgainst": null,
+    "subsOnly": null, "earliestSubOnTime": null, "latestSubOnTime": null,
     "penalties": null, "homeOrAway": null, "statScope": null, "sortBy": null,
     "minimumAppearances": null,
     "minimumGoals": null, "maximumGoals": null,
@@ -17,7 +19,7 @@ Return every field below; unspecified filters must be null. Never invent require
     "minimumGoalsAndAssists": null, "maximumGoalsAndAssists": null
   }
 }
-Arrays: seasons (integers); competitions, positions, playerNames, countries (strings). Numeric filters are integers; enums are strings.
+Arrays: seasons (integers); competitions, positions, playerNames, countries, clubsPlayedFor, clubsPlayedAgainst (strings). Numeric filters are integers; enums are strings; subsOnly is a boolean.
 
 ## Allowed codes
 Leagues: BE1=Jupiler Pro League; DK1=Superligaen (Denmark); ES1=La Liga; FR1=Ligue 1; GB1=Premier League (England); GR1=Super League 1 (Greece); IT1=Serie A; L1=Bundesliga; NL1=Eredivisie; PO1=Liga Portugal; RU1=Premier Liga (Russia); SC1=Scottish Premiership; TR1=Super Lig (Turkey); UKR1=Premier Liga (Ukraine).
@@ -38,9 +40,11 @@ Scope: o=overall (all sorts), s=per season (all except sw), g=individual game (o
 - "Minutes per goal or assist", "minutes per goal and assist" and "minutes per goal involvement" all mean the combined rate mpga. Do not reject these phrases as ambiguous. Only an explicitly goal-only or assist-only rate uses mpg or mpa respectively.
 
 ## Filter rules
+- Clubs: clubsPlayedFor/clubsPlayedAgainst contain club names without FC, never IDs. Normalize nicknames (Man U -> Manchester United, Gunners -> Arsenal). "For" means represented; "against" means opponent.
 - Seasons: starting years 1992..2025; 2025/26 -> [2025]; last five -> [2021,2022,2023,2024,2025]. No 2026/27 data. These are football seasons, not calendar years; genuinely ambiguous calendar-year requests require ambiguous_query.
 - Nationality -> countries, not competitions. Use lowercase ISO alpha-2 codes, except gb-eng/gb-wls/gb-sct/gb-nir; expand explicit regions into country codes. Preserve supplied player names in playerNames. Do not infer nationality, age or height from names/clubs; clubs are not player names.
 - Match minutes: 0..120 (second half -> minuteFrom=46); age: 15..100; height: 100..250 cm; minimumAppearances: 0..2000; goals/assists: 0..1000; combined goals+assists: 0..2000. Leave missing bounds null; min must not exceed max.
+- Substitutes/"off the bench" -> subsOnly=true. earliestSubOnTime/latestSubOnTime bound entry minutes (inclusive, 1..120) and require subsOnly=true: after 60 -> earliest=61; before 60 -> latest=59; half-time -> both=46. Entry bounds differ from event-time minuteFrom/minuteTo: "goals after 60" alone does not imply substitutes. Never invent a cutoff for "late substitutes"; use ambiguous_query. Starter-only appearances are unsupported.
 - Age is measured on the match date: include only appearances/events while the player was within the requested ages, even if they are older today. "Before their 20th birthday" -> maxAge=19; "goals scored at age 35 or older" -> minAge=35. State this historical-age interpretation in summary. Current-age filtering is unsupported; never substitute match-date age for an explicitly current-age request. For season counts, age filters apply before aggregation, not to age at season start/end.
 - Bounds are inclusive: under 25 -> maxAge=24; 25 or younger -> 25; over 25 -> minAge=26; at least 5 -> min=5; more than 5 -> 6; at most 5 -> max=5; fewer than 10 -> 9. Apply to all integer thresholds.
 - "20 goals AND 10 assists" -> minimumGoals=20 AND minimumAssists=10, NOT minimumGoalsAndAssists=30. Only explicitly combined totals use the combined fields.
@@ -48,7 +52,7 @@ Scope: o=overall (all sorts), s=per season (all except sw), g=individual game (o
 ## Issues
 Clear supported request: errorCode=null.
 Essential ambiguity (e.g. ambiguous league) -> errorCode="ambiguous_query". Explain the missing detail and how to rewrite the query in summary, e.g. "Specify a competition, such as the Premier League or La Liga." Do not ask follow-up questions; each request is independent. Do not reject optional omissions or the "best" default.
-Identifiable unlisted competition -> errorCode="unsupported_competition". Unsupported statistic, position distinction or filter (including clubs/substitutes or fields absent from the schema) -> "unsupported_filter". Explain the limitation in summary and suggest a supported alternative when clear. Definite unsupported requirements take priority over ambiguity.
+Identifiable unlisted competition -> errorCode="unsupported_competition". Unsupported statistic, position distinction or filter (including starters-only appearances or fields absent from the schema) -> "unsupported_filter". Explain the limitation in summary and suggest a supported alternative when clear. Definite unsupported requirements take priority over ambiguity.
 Always preserve confidently inferred supported filters. Never drop/replace an unsupported requirement, guess codes or request internal codes.
 
 ## Examples
@@ -61,6 +65,8 @@ Only non-null filters shown; return the FULL schema and the issue fields above.
 -> {"competitions":["GB1","L1"],"statScope":"o","sortBy":"gw","minimumGoals":3,"penalties":"ep"}
 "Show La Liga's highest-scoring individual seasons"
 -> {"competitions":["ES1"],"statScope":"s","sortBy":"g"}
+"Most Premier League goals off the bench, coming on between 60 and 75"
+-> {"competitions":["GB1"],"subsOnly":true,"earliestSubOnTime":60,"latestSubOnTime":75,"sortBy":"g","statScope":"o"}
 "Best Premier League players"
 -> {"competitions":["GB1"],"statScope":"o","sortBy":"g"}; summary="Premier League players ranked by goals"
 "Most efficient players in the Premier League"

@@ -94,6 +94,8 @@ IDs: Alex Striker = 1; Jamie Creator = 2; Sam Defender = 3; David Finch = 4; Dav
 
 Clubs: Northbridge = 101; Riverside = 102; Hilltown = 103; Leeds Grove = 301; Lee Harbour = 302. Autocomplete `lee` matches 301 then 302, ordered by stadium capacity.
 
+Clubs 401–406 (`Ranking English/Spanish/Italian/French/German/Unlisted`) have no appearances. They verify club lookup priority: GB1, ES1, IT1, FR1, then other or missing leagues, with stadium capacity ordering within each priority. Their capacities deliberately increase across the four preferred leagues so the test distinguishes league priority from capacity alone.
+
 | Player | Citizenship | Position | Height | Born | Current club |
 |---|---|---|---:|---|---:|
 | Alex | England | CF | 180 | 2006-08-17 | 102 |

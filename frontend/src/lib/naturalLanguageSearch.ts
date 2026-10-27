@@ -1,5 +1,6 @@
 import {countries} from "../data/Countries";
 import {API_BASE_URL} from "../config";
+import {Club} from "../types/Club";
 import {SearchFilterState} from "../types/SearchFilterState";
 import {HomeOrAwayOptions, PenaltyOptions, SortOptions, StatScope} from "../types/SearchOptions";
 
@@ -15,6 +16,11 @@ export interface NaturalLanguageFilterProposal {
     minHeight?: number;
     maxHeight?: number;
     playerNames?: string[];
+    clubsPlayedFor?: string[];
+    clubsPlayedAgainst?: string[];
+    subsOnly?: boolean;
+    earliestSubOnTime?: number;
+    latestSubOnTime?: number;
     countries?: string[];
     penalties?: PenaltyOptions;
     homeOrAway?: HomeOrAwayOptions;
@@ -67,11 +73,15 @@ export async function translateNaturalLanguageSearch(
 /**
  * Maps the backend's sparse proposal to the existing search state. Do not use
  * createDefaultSearchFilterState here: it intentionally preselects PL/2025.
- * Club and substitute-only fields are not currently part of the backend contract.
  */
-export function naturalLanguageFiltersToSearchState(
+export async function naturalLanguageFiltersToSearchState(
     proposal: NaturalLanguageFilterProposal,
-): SearchFilterState {
+    signal?: AbortSignal,
+): Promise<SearchFilterState> {
+    const [clubsPlayedFor, clubsPlayedAgainst] = await Promise.all([
+        resolveClubNames(proposal.clubsPlayedFor, signal),
+        resolveClubNames(proposal.clubsPlayedAgainst, signal),
+    ]);
     const countryCodes = new Set((proposal.countries ?? []).map(code => code.trim().toLowerCase()));
     return {
         seasons: proposal.seasons ?? [],
@@ -85,11 +95,11 @@ export function naturalLanguageFiltersToSearchState(
         maxHeight: proposal.maxHeight,
         playerNames: proposal.playerNames ?? [],
         playerCountries: countries.filter(country => countryCodes.has(country.code.toLowerCase())),
-        clubsPlayedFor: [],
-        clubsPlayedAgainst: [],
-        subsOnly: false,
-        earliestSubOnTime: undefined,
-        latestSubOnTime: undefined,
+        clubsPlayedFor,
+        clubsPlayedAgainst,
+        subsOnly: proposal.subsOnly ?? false,
+        earliestSubOnTime: proposal.subsOnly ? proposal.earliestSubOnTime : undefined,
+        latestSubOnTime: proposal.subsOnly ? proposal.latestSubOnTime : undefined,
         penalties: proposal.penalties ?? PenaltyOptions.INCLUDE_PENALTIES,
         homeOrAway: proposal.homeOrAway ?? HomeOrAwayOptions.EITHER,
         statScope: proposal.statScope ?? StatScope.OVERALL,
@@ -102,6 +112,29 @@ export function naturalLanguageFiltersToSearchState(
         minimumGoalsAndAssists: proposal.minimumGoalsAndAssists,
         maximumGoalsAndAssists: proposal.maximumGoalsAndAssists,
     };
+}
+
+async function resolveClubNames(names: string[] = [], signal?: AbortSignal): Promise<number[]> {
+    const ids = await Promise.all(names.map(async name => {
+        const searchName = name.trim().split(/\s+/).filter(word => !/^f\.?c\.?$/i.test(word)).join(" ");
+        if (!searchName) {
+            console.warn("Dropping unrecognised club in search translation:", name.slice(0, 100));
+            return null;
+        }
+        const params = new URLSearchParams({search_name: searchName, limit: "1"});
+        const response = await fetch(`${API_BASE_URL}/clubs?${params}`, {signal});
+        if (!response.ok) {
+            throw new Error(`Club lookup failed (${response.status}). Please try again.`);
+        }
+        // The endpoint prioritises GB1/ES1/IT1/FR1, then stadium capacity.
+        const matches = await response.json() as Club[];
+        if (matches.length === 0) {
+            console.warn("Dropping unrecognised club in search translation:", name.slice(0, 100));
+            return null;
+        }
+        return matches[0].club_id;
+    }));
+    return [...new Set(ids.filter((id): id is number => id !== null))];
 }
 
 /** Returns a rejection message, or null when usable. */

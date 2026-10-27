@@ -45,10 +45,13 @@ export const useNaturalLanguageQuery = ({query, onApplyFilters}: UseNaturalLangu
                 return;
             }
 
+            const filters = await naturalLanguageFiltersToSearchState(response.filters, controller.signal);
+            if (controller.signal.aborted) return;
             setSummary(response.summary);
-            onApplyFilters(naturalLanguageFiltersToSearchState(response.filters));
+            onApplyFilters(filters);
         } catch (error) {
             if (controller.signal.aborted) return;
+            setSummary(null);
             setMessage(error instanceof Error ? error.message : "Something went wrong. Please try again.");
         } finally {
             if (!controller.signal.aborted) {

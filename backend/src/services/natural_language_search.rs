@@ -41,6 +41,16 @@ pub struct FilterProposal {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub player_names: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clubs_played_for: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clubs_played_against: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subs_only: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub earliest_sub_on_time: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_sub_on_time: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub penalties: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub home_or_away: Option<String>,
@@ -312,6 +322,18 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
     validate_range(filters.min_age, filters.max_age, 15, 100, "age")?;
     validate_range(filters.min_height, filters.max_height, 100, 250, "height")?;
     validate_range(
+        filters.earliest_sub_on_time,
+        filters.latest_sub_on_time,
+        1,
+        120,
+        "substitution entry minute",
+    )?;
+    if (filters.earliest_sub_on_time.is_some() || filters.latest_sub_on_time.is_some())
+        && filters.subs_only != Some(true)
+    {
+        return Err("substitution entry bounds require subsOnly=true".into());
+    }
+    validate_range(
         filters.minimum_goals,
         filters.maximum_goals,
         0,
@@ -390,15 +412,22 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
         ));
     }
 
-    if let Some(names) = &filters.player_names {
+    for (field, names) in [
+        ("playerNames", &filters.player_names),
+        ("clubsPlayedFor", &filters.clubs_played_for),
+        ("clubsPlayedAgainst", &filters.clubs_played_against),
+    ] {
+        let Some(names) = names else {
+            continue;
+        };
         if names.len() > 10
             || names
                 .iter()
                 .any(|n| n.trim().is_empty() || n.chars().count() > 100)
         {
-            return Err(
-                "playerNames must have at most 10 non-empty names of at most 100 characters".into(),
-            );
+            return Err(format!(
+                "{field} must have at most 10 non-empty names of at most 100 characters"
+            ));
         }
     }
 
@@ -664,10 +693,168 @@ mod tests {
     }
 
     #[test]
+    fn accepts_substitute_filters_with_inclusive_entry_bounds() {
+        for (earliest, latest) in [
+            (None, None),
+            (Some(1), Some(120)),
+            (Some(46), Some(46)),
+            (Some(61), None),
+            (None, Some(59)),
+        ] {
+            let filters = FilterProposal {
+                subs_only: Some(true),
+                earliest_sub_on_time: earliest,
+                latest_sub_on_time: latest,
+                ..Default::default()
+            };
+            assert!(
+                validate_filters(&filters).is_ok(),
+                "{earliest:?}, {latest:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_out_of_range_or_inverted_substitute_entry_bounds() {
+        for (earliest, latest) in [
+            (Some(-1), None),
+            (Some(0), None),
+            (Some(121), None),
+            (None, Some(0)),
+            (None, Some(121)),
+            (Some(75), Some(60)),
+        ] {
+            let filters = FilterProposal {
+                subs_only: Some(true),
+                earliest_sub_on_time: earliest,
+                latest_sub_on_time: latest,
+                ..Default::default()
+            };
+            assert!(
+                validate_filters(&filters).is_err(),
+                "{earliest:?}, {latest:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn entry_bounds_require_substitute_only_appearances() {
+        for subs_only in [None, Some(false)] {
+            for (earliest, latest) in [(Some(60), None), (None, Some(75))] {
+                let filters = FilterProposal {
+                    subs_only,
+                    earliest_sub_on_time: earliest,
+                    latest_sub_on_time: latest,
+                    ..Default::default()
+                };
+                assert!(validate_filters(&filters).is_err());
+            }
+            assert!(
+                validate_filters(&FilterProposal {
+                    subs_only,
+                    ..Default::default()
+                })
+                .is_ok()
+            );
+        }
+    }
+
+    #[test]
+    fn interpret_requires_a_boolean_for_subs_only() {
+        for value in [json!(1), json!("true")] {
+            assert!(interpret(&reply(json!({"filters": {"subsOnly": value}}))).is_err());
+        }
+    }
+
+    #[actix_web::test]
+    async fn route_preserves_entry_bounds_separately_from_contribution_minutes() {
+        let filters = json!({
+            "competitions": ["GB1"], "sortBy": "g", "subsOnly": true,
+            "earliestSubOnTime": 60, "latestSubOnTime": 75, "minuteFrom": 81
+        });
+        let groq = mock(vec![(
+            200,
+            None,
+            completion(&reply(json!({"filters": filters}))),
+        )]);
+        let app = webtest::init_service(
+            App::new()
+                .app_data(web::Data::new(Client::new()))
+                .app_data(web::Data::new(service(&groq, None)))
+                .service(translate_search),
+        )
+        .await;
+        let response = webtest::call_service(
+            &app,
+            webtest::TestRequest::post().uri("/natural-language-search")
+                .set_json(json!({"query": "Most Premier League goals after minute 80 by substitutes brought on between 60 and 75"}))
+                .to_request(),
+        ).await;
+        assert_eq!(response.status(), StatusCode::OK);
+        let body: Value = webtest::read_body_json(response).await;
+        assert_eq!(body["filters"], filters);
+        assert_eq!(body["errorCode"], Value::Null);
+        assert_eq!(groq.requests.lock().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn unsupported_queries_can_preserve_supported_substitute_filters() {
+        let result = interpret(&reply(json!({
+            "errorCode": "unsupported_filter",
+            "summary": "Preferred-foot filters are not supported.",
+            "filters": {"subsOnly": true, "earliestSubOnTime": 60}
+        })))
+        .unwrap();
+        match result {
+            Outcome::Rejected {
+                error_code,
+                response,
+            } => {
+                assert_eq!(error_code, "unsupported_filter");
+                assert_eq!(response.filters.subs_only, Some(true));
+                assert_eq!(response.filters.earliest_sub_on_time, Some(60));
+            }
+            other => panic!("expected Rejected, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn rejects_display_name_as_position_code() {
         let mut f = valid_filters();
         f.positions = Some(vec!["Goalkeeper".into()]);
         assert!(validate_filters(&f).is_err());
+    }
+
+    #[test]
+    fn interpret_preserves_club_names_for_frontend_resolution() {
+        let filters = json!({
+            "clubsPlayedFor": ["Manchester United", "Arsenal FC"],
+            "clubsPlayedAgainst": ["Chelsea FC"]
+        });
+        let result = interpret(&reply(json!({"filters": filters}))).unwrap();
+        match result {
+            Outcome::Ok(response) => {
+                assert_eq!(serde_json::to_value(response.filters).unwrap(), filters);
+            }
+            other => panic!("expected Ok, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn interpret_rejects_invalid_club_names_and_numeric_ids() {
+        for field in ["clubsPlayedFor", "clubsPlayedAgainst"] {
+            for names in [
+                json!([" "]),
+                json!(["x".repeat(101)]),
+                json!(vec!["Chelsea FC"; 11]),
+                json!([631]),
+            ] {
+                assert!(
+                    interpret(&reply(json!({"filters": {field: names}}))).is_err(),
+                    "{field}: {names}"
+                );
+            }
+        }
     }
 
     #[test]

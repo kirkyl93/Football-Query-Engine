@@ -81,6 +81,19 @@ describe("HomePage", () => {
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it("shows club lookup errors without navigating or applying partial filters", async () => {
+        mockedTranslate.mockResolvedValue(makeResponse({filters: {clubsPlayedFor: ["Arsenal"]}}));
+        mockedGetIssue.mockReturnValue(null);
+        mockedToSearchState.mockImplementation(() => {
+            throw new Error('Could not identify the requested club.');
+        });
+        renderHome();
+        await userEvent.setup().type(screen.getByRole("textbox"), "Most goals for Arsenal{enter}");
+        expect(await screen.findByText('Could not identify the requested club.'))
+            .toBeInTheDocument();
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it("fills and focuses the question from an example without submitting it", async () => {
         const user = userEvent.setup();
         renderHome();
@@ -146,7 +159,7 @@ describe("HomePage", () => {
         mockedTranslate.mockResolvedValue(makeResponse());
         mockedGetIssue.mockReturnValue(null);
         const mappedState = {...createDefaultSearchFilterState(), seasons: [2024]};
-        mockedToSearchState.mockReturnValue(mappedState);
+        mockedToSearchState.mockResolvedValue(mappedState);
 
         const user = userEvent.setup();
         renderHome();
@@ -158,7 +171,7 @@ describe("HomePage", () => {
             pathname: "/",
             search: expect.stringContaining("seasons=2024"),
         });
-        expect(mockedToSearchState).toHaveBeenCalledWith(makeResponse().filters);
+        expect(mockedToSearchState).toHaveBeenCalledWith(makeResponse().filters, expect.any(AbortSignal));
     }, 15000);
 
     it("shows actionable rejection guidance and keeps the draft on the landing page", async () => {

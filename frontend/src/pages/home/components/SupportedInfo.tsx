@@ -12,12 +12,12 @@ const supportedTiles = [
         body: "Goals, assists, appearances, minutes and cards. Compare totals or minutes per event, or count games and seasons that meet your criteria.",
     },
     {
-        title: "Filters",
-        body: "Combine nationality, position, age and height with match time, penalties and home or away games. Age is measured on the match date, not today.",
+        title: "Player filters",
+        body: "Filter by player name, nationality, position, age and height. Age is measured on the match date, not today.",
     },
     {
-        title: "In the filter menu",
-        body: "Also filter by clubs played for or against, substitute appearances and time brought on.",
+        title: "Game filters",
+        body: "Filter by clubs played for or against, home or away games, match time, penalties, substitute appearances and time brought on.",
     },
 ];
 

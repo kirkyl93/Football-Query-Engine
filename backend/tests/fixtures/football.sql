@@ -13,6 +13,14 @@ INSERT INTO public.clubs (club_id, name, club_code, stadium_seats) VALUES
     (103, 'Hilltown FC', 'hilltown-fc', 15000),
     (301, 'Leeds Grove', 'leeds-grove', 20000),
     (302, 'Lee Harbour', 'lee-harbour', 10000);
+-- Club lookup ranking: league priority wins over capacity; remaining leagues share capacity ordering.
+INSERT INTO public.clubs (club_id, name, club_code, domestic_competition_id, stadium_seats) VALUES
+    (401, 'Ranking English', 'ranking-english', 'GB1', 10000),
+    (402, 'Ranking Spanish', 'ranking-spanish', 'ES1', 20000),
+    (403, 'Ranking Italian', 'ranking-italian', 'IT1', 30000),
+    (404, 'Ranking French', 'ranking-french', 'FR1', 40000),
+    (405, 'Ranking German', 'ranking-german', 'L1', 90000),
+    (406, 'Ranking Unlisted', 'ranking-unlisted', NULL, 80000);
 INSERT INTO public.competitions (competition_id, name, country_name, type) VALUES
     ('GB1', 'Premier League', 'England', 'domestic_league'),
     ('CL', 'UEFA Champions League', 'Europe', 'international_cup'),
