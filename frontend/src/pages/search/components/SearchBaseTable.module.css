@@ -1,5 +1,8 @@
 
 .table-container {
+    container-name: search-results;
+    container-type: inline-size;
+    min-width: 0;
     min-height: 400px;
     overflow-x: auto;
     background-color: white;
@@ -164,4 +167,47 @@
     .player-name {
         min-width: 140px;
     }
+}
+
+/* Keep every column in normal flow; wide results scroll without covering stats. */
+.results-table {
+    width: 100%;
+}
+
+.results-table .details-column {
+    width: 1%;
+    white-space: nowrap;
+}
+
+
+.results-table .player-cell {
+    white-space: normal;
+}
+
+.results-table .player-cell > span {
+    max-width: 100%;
+}
+
+.mobile-season { display: none; }
+
+@container search-results (max-width: 600px) {
+    .results-table thead th,
+    .results-table tbody tr td {
+        padding: 10px 8px;
+        min-width: 0;
+    }
+
+    .results-table .player-name {
+        min-width: 0;
+    }
+
+    .results-table .season-column { display: none; }
+
+    .results-table .mobile-season {
+        display: block;
+        margin-top: 4px;
+        font-size: 11px;
+        color: var(--color-muted);
+    }
+
 }

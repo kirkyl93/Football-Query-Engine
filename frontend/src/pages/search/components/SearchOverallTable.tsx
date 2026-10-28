@@ -29,13 +29,13 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
         <div className={baseStyles['table-container']}>
             {hasData && (
                 <>
-                    <table className={baseStyles['generic-table']}>
+                    <table className={`${baseStyles['generic-table']} ${baseStyles['results-table']}`}>
                         <thead>
                         <tr>
                             <th className={baseStyles.numeric}>Rank</th>
                             <th className={baseStyles['player-name']}>Player</th>
                             <th className={styles['first-columns-to-hide']}>Clubs</th>
-                            {filterState.statScope === StatScope.SEASON && <th>Season</th>}
+                            {filterState.statScope === StatScope.SEASON && <th className={baseStyles['season-column']}>Season</th>}
                             <th className={styles['second-columns-to-hide']}>Position</th>
                             <SortableTh label="Apps" columnSort={SortOptions.APPEARANCES} activeSort={filterState.sortBy} onSort={onSortChange} className={`${baseStyles['table-header']} ${styles['third-columns-to-hide']}`} />
                             <SortableTh label="Mins" columnSort={SortOptions.MINUTES_PLAYED} activeSort={filterState.sortBy} onSort={onSortChange} className={`${baseStyles['table-header']} ${styles['third-columns-to-hide']}`} />
@@ -56,7 +56,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                             <th className={`${baseStyles.numeric} ${styles['small-screen-display']}`}>
                                 {getDisplayTitleForSmallScreen(filterState.sortBy)}
                             </th>
-                            <th>Details</th>
+                            <th className={baseStyles['details-column']}>Details</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -67,7 +67,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                 <td className={baseStyles.numeric}>
                                     {player.rank}.
                                 </td>
-                                <td>
+                                <td className={baseStyles['player-cell']}>
                                     <PlayerCell
                                         playerId={player.player_id}
                                         playerName={player.player_name}
@@ -75,12 +75,13 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                         imageUrl={player.image_url}
                                         avatarClassName={styles['second-columns-to-hide']}
                                     />
+                                    {filterState.statScope === StatScope.SEASON && <span className={baseStyles['mobile-season']}>{formatSeason(player.season)}</span>}
                                 </td>
                                 <ClubBadgesCell
                                     cellClassName={styles['first-columns-to-hide']}
                                     clubIds={player.clubs_played_for.split(',')}
                                 />
-                                {filterState.statScope === StatScope.SEASON && <td>{formatSeason(player.season)}</td>}
+                                {filterState.statScope === StatScope.SEASON && <td className={baseStyles['season-column']}>{formatSeason(player.season)}</td>}
                                 <td className={styles['second-columns-to-hide']}>{player.sub_position}</td>
                                 <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}><strong>{player.total_appearances}</strong>
                                     {!filterState.subsOnly && (<> ({player.substitute_appearances})</>)}</td>
@@ -103,7 +104,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                     {getDisplayStatForSmallScreen(filterState.sortBy, player)}
                                 </td>
 
-                                <td><button type="button" className={`${playerStyles['filter-button-player']} ${detailStyles.detailsButton}`} onClick={() => onViewDetails(player)} aria-label={`View games for ${player.player_name}`}>View games</button></td>
+                                <td className={baseStyles['details-column']}><button type="button" className={`${playerStyles['filter-button-player']} ${detailStyles.detailsButton}`} onClick={() => onViewDetails(player)} aria-label={`View games for ${player.player_name}`}><span className={detailStyles.detailsLabel}>View games</span><span className={detailStyles.detailsCompactLabel} aria-hidden="true">View</span></button></td>
                             </tr>
                         ))}
                         </tbody>
