@@ -403,7 +403,7 @@ impl PrivatePlayerMinuteFilterMethods for QueryBuilder<Postgres> {
     fn add_goals_minute_filter(&mut self, window: MinuteWindow) -> &mut Self {
         self.push(
             "
-            CAST(SUM(CASE WHEN e.type = 'Goals' AND e.player_id = a.player_id AND e.minute BETWEEN ",
+            CAST(SUM(CASE WHEN e.type = 'Goals' AND e.description NOT ILIKE '%own-goal%' AND e.player_id = a.player_id AND e.minute BETWEEN ",
         )
         .push_bind(window.from)
         .push(" AND ")

@@ -342,3 +342,81 @@ async fn card_season_details_reconcile_with_the_qualifying_seasons() {
         }
     }
 }
+
+#[actix_web::test]
+async fn own_goals_do_not_inflate_search_totals_details_or_qualifying_counts() {
+    let pool = fixture_pool().await;
+    let player = SearchParamsBuilder::new().names(vec!["Robin Repeat"]);
+
+    // G11 has three regular goals, two penalties and two own goals.
+    // At minute 90, two regular goals, both penalties and both own goals coexist.
+    for (window, goals, non_penalty_goals, regular_minutes) in [
+        (SearchParamsBuilder::new(), 5, 3, json!([10, 90, 90])),
+        (
+            SearchParamsBuilder::new()
+                .minute_played_from(1)
+                .minute_played_to(90),
+            5,
+            3,
+            json!([10, 90, 90]),
+        ),
+        (
+            SearchParamsBuilder::new()
+                .minute_played_from(90)
+                .minute_played_to(90),
+            4,
+            2,
+            json!([90, 90]),
+        ),
+    ] {
+        for (penalty, expected_goals) in [
+            (PenaltyOption::IncludePenalties, goals),
+            (PenaltyOption::ExcludePenalties, non_penalty_goals),
+            (PenaltyOption::OnlyPenalties, 2),
+        ] {
+            let query = player.clone().with_filters(&window).penalty(penalty);
+            let results = get_rows(&pool, "/search", &query).await;
+            assert_eq!(results.len(), 1, "{query}");
+            assert_eq!(results[0]["total_goals"], json!(expected_goals), "{query}");
+
+            let games = details(&pool, &query, &results[0]).await;
+            assert_eq!(games.len(), 1, "{query}");
+            assert_eq!(games[0]["stats"]["goals"], json!(expected_goals), "{query}");
+            assert_eq!(games[0]["own_goal_minutes"], json!([90, 90]), "{query}");
+            assert_eq!(
+                games[0]["goal_minutes"],
+                if penalty == PenaltyOption::OnlyPenalties {
+                    json!([])
+                } else {
+                    regular_minutes.clone()
+                },
+                "{query}"
+            );
+
+            let game_results = get_rows(&pool, "/search/game", &query).await;
+            assert_eq!(game_results.len(), 1, "{query}");
+            assert_eq!(game_results[0]["goals"], json!(expected_goals), "{query}");
+
+            for sort in [
+                SortOption::NumberOfGamesWith,
+                SortOption::NumberOfSeasonsWith,
+            ] {
+                let field = if sort == SortOption::NumberOfGamesWith {
+                    "number_of_games"
+                } else {
+                    "number_of_seasons"
+                };
+                let exact = query.clone().sort(sort)
+                    .minimum_goals(expected_goals).maximum_goals(expected_goals);
+                let counts = get_rows(&pool, "/search/occurrences", &exact).await;
+                assert_eq!(counts.len(), 1, "{exact}");
+                assert_eq!(counts[0][field], json!(1), "{exact}");
+                let too_many = query.clone().sort(sort).minimum_goals(expected_goals + 1);
+                assert!(
+                    get_rows(&pool, "/search/occurrences", &too_many).await.is_empty(),
+                    "{too_many}"
+                );
+            }
+        }
+    }
+}
