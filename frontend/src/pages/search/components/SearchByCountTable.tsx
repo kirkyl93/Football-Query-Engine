@@ -27,17 +27,17 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
         <div className={baseStyles['table-container']}>
             {hasData && (
                 <>
-                    <table className={baseStyles['generic-table']}>
+                    <table className={`${baseStyles['generic-table']} ${baseStyles['results-table']}`}>
                         <thead>
                         <tr>
                             <th className={baseStyles.numeric}>Rank</th>
                             <th className={baseStyles['player-name']}>Player</th>
                             <th className={styles['first-gs-columns-to-hide']}>Clubs</th>
                             <th className={styles['first-gs-columns-to-hide']}>Position</th>
-                            {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th>Season</th>}
+                            {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles['season-column']}>Season</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th className={baseStyles.numeric}>Number of seasons</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles.numeric}>Number of games</th>}
-                            <th>Details</th>
+                            <th className={baseStyles['details-column']}>Details</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -48,25 +48,25 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                                 <td className={baseStyles.numeric}>
                                     {player.rank}.
                                 </td>
-                                <td>
+                                <td className={baseStyles['player-cell']}>
                                     <PlayerCell
                                         playerId={player.player_id}
                                         playerName={player.player_name}
                                         countryCode={player.country_code}
                                         imageUrl={player.image_url}
-                                        flagClassName={styles['second-gs-columns-to-hide']}
                                         avatarClassName={styles['second-gs-columns-to-hide']}
                                     />
+                                    {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <span className={baseStyles['mobile-season']}>{formatSeason(player.season)}</span>}
                                 </td>
                                 <ClubBadgesCell
                                     cellClassName={styles['first-gs-columns-to-hide']}
                                     clubIds={player.clubs_played_for.split(',')}
                                 />
                                 <td className={styles['first-gs-columns-to-hide']}>{player.sub_position}</td>
-                                {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td>{formatSeason(player.season)}</td>}
+                                {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td className={baseStyles['season-column']}>{formatSeason(player.season)}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td className={baseStyles.numeric}>{player.number_of_seasons}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td className={baseStyles.numeric}>{player.number_of_games}</td>}
-                                <td><button type="button" className={`${playerStyles['filter-button-player']} ${detailStyles.detailsButton}`} onClick={() => onViewDetails(player)} aria-label={`View ${filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? "seasons" : "games"} for ${player.player_name}`}>View {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? "seasons" : "games"}</button></td>
+                                <td className={baseStyles['details-column']}><button type="button" className={`${playerStyles['filter-button-player']} ${detailStyles.detailsButton}`} onClick={() => onViewDetails(player)} aria-label={`View ${filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? "seasons" : "games"} for ${player.player_name}`}><span className={detailStyles.detailsLabel}>View {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? "seasons" : "games"}</span><span className={detailStyles.detailsCompactLabel} aria-hidden="true">View</span></button></td>
                             </tr>
                         ))}
                         </tbody>

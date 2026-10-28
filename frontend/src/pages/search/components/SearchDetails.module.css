@@ -4,7 +4,7 @@
 }
 .detailsButton {
     margin-left: 0;
-    height: 32px;
+    height: 36px;
     padding: 6px 12px;
     font-size: 12px;
 }
@@ -39,4 +39,11 @@
     .content { gap: 12px; }
     .summary { flex-direction: column; gap: 4px; }
     .table tbody tr td, .table thead th { padding-left: 10px; padding-right: 10px; }
+}
+
+.detailsCompactLabel { display: none; }
+
+@container search-results (max-width: 600px) {
+    .detailsLabel { display: none; }
+    .detailsCompactLabel { display: inline; }
 }
