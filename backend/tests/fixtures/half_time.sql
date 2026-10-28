@@ -21,6 +21,4 @@ INSERT INTO public.game_events
 VALUES
     ('g10-sub', '2024-12-01', 10, 46, 'Substitutions', 301, 12, 'Half-time substitution', 11, NULL),
     ('g10-goal', '2024-12-01', 10, 46, 'Goals', 301, 11, 'Open-play goal', NULL, NULL);
-REFRESH MATERIALIZED VIEW public.appearances_enhanced;
-REFRESH MATERIALIZED VIEW public.appearances_with_event_times;
 COMMIT;

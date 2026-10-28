@@ -56,6 +56,4 @@ VALUES
     ('g9-yellow-2', '2024-11-08', 9, 120, 'Cards', 302, 7, 'Yellow card', NULL, NULL),
     ('g9-sub', '2024-11-08', 9, 105, 'Substitutions', 302, 9, 'Substitution', 10, NULL);
 
-REFRESH MATERIALIZED VIEW public.appearances_enhanced;
-REFRESH MATERIALIZED VIEW public.appearances_with_event_times;
 COMMIT;

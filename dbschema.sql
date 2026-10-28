@@ -115,70 +115,61 @@ CREATE MATERIALIZED VIEW public.appearances_enhanced AS
 --
 
 CREATE MATERIALIZED VIEW public.appearances_with_event_times AS
- SELECT a.appearance_id,
-    a.game_id,
-    a.player_id,
-    a.player_club_id,
-    a.player_current_club_id,
-    a.date,
-    a.player_name,
-    a.competition_id,
-    a.yellow_cards,
-    a.red_cards,
-    a.goals,
-    a.penalty_goals,
-    a.assists,
-    a.played_from_minute,
-    a.subbed_off_minute,
-    COALESCE(array_agg(DISTINCT goal_minutes.goal_minute ORDER BY goal_minutes.goal_minute) FILTER (WHERE (goal_minutes.goal_minute IS NOT NULL)), ARRAY[]::integer[]) AS goal_minutes,
-    COALESCE(array_agg(DISTINCT penalty_minutes.penalty_minute ORDER BY penalty_minutes.penalty_minute) FILTER (WHERE (penalty_minutes.penalty_minute IS NOT NULL)), ARRAY[]::integer[]) AS penalty_goal_minutes,
-    COALESCE(array_agg(DISTINCT own_goal_minutes.goal_minute ORDER BY own_goal_minutes.goal_minute) FILTER (WHERE (own_goal_minutes.goal_minute IS NOT NULL)), ARRAY[]::integer[]) AS own_goal_minutes,
-    COALESCE(array_agg(DISTINCT assist_minutes.assist_minute ORDER BY assist_minutes.assist_minute) FILTER (WHERE (assist_minutes.assist_minute IS NOT NULL)), ARRAY[]::integer[]) AS assist_minutes,
-    COALESCE(array_agg(DISTINCT yellow_minutes.yellow_minute ORDER BY yellow_minutes.yellow_minute) FILTER (WHERE (yellow_minutes.yellow_minute IS NOT NULL)), ARRAY[]::integer[]) AS yellow_minutes,
-    COALESCE(array_agg(DISTINCT red_minutes.red_minute ORDER BY red_minutes.red_minute) FILTER (WHERE (red_minutes.red_minute IS NOT NULL)), ARRAY[]::integer[]) AS red_minutes,
+WITH appearance_rows AS (
+    -- Match the old GROUP BY: identical source rows represent one appearance.
+    SELECT DISTINCT appearance_id, game_id, player_id, player_club_id,
+        player_current_club_id, date, player_name, competition_id,
+        yellow_cards, red_cards, goals, penalty_goals, assists,
+        played_from_minute, subbed_off_minute, minutes_played
+    FROM public.appearances_enhanced
+), player_events AS (
+    -- Aggregate before joining so independent event categories cannot multiply.
+    -- Event IDs distinguish separate events even when their minutes are equal.
+    SELECT game_id, player_id,
+        array_agg(minute ORDER BY minute, game_event_id) FILTER (
+            WHERE type = 'Goals' AND description NOT ILIKE '%penalty%'
+                AND description NOT ILIKE '%own-goal%') AS goal_minutes,
+        array_agg(minute ORDER BY minute, game_event_id) FILTER (
+            WHERE type = 'Goals' AND description ILIKE '%penalty%') AS penalty_goal_minutes,
+        array_agg(minute ORDER BY minute, game_event_id) FILTER (
+            WHERE type = 'Goals' AND description ILIKE '%own-goal%') AS own_goal_minutes,
+        array_agg(minute ORDER BY minute, game_event_id) FILTER (
+            WHERE type = 'Cards' AND description ILIKE '%Yellow%') AS yellow_minutes,
+        array_agg(minute ORDER BY minute, game_event_id) FILTER (
+            WHERE type = 'Cards' AND description ILIKE '%Red%') AS red_minutes
+    FROM public.game_events
+    WHERE type IN ('Goals', 'Cards') AND minute IS NOT NULL AND player_id IS NOT NULL
+    GROUP BY game_id, player_id
+), assist_events AS (
+    SELECT game_id, player_assist_id AS player_id,
+        array_agg(minute ORDER BY minute, game_event_id) AS assist_minutes
+    FROM public.game_events
+    WHERE type = 'Goals' AND description NOT ILIKE '%handball%'
+        AND description NOT ILIKE '%penalty%'
+        AND minute IS NOT NULL AND player_assist_id IS NOT NULL
+    GROUP BY game_id, player_assist_id
+)
+SELECT a.appearance_id, a.game_id, a.player_id, a.player_club_id,
+    a.player_current_club_id, a.date, a.player_name, a.competition_id,
+    a.yellow_cards, a.red_cards, a.goals, a.penalty_goals, a.assists,
+    a.played_from_minute, a.subbed_off_minute,
+    COALESCE(e.goal_minutes, ARRAY[]::integer[]) AS goal_minutes,
+    COALESCE(e.penalty_goal_minutes, ARRAY[]::integer[]) AS penalty_goal_minutes,
+    COALESCE(e.own_goal_minutes, ARRAY[]::integer[]) AS own_goal_minutes,
+    COALESCE(s.assist_minutes, ARRAY[]::integer[]) AS assist_minutes,
+    COALESCE(e.yellow_minutes, ARRAY[]::integer[]) AS yellow_minutes,
+    COALESCE(e.red_minutes, ARRAY[]::integer[]) AS red_minutes,
     ARRAY[
-        CASE
-            WHEN ((a.played_from_minute = 90) AND (a.minutes_played = 1)) THEN 89
-            ELSE a.played_from_minute
-        END,
-        CASE
-            WHEN ((a.played_from_minute = 90) AND (a.minutes_played = 1)) THEN 90
-            WHEN ((a.played_from_minute = 46) AND (a.minutes_played = 45)) THEN 90
-            ELSE (a.played_from_minute + a.minutes_played)
-        END] AS minutes_played
-   FROM ((((((public.appearances_enhanced a
-     LEFT JOIN ( SELECT game_events.game_id,
-            game_events.player_id,
-            game_events.minute AS goal_minute
-           FROM public.game_events
-          WHERE (((game_events.type)::text = 'Goals'::text) AND (game_events.description !~~* '%penalty%'::text) AND (game_events.description !~~* '%own-goal%'::text))) goal_minutes ON (((a.player_id = goal_minutes.player_id) AND (a.game_id = goal_minutes.game_id))))
-     LEFT JOIN ( SELECT game_events.game_id,
-            game_events.player_id,
-            game_events.minute AS penalty_minute
-           FROM public.game_events
-          WHERE (((game_events.type)::text = 'Goals'::text) AND (game_events.description ~~* '%penalty%'::text))) penalty_minutes ON (((a.player_id = penalty_minutes.player_id) AND (a.game_id = penalty_minutes.game_id))))
-     LEFT JOIN ( SELECT game_events.game_id,
-            game_events.player_id,
-            game_events.minute AS goal_minute
-           FROM public.game_events
-          WHERE (((game_events.type)::text = 'Goals'::text) AND (game_events.description ~~* '%own-goal%'::text))) own_goal_minutes ON (((a.player_id = own_goal_minutes.player_id) AND (a.game_id = own_goal_minutes.game_id))))
-     LEFT JOIN ( SELECT game_events.game_id,
-            game_events.player_assist_id,
-            game_events.minute AS assist_minute
-           FROM public.game_events
-          WHERE (((game_events.type)::text = 'Goals'::text) AND (game_events.description !~~* '%handball%'::text) AND (game_events.description !~~* '%penalty%'::text))) assist_minutes ON (((a.player_id = assist_minutes.player_assist_id) AND (a.game_id = assist_minutes.game_id))))
-     LEFT JOIN ( SELECT game_events.game_id,
-            game_events.player_id,
-            game_events.minute AS yellow_minute
-           FROM public.game_events
-          WHERE (((game_events.type)::text = 'Cards'::text) AND (game_events.description ~~* '%Yellow%'::text))) yellow_minutes ON (((a.player_id = yellow_minutes.player_id) AND (a.game_id = yellow_minutes.game_id))))
-     LEFT JOIN ( SELECT game_events.game_id,
-            game_events.player_id,
-            game_events.minute AS red_minute
-           FROM public.game_events
-          WHERE (((game_events.type)::text = 'Cards'::text) AND (game_events.description ~~* '%Red%'::text))) red_minutes ON (((a.player_id = red_minutes.player_id) AND (a.game_id = red_minutes.game_id))))
-  GROUP BY a.appearance_id, a.game_id, a.player_id, a.player_club_id, a.player_current_club_id, a.date, a.player_name, a.competition_id, a.yellow_cards, a.red_cards, a.goals, a.penalty_goals, a.assists, a.minutes_played, a.played_from_minute, a.subbed_off_minute
-  WITH NO DATA;
+        CASE WHEN a.played_from_minute = 90 AND a.minutes_played = 1 THEN 89
+            ELSE a.played_from_minute END,
+        CASE WHEN a.played_from_minute = 90 AND a.minutes_played = 1 THEN 90
+            WHEN a.played_from_minute = 46 AND a.minutes_played = 45 THEN 90
+            ELSE a.played_from_minute + a.minutes_played END
+    ] AS minutes_played
+FROM appearance_rows a
+LEFT JOIN player_events e ON e.game_id = a.game_id AND e.player_id = a.player_id
+LEFT JOIN assist_events s ON s.game_id = a.game_id AND s.player_id = a.player_id
+WITH NO DATA;
 
 
 --

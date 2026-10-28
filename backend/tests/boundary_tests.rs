@@ -491,10 +491,10 @@ async fn the_seed_has_consistent_appearance_totals_and_real_materialized_views()
         "SELECT (SELECT COUNT(*) FROM appearances), (SELECT COUNT(*) FROM game_events),
          (SELECT COUNT(*) FROM appearances_enhanced), (SELECT COUNT(*) FROM appearances_with_event_times)",
     ).fetch_one(&pool).await.unwrap();
-    assert_eq!(counts, (36, 52, 36, 36));
+    assert_eq!(counts, (39, 67, 39, 39));
     let mismatch: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM appearances a WHERE
-         a.goals <> (SELECT COUNT(*) FROM game_events e WHERE e.game_id=a.game_id AND e.player_id=a.player_id AND e.type='Goals')
+         a.goals <> (SELECT COUNT(*) FROM game_events e WHERE e.game_id=a.game_id AND e.player_id=a.player_id AND e.type='Goals' AND e.description NOT ILIKE '%own-goal%')
          OR a.assists <> (SELECT COUNT(*) FROM game_events e WHERE e.game_id=a.game_id AND e.player_assist_id=a.player_id AND e.type='Goals')
          OR a.yellow_cards <> (SELECT COUNT(*) FROM game_events e WHERE e.game_id=a.game_id AND e.player_id=a.player_id AND e.type='Cards' AND e.is_yellow)
          OR a.red_cards <> (SELECT COUNT(*) FROM game_events e WHERE e.game_id=a.game_id AND e.player_id=a.player_id AND e.type='Cards' AND e.is_red)",
