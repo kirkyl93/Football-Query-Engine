@@ -78,3 +78,28 @@ jobs:
       - name: Run all Rust tests against the seeded database
         working-directory: backend
         run: cargo test --locked --all-targets
+
+  docker:
+    name: Build backend Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Build and export image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./backend
+          platforms: linux/amd64
+          push: false
+          tags: football-query-engine:${{ github.sha }}
+          outputs: type=docker,dest=${{ runner.temp }}/football-query-engine.tar
+          cache-from: type=gha,scope=backend-image
+          cache-to: type=gha,mode=max,scope=backend-image
+      - name: Upload image tar
+        uses: actions/upload-artifact@v4
+        with:
+          name: football-query-engine-${{ github.sha }}
+          path: ${{ runner.temp }}/football-query-engine.tar
+          if-no-files-found: error
+          retention-days: 7
