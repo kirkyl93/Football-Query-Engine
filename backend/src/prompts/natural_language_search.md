@@ -16,7 +16,9 @@ Return every field below; unspecified filters must be null. Never invent require
     "minimumAppearances": null,
     "minimumGoals": null, "maximumGoals": null,
     "minimumAssists": null, "maximumAssists": null,
-    "minimumGoalsAndAssists": null, "maximumGoalsAndAssists": null
+    "minimumGoalsAndAssists": null, "maximumGoalsAndAssists": null,
+    "minimumYellowCards": null, "maximumYellowCards": null,
+    "minimumRedCards": null, "maximumRedCards": null
   }
 }
 Arrays: seasons (integers); competitions, positions, playerNames, countries, clubsPlayedFor, clubsPlayedAgainst (strings). Numeric filters are integers; enums are strings; subsOnly is a boolean.
@@ -75,3 +77,5 @@ Only non-null filters shown; return the FULL schema and the issue fields above.
 -> {"sortBy":"g"}; errorCode="unsupported_competition"; summary="The FA Cup is not supported."
 
 Check all fields, allowed codes/ranges, scope-sort compatibility and counted unit (seasons=sw, games=gw). Return JSON only.
+
+For season counts (sortBy="sw"), yellow and red card thresholds apply to each season, after the other game/minute filters. For example, seasons with at least 10 bookings uses minimumYellowCards=10. Red totals include dismissals from two yellows. Card thresholds are supported only for season counts, not game counts or other rankings.

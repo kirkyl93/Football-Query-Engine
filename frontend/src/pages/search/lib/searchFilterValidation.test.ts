@@ -43,3 +43,9 @@ describe('validateSearchFilters', () => {
         expect(validateSearchFilters(state)).toEqual([]);
     });
 });
+
+it('validates season card ranges while ignoring inactive card controls',()=>{
+    const state={...createDefaultSearchFilterState(),sortBy:'sw' as import('../../../types/SearchOptions').SortOptions,minimumYellowCards:12,maximumYellowCards:10};
+    expect(validateSearchFilters(state)).toContain('Maximum yellow cards should be greater than or equal to minimum yellow cards');
+    expect(validateSearchFilters({...state,sortBy:'gw' as import('../../../types/SearchOptions').SortOptions})).toEqual([]);
+});

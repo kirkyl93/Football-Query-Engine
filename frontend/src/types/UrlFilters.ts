@@ -26,4 +26,8 @@ export enum UrlFilters {
     MAXIMUM_ASSISTS = "maxa",
     MINIMUM_GOALS_AND_ASSISTS = "minga",
     MAXIMUM_GOALS_AND_ASSISTS = "maxga",
+    MINIMUM_YELLOW_CARDS = "miny",
+    MAXIMUM_YELLOW_CARDS = "maxy",
+    MINIMUM_RED_CARDS = "minr",
+    MAXIMUM_RED_CARDS = "maxr",
 }

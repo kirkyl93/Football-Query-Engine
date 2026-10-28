@@ -174,3 +174,23 @@ describe('SearchFilterBar', () => {
         expect(onFilterChange).not.toHaveBeenCalled();
     });
 });
+
+it('offers season card bounds, preserves zero, and hides them for game counts', async () => {
+    const user = userEvent.setup(); const onFilterChange=vi.fn();
+    const {unmount}=renderFilterBar({filterState:{...createDefaultSearchFilterState(),sortBy:SortOptions.NUMBER_OF_SEASONS_WITH},onFilterChange});
+    await user.click(screen.getByText('SORT BY'));
+    await user.selectOptions(screen.getByLabelText('Minimum Yellow Cards:'),'10');
+    await user.selectOptions(screen.getByLabelText('Maximum Red Cards:'),'0');
+    await user.click(screen.getByText('APPLY'));
+    expect(onFilterChange.mock.calls[0][0]).toMatchObject({minimumYellowCards:10,maximumRedCards:0});
+    await user.selectOptions(screen.getByLabelText('Minimum Yellow Cards:'),'');
+    await user.selectOptions(screen.getByLabelText('Maximum Red Cards:'),'');
+    await user.click(screen.getByText('APPLY'));
+    expect(onFilterChange.mock.calls[1][0].minimumYellowCards).toBeUndefined();
+    expect(onFilterChange.mock.calls[1][0].maximumRedCards).toBeUndefined();
+    unmount();
+    renderFilterBar({filterState:{...createDefaultSearchFilterState(),sortBy:SortOptions.NUMBER_OF_GAMES_WITH}});
+    await user.click(screen.getByText('SORT BY'));
+    expect(screen.queryByLabelText('Minimum Yellow Cards:')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Maximum Red Cards:')).not.toBeInTheDocument();
+});

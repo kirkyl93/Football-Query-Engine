@@ -13,7 +13,8 @@ export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams 
         UrlFilters.MINIMUM_AGE, UrlFilters.MAXIMUM_AGE, UrlFilters.MINIMUM_HEIGHT, UrlFilters.MAXIMUM_HEIGHT, UrlFilters.PLAYER_NAMES,
         UrlFilters.PLAYER_COUNTRIES, UrlFilters.CLUBS_PLAYED_FOR, UrlFilters.CLUBS_PLAYED_AGAINST, UrlFilters.PENALTIES, UrlFilters.HOME_OR_AWAY,
         UrlFilters.SORT_BY, UrlFilters.MINIMUM_APPEARANCES, UrlFilters.MINIMUM_GOALS, UrlFilters.MAXIMUM_GOALS, UrlFilters.MINIMUM_ASSISTS,
-        UrlFilters.MAXIMUM_ASSISTS, UrlFilters.MINIMUM_GOALS_AND_ASSISTS, UrlFilters.MAXIMUM_GOALS_AND_ASSISTS
+        UrlFilters.MAXIMUM_ASSISTS, UrlFilters.MINIMUM_GOALS_AND_ASSISTS, UrlFilters.MAXIMUM_GOALS_AND_ASSISTS,
+        UrlFilters.MINIMUM_YELLOW_CARDS, UrlFilters.MAXIMUM_YELLOW_CARDS, UrlFilters.MINIMUM_RED_CARDS, UrlFilters.MAXIMUM_RED_CARDS
     ];
 
     let statScope = searchParams.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL;

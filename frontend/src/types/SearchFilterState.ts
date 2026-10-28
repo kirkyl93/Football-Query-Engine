@@ -29,4 +29,8 @@ export interface SearchFilterState {
     maximumAssists?: number;
     minimumGoalsAndAssists?: number;
     maximumGoalsAndAssists?: number;
+    minimumYellowCards?: number;
+    maximumYellowCards?: number;
+    minimumRedCards?: number;
+    maximumRedCards?: number;
 }

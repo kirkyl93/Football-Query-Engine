@@ -252,3 +252,10 @@ describe('constructSearchTitle', () => {
         expect(title).toBe('Top scorers: all comps, all seasons');
     });
 });
+
+it('describes seasonal card thresholds without leaking them into game counts',()=>{
+    const state={...createDefaultSearchFilterState(),sortBy:SortOptions.NUMBER_OF_SEASONS_WITH,minimumYellowCards:10,maximumRedCards:0};
+    expect(sortCriteriaTitle(state)).toContain('at least 10 yellow cards');
+    expect(sortCriteriaTitle(state)).toContain('no red cards');
+    expect(sortCriteriaTitle({...state,sortBy:SortOptions.NUMBER_OF_GAMES_WITH})).not.toContain('card');
+});

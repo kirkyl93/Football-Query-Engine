@@ -63,6 +63,14 @@ pub struct SearchParams {
     pub minimum_goals_and_assists: Option<i32>,
     #[serde(rename = "maxga")]
     pub maximum_goals_and_assists: Option<i32>,
+    #[serde(rename = "miny")]
+    pub minimum_yellow_cards: Option<i32>,
+    #[serde(rename = "maxy")]
+    pub maximum_yellow_cards: Option<i32>,
+    #[serde(rename = "minr")]
+    pub minimum_red_cards: Option<i32>,
+    #[serde(rename = "maxr")]
+    pub maximum_red_cards: Option<i32>,
 }
 
 /// Lenient CSV parsing: unparseable tokens are ignored (documented).
@@ -169,6 +177,10 @@ impl SearchParams {
                 max_assists: self.maximum_assists.unwrap_or(-1).max(-1),
                 min_goals_and_assists: self.minimum_goals_and_assists.unwrap_or(-1).max(-1),
                 max_goals_and_assists: self.maximum_goals_and_assists.unwrap_or(-1).max(-1),
+                min_yellow_cards: self.minimum_yellow_cards.unwrap_or(-1).max(-1),
+                max_yellow_cards: self.maximum_yellow_cards.unwrap_or(-1).max(-1),
+                min_red_cards: self.minimum_red_cards.unwrap_or(-1).max(-1),
+                max_red_cards: self.maximum_red_cards.unwrap_or(-1).max(-1),
             },
             seasons: parse_csv_i32(self.seasons.as_ref()),
             competitions,
@@ -262,6 +274,10 @@ pub struct StatThresholds {
     pub max_assists: i32,
     pub min_goals_and_assists: i32,
     pub max_goals_and_assists: i32,
+    pub min_yellow_cards: i32,
+    pub max_yellow_cards: i32,
+    pub min_red_cards: i32,
+    pub max_red_cards: i32,
 }
 
 impl Default for StatThresholds {
@@ -275,6 +291,10 @@ impl Default for StatThresholds {
             max_assists: -1,
             min_goals_and_assists: -1,
             max_goals_and_assists: -1,
+            min_yellow_cards: -1,
+            max_yellow_cards: -1,
+            min_red_cards: -1,
+            max_red_cards: -1,
         }
     }
 }
@@ -450,6 +470,10 @@ mod tests {
             maximum_assists: Some(15),
             minimum_goals_and_assists: Some(8),
             maximum_goals_and_assists: Some(25),
+            minimum_yellow_cards: None,
+            maximum_yellow_cards: None,
+            minimum_red_cards: None,
+            maximum_red_cards: None,
         };
 
         let result = params.to_processed();

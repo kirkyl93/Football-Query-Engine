@@ -33,6 +33,10 @@ export interface NaturalLanguageFilterProposal {
     maximumAssists?: number;
     minimumGoalsAndAssists?: number;
     maximumGoalsAndAssists?: number;
+    minimumYellowCards?: number;
+    maximumYellowCards?: number;
+    minimumRedCards?: number;
+    maximumRedCards?: number;
 }
 
 export interface NaturalLanguageSearchResponse {
@@ -111,6 +115,10 @@ export async function naturalLanguageFiltersToSearchState(
         maximumAssists: proposal.maximumAssists,
         minimumGoalsAndAssists: proposal.minimumGoalsAndAssists,
         maximumGoalsAndAssists: proposal.maximumGoalsAndAssists,
+        minimumYellowCards: proposal.minimumYellowCards,
+        maximumYellowCards: proposal.maximumYellowCards,
+        minimumRedCards: proposal.minimumRedCards,
+        maximumRedCards: proposal.maximumRedCards,
     };
 }
 

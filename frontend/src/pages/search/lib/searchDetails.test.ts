@@ -39,3 +39,8 @@ describe('qualification toggle relevance', () => {
         expect(hasGameQualificationFilters({...defaults, ...filters})).toBe(true);
     });
 });
+
+it('sends card bounds as numeric values in season detail requests',()=>{
+    const result={player_id:1,qualifying_game_ids:[]} as unknown as PlayerSearchResult;
+    expect(detailRequest('?sort=sw&miny=10&maxy=12&minr=0&maxr=0',result).search).toEqual({sort:'sw',miny:10,maxy:12,minr:0,maxr:0});
+});

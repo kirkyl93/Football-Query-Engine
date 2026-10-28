@@ -30,6 +30,10 @@ interface SortByFilterSectionProps {
     onMinimumAssistsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     onMaximumAssistsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     onMinimumGoalsAndAssistsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    onMinimumYellowCardsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    onMaximumYellowCardsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    onMinimumRedCardsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    onMaximumRedCardsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     onMaximumGoalsAndAssistsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
@@ -44,7 +48,12 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
     onMaximumAssistsChange,
     onMinimumGoalsAndAssistsChange,
     onMaximumGoalsAndAssistsChange,
+    onMinimumYellowCardsChange,
+    onMaximumYellowCardsChange,
+    onMinimumRedCardsChange,
+    onMaximumRedCardsChange,
 }) => {
+    const id = React.useId();
     const goalOptions = filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH
         ? game_goals_or_assists
         : season_goals_or_assists;
@@ -157,6 +166,36 @@ const SortByFilterSection: React.FC<SortByFilterSectionProps> = ({
                                 <option key={goal_or_assists} value={goal_or_assists}>{goal_or_assists}</option>))}
                         </select>
                     </div>
+                    {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <>
+                        <div className={filterStyles['games_or_seasons-dropdown-group']}>
+                            <label htmlFor={id + '-minimumYellowCards'}>Minimum Yellow Cards:</label>
+                            <select id={id + '-minimumYellowCards'} value={filterState.minimumYellowCards ?? ''} onChange={onMinimumYellowCardsChange}>
+                                <option value="">Any</option>
+                                {minimumGoalOptions.map(value => <option key={value} value={value}>{value}</option>)}
+                            </select>
+                        </div>
+                        <div className={filterStyles['games_or_seasons-dropdown-group']}>
+                            <label htmlFor={id + '-maximumYellowCards'}>Maximum Yellow Cards:</label>
+                            <select id={id + '-maximumYellowCards'} value={filterState.maximumYellowCards ?? ''} onChange={onMaximumYellowCardsChange}>
+                                <option value="">Any</option>
+                                {goalOptions.map(value => <option key={value} value={value}>{value}</option>)}
+                            </select>
+                        </div>
+                        <div className={filterStyles['games_or_seasons-dropdown-group']}>
+                            <label htmlFor={id + '-minimumRedCards'}>Minimum Red Cards:</label>
+                            <select id={id + '-minimumRedCards'} value={filterState.minimumRedCards ?? ''} onChange={onMinimumRedCardsChange}>
+                                <option value="">Any</option>
+                                {minimumGoalOptions.map(value => <option key={value} value={value}>{value}</option>)}
+                            </select>
+                        </div>
+                        <div className={filterStyles['games_or_seasons-dropdown-group']}>
+                            <label htmlFor={id + '-maximumRedCards'}>Maximum Red Cards:</label>
+                            <select id={id + '-maximumRedCards'} value={filterState.maximumRedCards ?? ''} onChange={onMaximumRedCardsChange}>
+                                <option value="">Any</option>
+                                {goalOptions.map(value => <option key={value} value={value}>{value}</option>)}
+                            </select>
+                        </div>
+                    </>}
                 </>
             )}
         </FilterSection>
