@@ -37,7 +37,7 @@ cd backend
 cargo test --locked --all-targets
 ```
 
-The bootstrap uses the real root `dbschema.sql`, inserts `football.sql`, `extra_time.sql` and `half_time.sql`, and refreshes `appearances_enhanced` followed by `appearances_with_event_times`. After all seed files have loaded, bootstrap records version 1 for the complete fixture, which tests require. The separate seed files do not have individual versions. Recreate an older fixture in a new empty test database. Tests **never fall back to `DATABASE_URL`**; local `.env` loading reads the explicitly configured `TEST_DATABASE_URL`. A fresh CI database is seeded once per job; when rerunning tests locally, an unchanged seeded database can be reused without rerunning bootstrap. For unit tests without Postgres, run `cargo test --locked --lib`.
+The bootstrap uses the real root `dbschema.sql`, inserts `football.sql`, `extra_time.sql`, `half_time.sql` and `repeated_minutes.sql`, then refreshes `appearances_enhanced` followed by `appearances_with_event_times` once, at the end of bootstrap. After all seed files have loaded, bootstrap records version 2 for the complete fixture, which tests require. The separate seed files do not have individual versions. Recreate an older fixture in a new empty test database. Tests **never fall back to `DATABASE_URL`**; local `.env` loading reads the explicitly configured `TEST_DATABASE_URL`. A fresh CI database is seeded once per job; when rerunning tests locally, an unchanged seeded database can be reused without rerunning bootstrap. For unit tests without Postgres, run `cargo test --locked --lib`.
 
 ## GitHub Actions
 
@@ -138,7 +138,7 @@ All appearances are 90 minutes except Sam G1 = 80 and G2 = 60; Vale G3 = 30, G4 
 | Vale | 2 | 2 | 0 | 0 | 76 | 2 | 1 |
 | Pat | 1 | 0 | 0 | 0 | 60 | 0 | 0 |
 
-Raw appearance reds contain straight reds only; the search adds double-yellow dismissals. Raw appearance totals and every goal/assist/card are checked against the seed events by a separate fixture-integrity test. The base pack has 28 appearances and 36 events. With the extra-time and half-time packs, both real materialized views must contain 36 rows and the event table must contain 52 rows.
+Raw appearance reds contain straight reds only; the search adds double-yellow dismissals. Raw appearance totals and every goal/assist/card are checked against the seed events by a separate fixture-integrity test. The base pack has 28 appearances and 36 events. With the extra-time, half-time and repeated-minute packs, both real materialized views must contain 39 rows and the event table must contain 67 rows.
 
 The 13 boundary tests check 45/46 event inclusion, same-minute goals and assists after substitution, capped match/half/window durations, full-match duration consistency, nonzero same-minute goal/assist ratios, late zero-contribution appearances, game and season counts, cross-window second yellows, straight reds, and disappearance after dismissal. They assert complete returned row identities and relevant numeric fields, not just successful execution.
 
@@ -167,3 +167,9 @@ These are explicit integer timestamps in the database. They test extra time thro
 ## Half-time ledger
 
 `half_time.sql` adds Harper Half (11), Francis First (12), and G10: Leeds Grove vs Lee Harbour, 1–0, FR1/2024 on 2024-12-01. Francis is replaced by Harper at minute 46; both have 45 recorded minutes. Harper scores at 46. For Harper, 1–45 returns no appearance, 46–46 includes one minute and one goal, 46–90 and 1–120 retain 45 minutes, and minute 90 counts. Neither 91–91 nor 91–120 returns an appearance or a qualifying zero-contribution game/season. This follows the existing `appearances_with_event_times` endpoint correction; the minute-45 substitution in G6 remains a separate same-minute assist scenario.
+
+## Repeated-minute ledger
+
+`repeated_minutes.sql` adds Robin Repeat (13), Casey Creator (14), Lee Late (15), and G11: Leeds Grove vs Lee Harbour, 8–2, IT1/2024 on 2024-12-08. Robin scores open-play goals at 10/90/90 and penalties at 90/90, records own goals at 90/90, assists Casey at 30/90/90, and has two yellow and two red records at 90. The repeated red records are deliberate synthetic stress data. All six event categories coexist to detect both timestamp deduplication and multiplication across joins. Own goals are excluded from recorded goals in the fixture integrity check.
+
+Casey is replaced by Lee at 90. Lee has one recorded minute, no events, empty event arrays and the existing [89, 90] player-chart interval. The read-only player-page tests check both players through the normal HTTP harness; no test creates schemas, seeds data or refreshes views.

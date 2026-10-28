@@ -12,6 +12,7 @@ END $$;
 \ir football.sql
 \ir extra_time.sql
 \ir half_time.sql
+\ir repeated_minutes.sql
 
 -- Player-page retrieval filters on the type stored on each game.
 UPDATE public.games g
@@ -19,8 +20,11 @@ SET competition_type = c.type
 FROM public.competitions c
 WHERE g.competition_id = c.competition_id;
 
--- Version the complete fixture once, after every seed file has loaded.
+-- Populate both views once, after all seed files have loaded.
+-- Version only the completed fixture.
 BEGIN;
+REFRESH MATERIALIZED VIEW public.appearances_enhanced;
+REFRESH MATERIALIZED VIEW public.appearances_with_event_times;
 CREATE TABLE public.test_fixture_metadata (name text PRIMARY KEY, version integer NOT NULL);
-INSERT INTO public.test_fixture_metadata VALUES ('football-boundaries', 1);
+INSERT INTO public.test_fixture_metadata VALUES ('football-boundaries', 2);
 COMMIT;

@@ -133,6 +133,4 @@ INSERT INTO public.game_events (game_event_id, date, game_id, minute, type, club
     ('g7-goal-2', '2024-08-24', 7, 45, 'Goals', 301, 6, 'Open-play goal', NULL, 5),
     ('g7-goal-3', '2024-08-24', 7, 85, 'Goals', 301, 6, 'Open-play goal', NULL, 5);
 
-REFRESH MATERIALIZED VIEW public.appearances_enhanced;
-REFRESH MATERIALIZED VIEW public.appearances_with_event_times;
 COMMIT;
