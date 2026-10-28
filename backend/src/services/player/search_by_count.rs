@@ -284,22 +284,6 @@ impl OccurrenceFilters for QueryBuilder<Postgres> {
             .add_maximum_season_red_cards(params.thresholds.max_red_cards)
     }
 
-    fn add_minimum_season_yellow_cards(&mut self, minimum: i32) -> &mut Self {
-        self.add_stat_bound("total_yellow_cards", StatBound::Minimum, minimum)
-    }
-
-    fn add_maximum_season_yellow_cards(&mut self, maximum: i32) -> &mut Self {
-        self.add_stat_bound("total_yellow_cards", StatBound::Maximum, maximum)
-    }
-
-    fn add_minimum_season_red_cards(&mut self, minimum: i32) -> &mut Self {
-        self.add_stat_bound("total_red_cards", StatBound::Minimum, minimum)
-    }
-
-    fn add_maximum_season_red_cards(&mut self, maximum: i32) -> &mut Self {
-        self.add_stat_bound("total_red_cards", StatBound::Maximum, maximum)
-    }
-
     fn add_minimum_season_goals(&mut self, minimum_goals: i32) -> &mut Self {
         self.add_stat_bound("total_goals", StatBound::Minimum, minimum_goals)
     }
@@ -336,6 +320,22 @@ impl OccurrenceFilters for QueryBuilder<Postgres> {
             StatBound::Maximum,
             maximum_goals_and_assists,
         )
+    }
+
+    fn add_minimum_season_yellow_cards(&mut self, minimum: i32) -> &mut Self {
+        self.add_stat_bound("total_yellow_cards", StatBound::Minimum, minimum)
+    }
+
+    fn add_maximum_season_yellow_cards(&mut self, maximum: i32) -> &mut Self {
+        self.add_stat_bound("total_yellow_cards", StatBound::Maximum, maximum)
+    }
+
+    fn add_minimum_season_red_cards(&mut self, minimum: i32) -> &mut Self {
+        self.add_stat_bound("total_red_cards", StatBound::Minimum, minimum)
+    }
+
+    fn add_maximum_season_red_cards(&mut self, maximum: i32) -> &mut Self {
+        self.add_stat_bound("total_red_cards", StatBound::Maximum, maximum)
     }
 
     fn add_game_filters(
