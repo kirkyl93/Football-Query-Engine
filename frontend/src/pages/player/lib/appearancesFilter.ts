@@ -1,5 +1,8 @@
+import {ageOnMatchDate} from "./playerAge";
 import {PlayerAppearance, PlayerFilterState} from "../../../types/Player";
 import {AppearanceTypeOptions, HomeOrAwayOptions} from "../../../types/SearchOptions";
+
+import {appearanceDuration, appearanceInMinuteWindow} from "./appearanceMinuteWindow";
 
 /**
  * Pure appearance filtering + game-number assignment.
@@ -7,8 +10,15 @@ import {AppearanceTypeOptions, HomeOrAwayOptions} from "../../../types/SearchOpt
 export const filterAppearances = (
     data: PlayerAppearance[],
     playerFilterState: PlayerFilterState,
+    dateOfBirth?: string,
 ): PlayerAppearance[] => {
     return data.filter(a => {
+        if (playerFilterState.selectedMinimumAge !== undefined || playerFilterState.selectedMaximumAge !== undefined) {
+            const age = ageOnMatchDate(dateOfBirth, a.date);
+            if (age === null
+                || (playerFilterState.selectedMinimumAge !== undefined && age < playerFilterState.selectedMinimumAge)
+                || (playerFilterState.selectedMaximumAge !== undefined && age > playerFilterState.selectedMaximumAge)) return false;
+        }
         if (playerFilterState.selectedAppearanceType === AppearanceTypeOptions.STARTED) {
             if (a.played_from_minute > 1) {
                 return false;
@@ -20,7 +30,7 @@ export const filterAppearances = (
         }
 
         if (playerFilterState.selectedMaximumMinutesPlayed || playerFilterState.selectedMinimumMinutesPlayed) {
-            const minutesPlayed = a.minutes_played[1] - a.minutes_played[0];
+            const minutesPlayed = appearanceDuration(a);
 
             if (playerFilterState.selectedMinimumMinutesPlayed && playerFilterState.selectedMinimumMinutesPlayed > minutesPlayed) {
                 return false;
@@ -61,8 +71,8 @@ export const filterAppearances = (
         return !playerFilterState.selectedHomeOrAway || playerFilterState.selectedHomeOrAway === HomeOrAwayOptions.EITHER ||
             (playerFilterState.selectedHomeOrAway === HomeOrAwayOptions.HOME && a.club_id === a.home_club_id) ||
             (playerFilterState.selectedHomeOrAway === HomeOrAwayOptions.AWAY && a.club_id === a.away_club_id);
-    }).map((a, index) => ({
-        ...a,
-        game_number: index + 1
-    }));
+    }).flatMap(a => {
+        const appearance = appearanceInMinuteWindow(a, playerFilterState.selectedMinuteFrom, playerFilterState.selectedMinuteTo);
+        return appearance ? [appearance] : [];
+    }).map((a, index) => ({...a, game_number: index + 1}));
 };

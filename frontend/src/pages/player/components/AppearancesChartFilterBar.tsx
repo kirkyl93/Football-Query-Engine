@@ -1,3 +1,5 @@
+import AgeSection from "./appearancesFilter/AgeSection";
+import MinuteWindowSection from "./appearancesFilter/MinuteWindowSection";
 import React, {useEffect, useState} from "react";
 import styles from './AppearancesChartFilterBar.module.css';
 import shared from "../../../styles/shared.module.css";
@@ -15,6 +17,7 @@ import EventsSection from "./appearancesFilter/EventsSection";
 
 interface AppearancesChartFilterBarProps {
     isOpen: boolean;
+    ageFilterAvailable?: boolean;
     playerSeasonsCompetitionsAndClubs: PlayerSeasonsCompetitionsAndClubs;
     playerFilterState: PlayerFilterState;
     onFilterChange: (filterState: PlayerFilterState) => void;
@@ -24,6 +27,7 @@ interface AppearancesChartFilterBarProps {
 const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
     {
         isOpen,
+        ageFilterAvailable = false,
         playerSeasonsCompetitionsAndClubs,
         playerFilterState,
         onFilterChange,
@@ -59,6 +63,10 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
             selectedClubsPlayedAgainst: [],
             selectedHomeOrAway: HomeOrAwayOptions.EITHER,
             selectedAppearanceType: AppearanceTypeOptions.EITHER,
+            selectedMinimumAge: undefined,
+            selectedMaximumAge: undefined,
+            selectedMinuteFrom: undefined,
+            selectedMinuteTo: undefined,
             selectedMinimumMinutesPlayed: undefined,
             selectedMaximumMinutesPlayed: undefined,
             selectedEvents: {
@@ -183,6 +191,23 @@ const AppearancesChartFilterBar: React.FC<AppearancesChartFilterBarProps> = (
                     onAppearanceTypeChange={(e) => setField('selectedAppearanceType', e.target.value as AppearanceTypeOptions)}
                     onMinimumMinutesPlayedChange={(e) => setField('selectedMinimumMinutesPlayed', parseOptionalNumber(e.target.value))}
                     onMaximumMinutesPlayedChange={(e) => setField('selectedMaximumMinutesPlayed', parseOptionalNumber(e.target.value))}
+                />
+                <AgeSection
+                    minimum={localFilterState.selectedMinimumAge}
+                    maximum={localFilterState.selectedMaximumAge}
+                    available={ageFilterAvailable}
+                    onMinimumChange={age => setLocalFilterState(prev => ({...prev, selectedMinimumAge: age,
+                        selectedMaximumAge: age !== undefined && prev.selectedMaximumAge !== undefined && age > prev.selectedMaximumAge ? age : prev.selectedMaximumAge}))}
+                    onMaximumChange={age => setLocalFilterState(prev => ({...prev, selectedMaximumAge: age,
+                        selectedMinimumAge: age !== undefined && prev.selectedMinimumAge !== undefined && age < prev.selectedMinimumAge ? age : prev.selectedMinimumAge}))}
+                />
+                <MinuteWindowSection
+                    from={localFilterState.selectedMinuteFrom}
+                    to={localFilterState.selectedMinuteTo}
+                    onFromChange={minute => setLocalFilterState(prev => ({...prev, selectedMinuteFrom: minute,
+                        selectedMinuteTo: minute !== undefined && prev.selectedMinuteTo !== undefined && minute > prev.selectedMinuteTo ? minute : prev.selectedMinuteTo}))}
+                    onToChange={minute => setLocalFilterState(prev => ({...prev, selectedMinuteTo: minute,
+                        selectedMinuteFrom: minute !== undefined && prev.selectedMinuteFrom !== undefined && minute < prev.selectedMinuteFrom ? minute : prev.selectedMinuteFrom}))}
                 />
                 <EventsSection
                     selectedEvents={localFilterState.selectedEvents}

@@ -172,6 +172,8 @@ const Player: React.FC = () => {
             </div>
             <PlayerChartsGrid
                 playerLastName={playerData.last_name}
+                playerDateOfBirth={playerData.date_of_birth}
+                comparisonDateOfBirth={comparisonPlayer?.date_of_birth}
                 playerGameData={playerGameData}
                 comparisonPlayerName={comparisonPlayerName}
                 comparisonPlayerGameData={comparisonPlayerGameData}

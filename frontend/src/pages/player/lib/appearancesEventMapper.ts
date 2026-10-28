@@ -1,3 +1,4 @@
+import {secondYellowMinute} from "./appearanceMinuteWindow";
 import {PlayerAppearance} from "../../../types/Player";
 import {EventType} from "../../../types/Player";
 
@@ -67,9 +68,14 @@ export const mapAppearanceEvents = (
                 events.push({game_number: item.game_number, minute, size: 5, color: 'red', shape: 'rectangle'});
             });
 
+            const dismissal = item.second_yellow_red_minute;
+            if (dismissal != null) {
+                events.push({game_number: item.game_number, minute: dismissal, size: 5, color: 'red', shape: 'rectangle'});
+            }
+
             // Only add red card yellows if we haven't already added yellows
             if (!noEventFiltersSelected && !selectedEvents.Yellows) {
-                if (item.yellow_minutes.length > 1) {
+                if (secondYellowMinute(item) !== null) {
                     item.yellow_minutes.forEach((minute) => {
                         events.push({
                             game_number: item.game_number,

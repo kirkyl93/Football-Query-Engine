@@ -17,6 +17,9 @@ export interface Player {
 }
 
 export interface PlayerAppearance {
+    /** Client-side projection metadata; absent on the initial API response. */
+    full_match_minutes_played?: number[],
+    second_yellow_red_minute?: number | null,
     game_id?: number,
     game_number: number,
     club_id: number,
@@ -127,6 +130,10 @@ export interface PlayerFilterState {
     selectedClubsPlayedAgainst: number[],
     selectedHomeOrAway: HomeOrAwayOptions,
     selectedAppearanceType: AppearanceTypeOptions,
+    selectedMinimumAge?: number,
+    selectedMaximumAge?: number,
+    selectedMinuteFrom?: number,
+    selectedMinuteTo?: number,
     selectedMinimumMinutesPlayed?: number,
     selectedMaximumMinutesPlayed?: number,
     selectedEvents: SelectedEvents

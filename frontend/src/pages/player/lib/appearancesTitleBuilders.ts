@@ -1,3 +1,4 @@
+import {minuteWindow} from "./appearanceMinuteWindow";
 import {PlayerFilterState} from "../../../types/Player";
 import {AppearanceTypeOptions, HomeOrAwayOptions} from "../../../types/SearchOptions";
 import {
@@ -54,6 +55,9 @@ export const constructAppearancesTitle = (playerName: string, filterState: Playe
         appearancesSeasonsTitle(filterState),
         appearancesHomeOrAwayTitle(filterState),
         appearancesIncludeOnlyTitle(filterState),
+        describeSpan(filterState.selectedMinimumAge, filterState.selectedMaximumAge, "years old"),
+        filterState.selectedMinuteFrom !== undefined || filterState.selectedMinuteTo !== undefined
+            ? `minutes ${minuteWindow(filterState.selectedMinuteFrom, filterState.selectedMinuteTo).join('–')}` : '',
     );
 
     return headline ? `${headline}: ${criteria}` : cap(criteria);

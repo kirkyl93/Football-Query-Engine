@@ -97,3 +97,13 @@ describe('constructAppearancesTitle', () => {
         );
     });
 });
+
+it('distinguishes a match-minute window from minimum appearance duration', () => {
+    expect(constructAppearancesTitle('Alex', {...createDefaultPlayerFilterState(), selectedMinuteFrom: 1, selectedMinuteTo: 45, selectedMinimumMinutesPlayed: 60}))
+        .toContain('60+ minutes, minutes 1–45');
+});
+
+it('includes the age range and the match-minute window in the title', () => {
+    expect(constructAppearancesTitle('Alex', {...createDefaultPlayerFilterState(), selectedMinimumAge: 24, selectedMaximumAge: 25, selectedMinuteFrom: 1, selectedMinuteTo: 45}))
+        .toContain('24–25 years old, minutes 1–45');
+});

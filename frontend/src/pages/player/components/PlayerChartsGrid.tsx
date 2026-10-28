@@ -20,6 +20,8 @@ import {
 
 interface PlayerChartsGridProps {
     playerLastName: string;
+    playerDateOfBirth?: string;
+    comparisonDateOfBirth?: string;
     playerGameData: PlayerAppearance[];
     comparisonPlayerName: string;
     comparisonPlayerGameData: PlayerAppearance[];
@@ -47,6 +49,8 @@ const MINI_HEIGHT = 130;
  */
 const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
     playerLastName,
+    playerDateOfBirth,
+    comparisonDateOfBirth,
     playerGameData,
     comparisonPlayerName,
     comparisonPlayerGameData,
@@ -62,8 +66,8 @@ const PlayerChartsGrid: React.FC<PlayerChartsGridProps> = ({
     const [focusAppearance, setFocusAppearance] = useState<null | 'main' | 'comparison'>(null);
     const hasComparison = comparisonEnabled && comparisonPlayerGameData.length > 0;
 
-    const mainView = useAppearanceView(playerGameData);
-    const comparisonView = useAppearanceView(comparisonPlayerGameData);
+    const mainView = useAppearanceView(playerGameData, playerDateOfBirth);
+    const comparisonView = useAppearanceView(comparisonPlayerGameData, comparisonDateOfBirth);
 
     // Debounced fan-out: the page-level stats (and every chart derived
     // from them) follow the shared zoom window.

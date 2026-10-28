@@ -47,21 +47,13 @@ export interface ChartSizing {
 }
 
 /**
- * Y-axis domain for the appearances chart. European games can run past
- * 90 minutes, otherwise a full match is the ceiling. Falls back to a
- * full match when filters leave nothing to measure — Math.max of an
- * empty range is -Infinity, which crashes the chart.
+ * Keep a 90-minute baseline and extend to the actual playing intervals,
+ * regardless of competition. Empty and short windows retain a stable axis.
  */
-export const calculateYDomain = (
-    zoomedData: PlayerAppearance[],
-    hasEuropeanCompetitions: boolean,
-): number[] => {
-    if (!hasEuropeanCompetitions || zoomedData.length === 0) {
-        return [0, 90];
-    }
+export const calculateYDomain = (zoomedData: PlayerAppearance[]): number[] => {
     // Single pass without an intermediate array or spread call, so large
     // zoom windows don't allocate on every recompute.
-    let maxMinutes = 0;
+    let maxMinutes = 90;
     for (let i = 0; i < zoomedData.length; i++) {
         const end = zoomedData[i].minutes_played[1];
         if (end > maxMinutes) {

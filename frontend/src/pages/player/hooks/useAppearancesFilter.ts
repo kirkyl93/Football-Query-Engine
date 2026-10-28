@@ -34,7 +34,7 @@ interface UseAppearancesFilterResult {
  * Owns the game log, filter state and derived filtered data for one
  * appearances chart. The initial zoom range is derived by the zoom hook.
  */
-export const useAppearancesFilter = (initialData: PlayerAppearance[] | undefined): UseAppearancesFilterResult => {
+export const useAppearancesFilter = (initialData: PlayerAppearance[] | undefined, dateOfBirth?: string): UseAppearancesFilterResult => {
     const [data, setData] = useState<PlayerAppearance[]>(initialData || []);
     const [playerFilterState, setPlayerFilterState] = useState<PlayerFilterState>(createDefaultPlayerFilterState);
     const [metadata, setMetadata] = useState<PlayerSeasonsCompetitionsAndClubs>(createDefaultMetadata());
@@ -60,7 +60,7 @@ export const useAppearancesFilter = (initialData: PlayerAppearance[] | undefined
 
     }, [initialData]);
 
-    const filteredData = useMemo(() => filterAppearances(data, playerFilterState), [data, playerFilterState]);
+    const filteredData = useMemo(() => filterAppearances(data, playerFilterState, dateOfBirth), [data, playerFilterState, dateOfBirth]);
 
     return {filteredData, playerFilterState, setPlayerFilterState, metadata};
 };
