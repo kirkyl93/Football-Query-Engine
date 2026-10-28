@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { PlayerAppearance } from '../../../types/Player';
 import { useAppearanceView } from './useAppearanceView';
 
@@ -82,4 +82,48 @@ describe('useAppearanceView zoom filter', () => {
         });
         expect(result.current.hasZoomFilter).toBe(false);
     });
+});
+
+it('shares the minute-filtered games across the view and restores the loaded data without fetching', async () => {
+    const loaded = [
+        {...game(1), goals: 1, goal_minutes: [10]},
+        {...game(2), played_from_minute: 60, minutes_played: [60, 90], goals: 1, goal_minutes: [75]},
+        {...game(3), goals: 2, goal_minutes: [20, 80]},
+    ];
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    try {
+        const {result} = renderHook(() => useAppearanceView(loaded));
+        act(() => result.current.setPlayerFilterState({...result.current.playerFilterState, selectedMinuteFrom: 1, selectedMinuteTo: 45}));
+        await waitFor(() => expect(result.current.zoomedData).toHaveLength(2));
+        expect(result.current.totals.goals).toBe(2);
+        expect(result.current.scatterData.filter(event => event.color === 'blue').map(event => event.minute)).toEqual([10, 20]);
+        expect(result.current.filteredByGame.size).toBe(2);
+        expect(result.current.yDomain).toEqual([0, 90]);
+        act(() => result.current.setPlayerFilterState({...result.current.playerFilterState, selectedMinuteFrom: 100, selectedMinuteTo: 120}));
+        await waitFor(() => expect(result.current.zoomedData).toEqual([]));
+        expect(result.current.totals.goals).toBe(0);
+        act(() => result.current.setPlayerFilterState({...result.current.playerFilterState, selectedMinuteFrom: undefined, selectedMinuteTo: undefined}));
+        await waitFor(() => expect(result.current.zoomedData).toHaveLength(3));
+        expect(result.current.totals.goals).toBe(4);
+        expect(loaded[2].goal_minutes).toEqual([20, 80]);
+        expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+        fetchSpy.mockRestore();
+    }
+});
+
+it('uses each comparison player birth date locally when filtering by age', async () => {
+    const loaded = [{...game(1), date: '2025-07-20'}, {...game(2), date: '2025-07-21'}];
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    try {
+        const {result} = renderHook(() => ({main: useAppearanceView(loaded, '2000-07-21'), comparison: useAppearanceView(loaded, '2001-07-21')}));
+        act(() => {
+            result.current.main.setPlayerFilterState({...result.current.main.playerFilterState, selectedMinimumAge: 25});
+            result.current.comparison.setPlayerFilterState({...result.current.comparison.playerFilterState, selectedMinimumAge: 25});
+        });
+        await waitFor(() => expect(result.current.main.zoomedData).toHaveLength(1));
+        expect(result.current.main.zoomedData[0].date).toBe('2025-07-21');
+        expect(result.current.comparison.zoomedData).toEqual([]);
+        expect(fetchSpy).not.toHaveBeenCalled();
+    } finally { fetchSpy.mockRestore(); }
 });

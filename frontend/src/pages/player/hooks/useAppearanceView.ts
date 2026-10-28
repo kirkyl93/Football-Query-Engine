@@ -22,6 +22,7 @@ import {resolveBarFills} from "../lib/barFillColours";
 export const ZOOM_CHANGE_DEBOUNCE_MS = 150;
 
 export interface AppearanceView {
+    dateOfBirth?: string;
     filteredData: PlayerAppearance[];
     playerFilterState: PlayerFilterState;
     setPlayerFilterState: (state: PlayerFilterState) => void;
@@ -58,8 +59,8 @@ export interface AppearanceView {
  * preview and the section-modal instances so filtering in one place
  * updates every chart.
  */
-export const useAppearanceView = (initialData: PlayerAppearance[] | undefined): AppearanceView => {
-    const {filteredData, playerFilterState, setPlayerFilterState, metadata} = useAppearancesFilter(initialData);
+export const useAppearanceView = (initialData: PlayerAppearance[] | undefined, dateOfBirth?: string): AppearanceView => {
+    const {filteredData, playerFilterState, setPlayerFilterState, metadata} = useAppearancesFilter(initialData, dateOfBirth);
     const {
         zoomedData,
         startGame,
@@ -85,8 +86,8 @@ export const useAppearanceView = (initialData: PlayerAppearance[] | undefined): 
     const sizing = useChartSizing(zoomedData.length);
 
     const yDomain = useMemo(
-        () => calculateYDomain(zoomedData, metadata.europeanCompetitions.length > 0),
-        [zoomedData, metadata.europeanCompetitions.length],
+        () => calculateYDomain(zoomedData),
+        [zoomedData],
     );
 
     const totals = useMemo(() => calculateAppearancesTotals(zoomedData), [zoomedData]);
@@ -111,6 +112,7 @@ export const useAppearanceView = (initialData: PlayerAppearance[] | undefined): 
     }, [startGame, endGame, filteredData]);
 
     return {
+        dateOfBirth,
         filteredData,
         playerFilterState,
         setPlayerFilterState,

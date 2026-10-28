@@ -64,17 +64,20 @@ describe('calculateSize mid-range', () => {
 });
 
 describe('calculateYDomain', () => {
-    it('caps domestic games at a full match', () => {
-        expect(calculateYDomain([game(), game({minutes_played: [0, 45]})], false)).toEqual([0, 90]);
+    it('keeps a full-match baseline for shorter games', () => {
+        expect(calculateYDomain([game(), game({minutes_played: [0, 45]})])).toEqual([0, 90]);
     });
 
-    it('extends past 90 for European games', () => {
-        expect(calculateYDomain([game({minutes_played: [0, 120]})], true)).toEqual([0, 120]);
+    it('extends past 90 based on playing time, regardless of competition', () => {
+        expect(calculateYDomain([game({minutes_played: [0, 120]})])).toEqual([0, 120]);
     });
 
     it('falls back to a full match when filters leave no games', () => {
-        expect(calculateYDomain([], true)).toEqual([0, 90]);
-        expect(calculateYDomain([], false)).toEqual([0, 90]);
+        expect(calculateYDomain([])).toEqual([0, 90]);
     });
 });
 
+
+it('keeps the full-match axis when a minute filter leaves only a short interval', () => {
+    expect(calculateYDomain([game({minutes_played: [1, 4]})])).toEqual([0, 90]);
+});

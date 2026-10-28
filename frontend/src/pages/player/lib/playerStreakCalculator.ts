@@ -1,3 +1,4 @@
+import {secondYellowMinute} from "./appearanceMinuteWindow";
 import {
     PlayerAppearance,
     PlayerStreaks,
@@ -70,7 +71,7 @@ export const calculatePlayerStreaks = (appearances: PlayerAppearance[]): PlayerS
             noGoal: appearance.goals === 0,
             assist: appearance.assists > 0,
             yellow: appearance.yellow_minutes.length > 0,
-            red: appearance.yellow_minutes.length > 1 || appearance.red_cards > 0,
+            red: secondYellowMinute(appearance) !== null || appearance.red_cards > 0,
             teamScoring: atHome ? appearance.home_club_goals > 0 : appearance.away_club_goals > 0,
             teamNotScoring: atHome ? appearance.home_club_goals === 0 : appearance.away_club_goals === 0,
             cleanSheet: atHome ? appearance.away_club_goals === 0 : appearance.home_club_goals === 0,

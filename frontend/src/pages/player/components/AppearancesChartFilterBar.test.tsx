@@ -104,3 +104,66 @@ describe('AppearancesChartFilterBar', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 });
+
+describe('player minute-window controls', () => {
+    it('applies a minute window and resets both bounds', async () => {
+        const onFilterChange = vi.fn();
+        const user = userEvent.setup();
+        renderFilterBar({onFilterChange});
+        await user.click(screen.getByText('MINUTE WINDOW'));
+        await user.selectOptions(screen.getByLabelText('From minute:'), '1');
+        await user.selectOptions(screen.getByLabelText('To minute:'), '45');
+        await user.click(screen.getByText('APPLY'));
+        expect(onFilterChange.mock.calls[0][0]).toMatchObject({selectedMinuteFrom: 1, selectedMinuteTo: 45});
+        await user.click(screen.getByText('Reset'));
+        await user.click(screen.getByText('APPLY'));
+        expect(onFilterChange.mock.calls[1][0].selectedMinuteFrom).toBeUndefined();
+        expect(onFilterChange.mock.calls[1][0].selectedMinuteTo).toBeUndefined();
+    });
+
+    it('keeps the minute bounds in order', async () => {
+        const user = userEvent.setup();
+        renderFilterBar();
+        await user.click(screen.getByText('MINUTE WINDOW'));
+        await user.selectOptions(screen.getByLabelText('To minute:'), '45');
+        await user.selectOptions(screen.getByLabelText('From minute:'), '60');
+        expect(screen.getByLabelText('To minute:')).toHaveValue('60');
+        await user.selectOptions(screen.getByLabelText('To minute:'), '30');
+        expect(screen.getByLabelText('From minute:')).toHaveValue('30');
+    });
+});
+
+describe('player age controls', () => {
+    it('applies and clears age bounds while keeping the drawer compact', async () => {
+        const user = userEvent.setup();
+        const onFilterChange = vi.fn();
+        renderFilterBar({ageFilterAvailable: true, onFilterChange});
+        await user.click(screen.getByText('AGE'));
+        await user.selectOptions(screen.getByLabelText('Min age:'), '24');
+        await user.selectOptions(screen.getByLabelText('Max age:'), '25');
+        await user.click(screen.getByText('APPLY'));
+        expect(onFilterChange.mock.calls[0][0]).toMatchObject({selectedMinimumAge: 24, selectedMaximumAge: 25});
+        await user.click(screen.getByText('MINUTE WINDOW'));
+        expect(screen.queryByText(/Count player events and minutes/)).not.toBeInTheDocument();
+        await user.click(screen.getByText('Reset'));
+        await user.click(screen.getByText('APPLY'));
+        expect(onFilterChange.mock.calls[1][0].selectedMinimumAge).toBeUndefined();
+        expect(onFilterChange.mock.calls[1][0].selectedMaximumAge).toBeUndefined();
+    });
+    it('disables age selection when the birth date is unavailable', async () => {
+        renderFilterBar({ageFilterAvailable: false});
+        await userEvent.setup().click(screen.getByText('AGE'));
+        expect(screen.getByLabelText('Min age:')).toBeDisabled();
+        expect(screen.getByLabelText('Max age:')).toBeDisabled();
+    });
+    it('keeps age bounds in order', async () => {
+        renderFilterBar({ageFilterAvailable: true});
+        const user = userEvent.setup();
+        await user.click(screen.getByText('AGE'));
+        await user.selectOptions(screen.getByLabelText('Max age:'), '20');
+        await user.selectOptions(screen.getByLabelText('Min age:'), '25');
+        expect(screen.getByLabelText('Max age:')).toHaveValue('25');
+        await user.selectOptions(screen.getByLabelText('Max age:'), '18');
+        expect(screen.getByLabelText('Min age:')).toHaveValue('18');
+    });
+});

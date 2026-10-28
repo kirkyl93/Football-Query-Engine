@@ -1,3 +1,4 @@
+import {secondYellowMinute} from "./appearanceMinuteWindow";
 import {
     createDefaultPlayerStats,
     PlayerAppearance,
@@ -50,8 +51,8 @@ export const calculatePlayerAndTeamStats = (appearances: PlayerAppearance[]): Pl
     playerStats.totalGames = appearances.length;
 
     appearances.forEach((appearance) => {
-        let startedGame = appearance.minutes_played[0] === 0;
-        let finishedGame = appearance.subbed_off_minute === 0;
+        let startedGame = (appearance.full_match_minutes_played ?? appearance.minutes_played)[0] === 0;
+        let finishedGame = !appearance.subbed_off_minute;
 
         if (startedGame && finishedGame) {
             playerStats.gamesStartedAndFinished++;
@@ -81,7 +82,7 @@ export const calculatePlayerAndTeamStats = (appearances: PlayerAppearance[]): Pl
         playerStats.totalPlayerAssists += appearance.assist_minutes.length;
         playerStats.totalYellows += appearance.yellow_minutes.length;
         playerStats.totalReds += appearance.red_minutes.length;
-        if (appearance.yellow_minutes.length == 2) {
+        if (secondYellowMinute(appearance) !== null) {
             playerStats.totalReds++;
         }
 

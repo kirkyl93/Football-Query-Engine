@@ -1,3 +1,4 @@
+import {secondYellowMinute} from "./appearanceMinuteWindow";
 import {PlayerAppearance, PlayerTotals} from "../../../types/Player";
 
 /**
@@ -24,11 +25,9 @@ export const calculateAppearancesTotals = (zoomedData: PlayerAppearance[]): Play
         if (cleanSheet) {
             playerTotals.cleanSheets++;
         }
-        if (app.yellow_cards < 2) {
-            playerTotals.yellows += app.yellow_cards;
-        }
+        playerTotals.yellows += app.yellow_cards;
         playerTotals.reds += app.red_cards;
-        if (app.yellow_cards > 1) {
+        if (secondYellowMinute(app) !== null) {
             playerTotals.reds++;
         }
     })

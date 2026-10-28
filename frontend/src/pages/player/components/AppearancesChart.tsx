@@ -13,6 +13,7 @@ import AppearancesMainChart from "./appearances/AppearancesMainChart";
 type AppearancesChartProps = {
     playerName: string;
     data?: PlayerAppearance[];
+    dateOfBirth?: string;
     onZoomChange: (zoomedData: PlayerAppearance[]) => void;
     /**
      * Compact tile preview: title + live canvas (real tooltip and zoom,
@@ -24,8 +25,8 @@ type AppearancesChartProps = {
 
 };
 
-export function AppearancesChart({playerName: name, data: initialData, onZoomChange: onZoomChange, compact = false}: AppearancesChartProps) {
-    const view = useAppearanceView(initialData);
+export function AppearancesChart({playerName: name, data: initialData, dateOfBirth, onZoomChange: onZoomChange, compact = false}: AppearancesChartProps) {
+    const view = useAppearanceView(initialData, dateOfBirth);
 
     // Debounced fan-out: chart + summary header render from zoomedData
     // immediately; parent stats wait for the gesture to settle.
@@ -174,6 +175,7 @@ export function AppearancesChartView({playerName: name, view, compact = false, o
             <div ref={drawerRef}>
                 <AppearancesChartFilterBar
                     isOpen={isPlayerDrawerOpen}
+                    ageFilterAvailable={Boolean(view.dateOfBirth)}
                     playerFilterState={playerFilterState}
                     playerSeasonsCompetitionsAndClubs={metadata}
                     onFilterChange={setPlayerFilterState}
