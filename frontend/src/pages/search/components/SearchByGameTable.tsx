@@ -36,7 +36,7 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                             <th className={styles['second-columns-to-hide']}>Competition</th>
                             <th className={styles['second-columns-to-hide']}>Season</th>
                             <th className={styles['third-columns-to-hide']}>Date</th>
-                            <th className={styles['first-columns-to-hide']}>Position</th>
+                            <th className={`${styles['first-columns-to-hide']} ${baseStyles['position-column']}`}>Position</th>
                             <th>Result</th>
                             <th className={`${baseStyles.numeric} ${styles['first-columns-to-hide']}`}>Mins Played</th>
                             <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} onSort={onSortChange} />
@@ -79,7 +79,7 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                 </td>
                                 <td className={styles['second-columns-to-hide']}>{formatSeason(playerGame.season)}</td>
                                 <td className={styles['third-columns-to-hide']}>{dateFormatter.format(convertDateStringToDate(playerGame.date))}</td>
-                                <td className={styles['first-columns-to-hide']}>{playerGame.sub_position}</td>
+                                <td className={`${styles['first-columns-to-hide']} ${baseStyles['position-column']}`}>{playerGame.sub_position}</td>
                                 <td>
                                     <span className={baseStyles['match-result']}>
                                     <img

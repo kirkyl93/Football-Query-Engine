@@ -33,7 +33,7 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                             <th className={baseStyles.numeric}>Rank</th>
                             <th className={baseStyles['player-name']}>Player</th>
                             <th className={styles['first-gs-columns-to-hide']}>Clubs</th>
-                            <th className={styles['first-gs-columns-to-hide']}>Position</th>
+                            <th className={`${styles['first-gs-columns-to-hide']} ${baseStyles['position-column']}`}>Position</th>
                             {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles['season-column']}>Season</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th className={baseStyles.numeric}>Number of seasons</th>}
                             {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles.numeric}>Number of games</th>}
@@ -62,7 +62,7 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                                     cellClassName={styles['first-gs-columns-to-hide']}
                                     clubIds={player.clubs_played_for.split(',')}
                                 />
-                                <td className={styles['first-gs-columns-to-hide']}>{player.sub_position}</td>
+                                <td className={`${styles['first-gs-columns-to-hide']} ${baseStyles['position-column']}`}>{player.sub_position}</td>
                                 {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td className={baseStyles['season-column']}>{formatSeason(player.season)}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td className={baseStyles.numeric}>{player.number_of_seasons}</td>}
                                 {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td className={baseStyles.numeric}>{player.number_of_games}</td>}

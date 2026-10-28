@@ -32,7 +32,8 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 12px 24px;
-    margin: 24px 0;
+    width: min(100%, 1120px);
+    margin: 24px auto;
 }
 
 .search-actions {
@@ -106,4 +107,9 @@
     .action-label {
         display: none;
     }
+}
+
+.content-wrapper > :global(#natural-language-search-panel) {
+    width: min(100%, 1120px);
+    margin-inline: auto;
 }
