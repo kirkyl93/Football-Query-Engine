@@ -36,7 +36,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                             <th className={baseStyles['player-name']}>Player</th>
                             <th className={styles['first-columns-to-hide']}>Clubs</th>
                             {filterState.statScope === StatScope.SEASON && <th className={baseStyles['season-column']}>Season</th>}
-                            <th className={styles['second-columns-to-hide']}>Position</th>
+                            <th className={`${styles['second-columns-to-hide']} ${baseStyles['position-column']}`}>Position</th>
                             <SortableTh label="Apps" columnSort={SortOptions.APPEARANCES} activeSort={filterState.sortBy} onSort={onSortChange} className={`${baseStyles['table-header']} ${styles['third-columns-to-hide']}`} />
                             <SortableTh label="Mins" columnSort={SortOptions.MINUTES_PLAYED} activeSort={filterState.sortBy} onSort={onSortChange} className={`${baseStyles['table-header']} ${styles['third-columns-to-hide']}`} />
                             <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} onSort={onSortChange} className={styles['third-columns-to-hide']} />
@@ -82,7 +82,7 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                     clubIds={player.clubs_played_for.split(',')}
                                 />
                                 {filterState.statScope === StatScope.SEASON && <td className={baseStyles['season-column']}>{formatSeason(player.season)}</td>}
-                                <td className={styles['second-columns-to-hide']}>{player.sub_position}</td>
+                                <td className={`${styles['second-columns-to-hide']} ${baseStyles['position-column']}`}>{player.sub_position}</td>
                                 <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}><strong>{player.total_appearances}</strong>
                                     {!filterState.subsOnly && (<> ({player.substitute_appearances})</>)}</td>
                                 <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.total_minutes_played}</td>

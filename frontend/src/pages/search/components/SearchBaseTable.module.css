@@ -55,7 +55,7 @@
 }
 
 .player-name {
-    min-width: 170px;
+    min-width: 145px;
 }
 
 .club-badges {
@@ -171,11 +171,11 @@
 
 /* Keep every column in normal flow; wide results scroll without covering stats. */
 .results-table {
-    width: 100%;
+    width: max-content;
 }
 
 .results-table .details-column {
-    width: 1%;
+    width: auto;
     white-space: nowrap;
 }
 
@@ -210,4 +210,22 @@
         color: var(--color-muted);
     }
 
+}
+
+/* Keep short position codes compact instead of allocating surplus width. */
+.generic-table .position-column {
+    width: auto;
+    padding-left: 12px;
+    padding-right: 12px;
+    white-space: nowrap;
+}
+
+.results-table .player-cell {
+    width: 210px;
+    max-width: 210px;
+}
+
+@container search-results (max-width: 600px) {
+    .results-table { width: 100%; }
+    .results-table .player-cell { width: auto; max-width: 160px; }
 }
