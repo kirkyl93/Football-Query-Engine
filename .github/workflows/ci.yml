@@ -94,14 +94,17 @@ jobs:
           context: ./backend
           platforms: linux/amd64
           push: false
-          tags: football-query-engine:${{ github.sha }}
-          outputs: type=docker,dest=${{ runner.temp }}/football-query-engine.tar
+          tags: football-query-engine:build-${{ github.run_number }}.${{ github.run_attempt }}
+          labels: |
+            org.opencontainers.image.version=build-${{ github.run_number }}.${{ github.run_attempt }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          outputs: type=docker,dest=${{ runner.temp }}/football-query-engine-build-${{ github.run_number }}.${{ github.run_attempt }}.tar
           cache-from: type=gha,scope=backend-image
           cache-to: type=gha,mode=max,scope=backend-image
       - name: Upload image tar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: football-query-engine-${{ github.sha }}
-          path: ${{ runner.temp }}/football-query-engine.tar
+          name: football-query-engine-build-${{ github.run_number }}.${{ github.run_attempt }}
+          path: ${{ runner.temp }}/football-query-engine-build-${{ github.run_number }}.${{ github.run_attempt }}.tar
           if-no-files-found: error
           retention-days: 7
