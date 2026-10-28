@@ -71,6 +71,8 @@ export const sortCriteriaTitle = (filterState: SearchFilterState): string => {
                 "goals and assists",
                 "goals or assists",
             ),
+            filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? describeStatRange(filterState.minimumYellowCards, filterState.maximumYellowCards, "yellow card") : '',
+            filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? describeStatRange(filterState.minimumRedCards, filterState.maximumRedCards, "red card") : '',
         );
     }
 

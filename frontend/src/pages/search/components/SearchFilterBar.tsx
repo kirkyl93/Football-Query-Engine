@@ -327,6 +327,10 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
                     onMinimumAssistsChange={(e) => setField('minimumAssists', parseOptionalNumber(e.target.value))}
                     onMaximumAssistsChange={(e) => setField('maximumAssists', parseOptionalNumber(e.target.value))}
                     onMinimumGoalsAndAssistsChange={(e) => setField('minimumGoalsAndAssists', parseOptionalNumber(e.target.value))}
+                    onMinimumYellowCardsChange={(e) => setField('minimumYellowCards', parseOptionalNumber(e.target.value))}
+                    onMaximumYellowCardsChange={(e) => setField('maximumYellowCards', parseOptionalNumber(e.target.value))}
+                    onMinimumRedCardsChange={(e) => setField('minimumRedCards', parseOptionalNumber(e.target.value))}
+                    onMaximumRedCardsChange={(e) => setField('maximumRedCards', parseOptionalNumber(e.target.value))}
                     onMaximumGoalsAndAssistsChange={(e) => setField('maximumGoalsAndAssists', parseOptionalNumber(e.target.value))}
                 />
             </div>

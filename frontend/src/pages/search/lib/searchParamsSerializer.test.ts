@@ -49,3 +49,13 @@ describe('filterStateToSearchParams', () => {
         expect(params.has(UrlFilters.MINIMUM_GOALS)).toBe(false);
     });
 });
+
+it('serializes card bounds only for season counts, including zero',()=>{
+    const state={...createDefaultSearchFilterState(),sortBy:SortOptions.NUMBER_OF_SEASONS_WITH,minimumYellowCards:10,maximumYellowCards:12,minimumRedCards:0,maximumRedCards:0};
+    const params=filterStateToSearchParams(state);
+    expect(['miny','maxy','minr','maxr'].map(key=>params.get(key))).toEqual(['10','12','0','0']);
+    for(const sortBy of [SortOptions.NUMBER_OF_GAMES_WITH,SortOptions.YELLOW_CARDS]){
+        const other=filterStateToSearchParams({...state,sortBy});
+        expect(['miny','maxy','minr','maxr'].some(key=>other.has(key))).toBe(false);
+    }
+});

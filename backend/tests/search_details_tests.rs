@@ -307,3 +307,38 @@ async fn detail_minutes_reconcile_at_half_time_and_extra_time_boundaries() {
         }
     }
 }
+
+#[actix_web::test]
+async fn card_season_details_reconcile_with_the_qualifying_seasons() {
+    let pool = fixture_pool().await;
+    for window in [
+        SearchParamsBuilder::new(),
+        SearchParamsBuilder::new()
+            .minute_played_from(46)
+            .minute_played_to(90),
+    ] {
+        let query = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .sort(SortOption::NumberOfSeasonsWith)
+            .minimum_yellow_cards(1)
+            .minimum_red_cards(1)
+            .with_filters(&window);
+        let results = get_rows(&pool, "/search/occurrences", &query).await;
+        assert_eq!(results.len(), 2);
+        for result in results {
+            let games = details(&pool, &query, &result).await;
+            let years = result["qualifying_seasons"].as_array().unwrap();
+            assert_eq!(
+                years.len(),
+                result["number_of_seasons"].as_u64().unwrap() as usize
+            );
+            for game in &games {
+                if game["qualifies"] == true {
+                    assert!(years.contains(&game["season"]));
+                }
+            }
+            assert!(sum(&games, "yellows") >= 1);
+            assert!(sum(&games, "reds") >= 1);
+        }
+    }
+}

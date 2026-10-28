@@ -423,3 +423,125 @@ async fn legacy_unbounded_sentinel_penalty_modes_and_pagination_are_preserved() 
         }
     }
 }
+
+#[actix_web::test]
+async fn season_card_thresholds_match_in_recorded_and_minute_filtered_sources() {
+    let pool = fixture_pool().await;
+    for source in [
+        SearchParamsBuilder::new(),
+        SearchParamsBuilder::new()
+            .minute_played_from(1)
+            .minute_played_to(120),
+    ] {
+        let base = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .sort(SortOption::NumberOfSeasonsWith)
+            .with_filters(&source);
+        for (filters, expected) in [
+            (
+                SearchParamsBuilder::new().minimum_yellow_cards(2),
+                json!([[5, 1, [2025]], [3, 1, [2024]]]),
+            ),
+            (
+                SearchParamsBuilder::new().minimum_red_cards(2),
+                json!([[3, 1, [2024]]]),
+            ),
+            (
+                SearchParamsBuilder::new()
+                    .minimum_yellow_cards(2)
+                    .minimum_goals(1),
+                json!([[3, 1, [2024]]]),
+            ),
+            (
+                SearchParamsBuilder::new().minimum_yellow_cards(4),
+                json!([]),
+            ),
+            (
+                SearchParamsBuilder::new()
+                    .minimum_yellow_cards(3)
+                    .maximum_yellow_cards(2),
+                json!([]),
+            ),
+            (
+                SearchParamsBuilder::new()
+                    .maximum_yellow_cards(0)
+                    .maximum_red_cards(0),
+                json!([
+                    [1, 2, [2024, 2025]],
+                    [2, 2, [2024, 2025]],
+                    [4, 1, [2025]],
+                    [5, 1, [2024]],
+                    [6, 1, [2024]],
+                    [3, 1, [2025]]
+                ]),
+            ),
+        ] {
+            let query = base.clone().with_filters(&filters);
+            let actual = rows(
+                &pool,
+                "/search/occurrences",
+                &query,
+                &["player_id", "number_of_seasons", "qualifying_seasons"],
+            )
+            .await;
+            assert_eq!(json!(actual), expected, "{query}");
+        }
+    }
+}
+
+#[actix_web::test]
+async fn card_season_thresholds_respect_minute_windows_and_are_ignored_for_game_counts() {
+    let pool = fixture_pool().await;
+    let base = SearchParamsBuilder::new()
+        .competitions(vec![Competition::PremierLeague])
+        .sort(SortOption::NumberOfSeasonsWith);
+    let late = base
+        .clone()
+        .minute_played_from(46)
+        .minute_played_to(90)
+        .minimum_yellow_cards(1)
+        .maximum_yellow_cards(1)
+        .minimum_red_cards(1);
+    assert_eq!(
+        json!(
+            rows(
+                &pool,
+                "/search/occurrences",
+                &late,
+                &["player_id", "number_of_seasons", "qualifying_seasons"]
+            )
+            .await
+        ),
+        json!([[5, 1, [2025]], [3, 1, [2024]]])
+    );
+    let early = base
+        .clone()
+        .minute_played_from(1)
+        .minute_played_to(45)
+        .minimum_red_cards(1);
+    assert!(
+        get_rows(&pool, "/search/occurrences", &early)
+            .await
+            .is_empty()
+    );
+    let home = base
+        .clone()
+        .home_or_away(football_game::services::player::models::HomeAwayOption::Home)
+        .minimum_red_cards(2);
+    assert!(
+        get_rows(&pool, "/search/occurrences", &home)
+            .await
+            .is_empty()
+    );
+    let games = base.sort(SortOption::NumberOfGamesWith);
+    let expected = get_rows(&pool, "/search/occurrences", &games).await;
+    assert_eq!(
+        get_rows(
+            &pool,
+            "/search/occurrences",
+            &games.minimum_yellow_cards(100).maximum_red_cards(0)
+        )
+        .await,
+        expected
+    );
+}

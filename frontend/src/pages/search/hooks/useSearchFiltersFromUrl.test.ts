@@ -72,3 +72,8 @@ describe('useSearchFiltersFromUrl', () => {
         expect(result.current.playerCountries.map(c => c.code)).toEqual(['de']);
     });
 });
+
+it('restores card season bounds from a shared URL',()=>{
+    const {result}=renderHook(()=>useSearchFiltersFromUrl('?sort=sw&miny=10&maxy=12&minr=0&maxr=0'));
+    expect(result.current).toMatchObject({minimumYellowCards:10,maximumYellowCards:12,minimumRedCards:0,maximumRedCards:0});
+});

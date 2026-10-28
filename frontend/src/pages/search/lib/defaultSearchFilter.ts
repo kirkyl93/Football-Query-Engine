@@ -33,5 +33,9 @@ export const createDefaultSearchFilterState = (): SearchFilterState => ({
     minimumAssists: undefined,
     maximumAssists: undefined,
     minimumGoalsAndAssists: undefined,
-    maximumGoalsAndAssists: undefined
+    maximumGoalsAndAssists: undefined,
+    minimumYellowCards: undefined,
+    maximumYellowCards: undefined,
+    minimumRedCards: undefined,
+    maximumRedCards: undefined
 });

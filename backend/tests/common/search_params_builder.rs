@@ -178,6 +178,26 @@ impl SearchParamsBuilder {
         self
     }
 
+    pub fn minimum_yellow_cards(mut self, value: i32) -> Self {
+        self.params.minimum_yellow_cards = Some(value);
+        self
+    }
+
+    pub fn maximum_yellow_cards(mut self, value: i32) -> Self {
+        self.params.maximum_yellow_cards = Some(value);
+        self
+    }
+
+    pub fn minimum_red_cards(mut self, value: i32) -> Self {
+        self.params.minimum_red_cards = Some(value);
+        self
+    }
+
+    pub fn maximum_red_cards(mut self, value: i32) -> Self {
+        self.params.maximum_red_cards = Some(value);
+        self
+    }
+
     pub fn build(self) -> SearchParams {
         self.params
     }
@@ -239,6 +259,10 @@ impl Clone for SearchParamsBuilder {
                 maximum_assists: self.params.maximum_assists,
                 minimum_goals_and_assists: self.params.minimum_goals_and_assists,
                 maximum_goals_and_assists: self.params.maximum_goals_and_assists,
+                minimum_yellow_cards: self.params.minimum_yellow_cards,
+                maximum_yellow_cards: self.params.maximum_yellow_cards,
+                minimum_red_cards: self.params.minimum_red_cards,
+                maximum_red_cards: self.params.maximum_red_cards,
             },
         }
     }
@@ -330,6 +354,18 @@ impl SearchParamsBuilder {
         }
         if filters.params.minimum_goals_and_assists.is_some() {
             self.params.minimum_goals_and_assists = filters.params.minimum_goals_and_assists;
+        }
+        if filters.params.minimum_yellow_cards.is_some() {
+            self.params.minimum_yellow_cards = filters.params.minimum_yellow_cards;
+        }
+        if filters.params.maximum_yellow_cards.is_some() {
+            self.params.maximum_yellow_cards = filters.params.maximum_yellow_cards;
+        }
+        if filters.params.minimum_red_cards.is_some() {
+            self.params.minimum_red_cards = filters.params.minimum_red_cards;
+        }
+        if filters.params.maximum_red_cards.is_some() {
+            self.params.maximum_red_cards = filters.params.maximum_red_cards;
         }
         if filters.params.maximum_goals_and_assists.is_some() {
             self.params.maximum_goals_and_assists = filters.params.maximum_goals_and_assists;

@@ -1,5 +1,5 @@
 import {SearchFilterState} from "../../../types/SearchFilterState";
-import {minuteBasedSortOptions, numberOfGamesOrSeasonsSortOptions} from "../../../types/SearchOptions";
+import {minuteBasedSortOptions, numberOfGamesOrSeasonsSortOptions, SortOptions} from "../../../types/SearchOptions";
 import {UrlFilters} from "../../../types/UrlFilters";
 
 /**
@@ -52,5 +52,11 @@ export const filterStateToSearchParams = (filterState: SearchFilterState): URLSe
         addParam(UrlFilters.MAXIMUM_GOALS_AND_ASSISTS, filterState.maximumGoalsAndAssists);
     }
 
+    if (filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH) {
+        addParam(UrlFilters.MINIMUM_YELLOW_CARDS, filterState.minimumYellowCards);
+        addParam(UrlFilters.MAXIMUM_YELLOW_CARDS, filterState.maximumYellowCards);
+        addParam(UrlFilters.MINIMUM_RED_CARDS, filterState.minimumRedCards);
+        addParam(UrlFilters.MAXIMUM_RED_CARDS, filterState.maximumRedCards);
+    }
     return params;
 };

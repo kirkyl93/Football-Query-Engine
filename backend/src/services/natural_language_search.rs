@@ -74,6 +74,14 @@ pub struct FilterProposal {
     pub minimum_goals_and_assists: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub maximum_goals_and_assists: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub minimum_yellow_cards: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub maximum_yellow_cards: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub minimum_red_cards: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub maximum_red_cards: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -310,7 +318,9 @@ fn normalize_country_codes(filters: &mut FilterProposal) {
             if !recognised {
                 // Codes are model output: bound their length and escape control characters.
                 let logged_code: String = code.chars().take(16).collect();
-                log::warn!("Dropping unrecognised country code in search translation: {logged_code:?}");
+                log::warn!(
+                    "Dropping unrecognised country code in search translation: {logged_code:?}"
+                );
             }
             recognised
         });
@@ -355,6 +365,32 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
         "goals and assists",
     )?;
 
+    validate_range(
+        filters.minimum_yellow_cards,
+        filters.maximum_yellow_cards,
+        0,
+        1000,
+        "yellow cards",
+    )?;
+    validate_range(
+        filters.minimum_red_cards,
+        filters.maximum_red_cards,
+        0,
+        1000,
+        "red cards",
+    )?;
+    if [
+        filters.minimum_yellow_cards,
+        filters.maximum_yellow_cards,
+        filters.minimum_red_cards,
+        filters.maximum_red_cards,
+    ]
+    .iter()
+    .any(Option::is_some)
+        && filters.sort_by.as_deref() != Some("sw")
+    {
+        return Err("card thresholds require number of seasons (sortBy=sw)".into());
+    }
     if let Some(seasons) = &filters.seasons {
         if let Some(bad) = seasons.iter().find(|s| !(1992..=2025).contains(*s)) {
             return Err(format!("season {bad} is outside 1992..=2025"));
@@ -600,20 +636,31 @@ mod tests {
 
     #[actix_web::test]
     async fn rejected_queries_return_actionable_messages_without_retry() {
-        for error_code in ["ambiguous_query", "unsupported_filter", "unsupported_competition"] {
+        for error_code in [
+            "ambiguous_query",
+            "unsupported_filter",
+            "unsupported_competition",
+        ] {
             let explanation = "Specify a competition, such as the Premier League or La Liga.";
-            let groq = mock(vec![(200, None, completion(&reply(json!({
-                "errorCode": error_code,
-                "summary": explanation
-            }))))]);
+            let groq = mock(vec![(
+                200,
+                None,
+                completion(&reply(json!({
+                    "errorCode": error_code,
+                    "summary": explanation
+                }))),
+            )]);
             let gemini = mock(vec![]);
             let response = translate("query", &Client::new(), &service(&groq, Some(&gemini)))
                 .await
                 .unwrap();
             assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
             let body: Value = serde_json::from_slice(
-                &actix_web::body::to_bytes(response.into_body()).await.unwrap()
-            ).unwrap();
+                &actix_web::body::to_bytes(response.into_body())
+                    .await
+                    .unwrap(),
+            )
+            .unwrap();
             assert_eq!(body["error"], error_code);
             assert_eq!(body["message"], explanation);
             assert_eq!(body["filters"]["competitions"], json!(["GB1"]));
@@ -646,11 +693,20 @@ mod tests {
         let providers = service(&groq, None);
         let client = Client::new();
         for query in ["Premier League top scorers", "La Liga top assist makers"] {
-            assert_eq!(translate(query, &client, &providers).await.unwrap().status(), StatusCode::OK);
+            assert_eq!(
+                translate(query, &client, &providers)
+                    .await
+                    .unwrap()
+                    .status(),
+                StatusCode::OK
+            );
         }
         let requests = groq.requests.lock().unwrap();
         assert_eq!(requests.len(), 2);
-        for (request, query) in requests.iter().zip(["Premier League top scorers", "La Liga top assist makers"]) {
+        for (request, query) in requests
+            .iter()
+            .zip(["Premier League top scorers", "La Liga top assist makers"])
+        {
             assert_eq!(request["messages"].as_array().unwrap().len(), 2);
             assert_eq!(request["messages"][0]["role"], "system");
             assert_eq!(request["messages"][1]["content"], query);
@@ -1059,5 +1115,20 @@ mod tests {
 
         let feedback = m[3]["content"].as_str().unwrap();
         assert!(feedback.chars().count() < MAX_FEEDBACK_REASON_CHARS + 200);
+    }
+    #[test]
+    fn card_threshold_proposals_require_season_counts_and_valid_ranges() {
+        let mut filters = FilterProposal {
+            sort_by: Some("sw".into()),
+            minimum_yellow_cards: Some(10),
+            maximum_red_cards: Some(0),
+            ..Default::default()
+        };
+        assert!(validate_filters(&filters).is_ok());
+        filters.sort_by = Some("gw".into());
+        assert!(validate_filters(&filters).is_err());
+        filters.sort_by = Some("sw".into());
+        filters.maximum_yellow_cards = Some(9);
+        assert!(validate_filters(&filters).is_err());
     }
 }

@@ -1,3 +1,4 @@
+import {SortOptions} from "../../../types/SearchOptions";
 import {SearchFilterState} from "../../../types/SearchFilterState";
 
 /**
@@ -21,5 +22,13 @@ export const validateSearchFilters = (filterState: SearchFilterState): string[] 
         errors.push("Latest sub on minute should be later or equal to earliest sub on minute");
     }
 
+    if (filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH) {
+        for (const [minimum, maximum, label] of [
+            [filterState.minimumYellowCards, filterState.maximumYellowCards, 'yellow cards'],
+            [filterState.minimumRedCards, filterState.maximumRedCards, 'red cards'],
+        ] as const) {
+            if (minimum !== undefined && maximum !== undefined && minimum > maximum) errors.push(`Maximum ${label} should be greater than or equal to minimum ${label}`);
+        }
+    }
     return errors;
 };

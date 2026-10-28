@@ -61,7 +61,11 @@ export const useSearchFiltersFromUrl = (search: string): SearchFilterState => {
             minimumGoalsAndAssists: params.get(UrlFilters.MINIMUM_GOALS_AND_ASSISTS) ?
                 parseInt(params.get(UrlFilters.MINIMUM_GOALS_AND_ASSISTS)!, 10) : undefined,
             maximumGoalsAndAssists: params.get(UrlFilters.MAXIMUM_GOALS_AND_ASSISTS) ?
-                parseInt(params.get(UrlFilters.MAXIMUM_GOALS_AND_ASSISTS)!, 10) : undefined
+                parseInt(params.get(UrlFilters.MAXIMUM_GOALS_AND_ASSISTS)!, 10) : undefined,
+            minimumYellowCards: params.has(UrlFilters.MINIMUM_YELLOW_CARDS) ? Number(params.get(UrlFilters.MINIMUM_YELLOW_CARDS)) : undefined,
+            maximumYellowCards: params.has(UrlFilters.MAXIMUM_YELLOW_CARDS) ? Number(params.get(UrlFilters.MAXIMUM_YELLOW_CARDS)) : undefined,
+            minimumRedCards: params.has(UrlFilters.MINIMUM_RED_CARDS) ? Number(params.get(UrlFilters.MINIMUM_RED_CARDS)) : undefined,
+            maximumRedCards: params.has(UrlFilters.MAXIMUM_RED_CARDS) ? Number(params.get(UrlFilters.MAXIMUM_RED_CARDS)) : undefined
         };
     }, [search]);
 };
