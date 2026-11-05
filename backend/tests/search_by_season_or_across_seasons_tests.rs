@@ -137,9 +137,9 @@ async fn every_aggregate_sort_executes_with_correct_ranks_in_both_sources_and_sc
 async fn penalty_modes_change_goals_and_ratios_in_both_sources_and_scopes() {
     let pool = fixture_pool().await;
     for (penalty, overall_goals, overall_ratio, season_goals, season_ratio) in [
-        (PenaltyOption::IncludePenalties, 7, 64, 4, 67),
-        (PenaltyOption::ExcludePenalties, 5, 90, 3, 90),
-        (PenaltyOption::OnlyPenalties, 2, 225, 1, 270),
+        (PenaltyOption::IncludePenalties, 7, 450.0 / 7.0, 4, 67.5),
+        (PenaltyOption::ExcludePenalties, 5, 90.0, 3, 90.0),
+        (PenaltyOption::OnlyPenalties, 2, 225.0, 1, 270.0),
     ] {
         for source in [
             SearchParamsBuilder::new(),
@@ -414,7 +414,7 @@ async fn combined_filters_apply_before_season_aggregation() {
             ],
         )
         .await;
-        assert_eq!(result, vec![json!([1, 2024, 2, 180, 3, 1, 45])]);
+        assert_eq!(result, vec![json!([1, 2024, 2, 180, 3, 1, 45.0])]);
     }
 }
 
@@ -524,6 +524,49 @@ async fn pagination_preserves_global_rank_and_returns_an_empty_page_after_the_en
             )
             .await;
             assert_eq!(json!(result), expected);
+        }
+    }
+}
+
+#[actix_web::test]
+async fn fractional_rates_break_integer_ties_and_zero_events_stay_undefined() {
+    let pool = fixture_pool().await;
+
+    for (sort, field, denominator) in [
+        (SortOption::MinutesPerGoal, "mins_per_goal", 3.0),
+        (SortOption::MinutesPerAssist, "mins_per_assist", 3.0),
+        (
+            SortOption::MinutesPerGoalOrAssist,
+            "mins_per_goal_or_assist",
+            6.0,
+        ),
+        (SortOption::MinutesPerYellow, "mins_per_yellow", 3.0),
+        (SortOption::MinutesPerRed, "mins_per_red", 3.0),
+    ] {
+        for source in [
+            SearchParamsBuilder::new(),
+            SearchParamsBuilder::new()
+                .minute_played_from(1)
+                .minute_played_to(90),
+        ] {
+            for scope in [StatScope::Overall, StatScope::Season] {
+                let query = SearchParamsBuilder::new()
+                    .competitions(vec![Competition::Bundesliga])
+                    .sort(sort)
+                    .scope(scope)
+                    .with_filters(&source);
+                let result = rows(&pool, "/search", &query, &["player_id", "rank", field]).await;
+                // Integer division would tie both players and put Avery before Zane.
+                assert_eq!(
+                    result,
+                    vec![
+                        json!([17, 1, 100.0 / denominator]),
+                        json!([16, 2, 101.0 / denominator]),
+                        json!([18, 3, null]),
+                    ],
+                    "{query}"
+                );
+            }
         }
     }
 }

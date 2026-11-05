@@ -211,19 +211,25 @@ impl SeasonOrSeasonsQueryMethods for QueryBuilder<Postgres> {
             SortOption::YellowCards => "SUM(a.yellow_cards) DESC".to_string(),
             SortOption::RedCards => format!("{red_sum} DESC"),
             SortOption::MinutesPerGoal => {
-                format!("SUM(a.minutes_played) / NULLIF({goals_calculation}, 0)")
+                format!(
+                    "SUM(a.minutes_played)::numeric / NULLIF({goals_calculation}, 0) ASC NULLS LAST"
+                )
             }
             SortOption::MinutesPerAssist => {
-                "SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0)".to_string()
+                "SUM(a.minutes_played)::numeric / NULLIF(SUM(a.assists), 0) ASC NULLS LAST"
+                    .to_string()
             }
             SortOption::MinutesPerGoalOrAssist => {
-                format!("SUM(a.minutes_played) / NULLIF({goals_calculation} + SUM(a.assists), 0)")
+                format!(
+                    "SUM(a.minutes_played)::numeric / NULLIF({goals_calculation} + SUM(a.assists), 0) ASC NULLS LAST"
+                )
             }
             SortOption::MinutesPerYellow => {
-                "SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0)".to_string()
+                "SUM(a.minutes_played)::numeric / NULLIF(SUM(a.yellow_cards), 0) ASC NULLS LAST"
+                    .to_string()
             }
             SortOption::MinutesPerRed => {
-                format!("SUM(a.minutes_played) / NULLIF(({red_sum}), 0)")
+                format!("SUM(a.minutes_played)::numeric / NULLIF(({red_sum}), 0) ASC NULLS LAST")
             }
             _ => format!("{goals_calculation} DESC"),
         };
@@ -269,16 +275,16 @@ impl SeasonOrSeasonsQueryMethods for QueryBuilder<Postgres> {
                 format!("{red_sum} DESC, SUM(a.yellow_cards) DESC, a.player_name")
             }
             SortOption::MinutesPerGoal => format!(
-                "SUM(a.minutes_played) / NULLIF({goals_calculation}, 0), {goals_calculation} DESC, a.player_name"
+                "SUM(a.minutes_played)::numeric / NULLIF({goals_calculation}, 0) ASC NULLS LAST, {goals_calculation} DESC, a.player_name"
             ),
-            SortOption::MinutesPerAssist => "SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0), SUM(a.assists) DESC, a.player_name".to_string(),
+            SortOption::MinutesPerAssist => "SUM(a.minutes_played)::numeric / NULLIF(SUM(a.assists), 0) ASC NULLS LAST, SUM(a.assists) DESC, a.player_name".to_string(),
             SortOption::MinutesPerGoalOrAssist => format!(
-                "SUM(a.minutes_played) / NULLIF({goals_calculation} + SUM(a.assists), 0), a.player_name"
+                "SUM(a.minutes_played)::numeric / NULLIF({goals_calculation} + SUM(a.assists), 0) ASC NULLS LAST, a.player_name"
             ),
-            SortOption::MinutesPerYellow => "SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0), SUM(a.yellow_cards) DESC, a.player_name".to_string(),
+            SortOption::MinutesPerYellow => "SUM(a.minutes_played)::numeric / NULLIF(SUM(a.yellow_cards), 0) ASC NULLS LAST, SUM(a.yellow_cards) DESC, a.player_name".to_string(),
             SortOption::MinutesPerRed => {
                 format!(
-                    "SUM(a.minutes_played) / NULLIF(({red_sum}), 0), {red_sum} DESC, a.player_name"
+                    "SUM(a.minutes_played)::numeric / NULLIF(({red_sum}), 0) ASC NULLS LAST, {red_sum} DESC, a.player_name"
                 )
             }
             _ => format!(
@@ -300,29 +306,27 @@ impl SeasonOrSeasonsQueryMethods for QueryBuilder<Postgres> {
         goals_calculation: &str,
         source: AppearancesSource,
     ) -> &mut Self {
-        self.push(
-            "
-        SUM(a.minutes_played) / NULLIF(",
-        )
-        .push(goals_calculation)
-        .push(
-            ", 0) AS mins_per_goal,
-        SUM(a.minutes_played) / NULLIF(SUM(a.assists), 0) AS mins_per_assist,
-        SUM(a.minutes_played) / NULLIF(",
-        )
-        .push(goals_calculation)
-        .push(
-            " + SUM(a.assists), 0) AS mins_per_goal_or_assist,
-        SUM(a.minutes_played) / NULLIF(SUM(a.yellow_cards), 0) AS mins_per_yellow,
-        ",
-        );
-
-        // The events CTE already folds double-yellows into red_cards;
-        // the direct table needs the extra CASE.
-        self.push("SUM(a.minutes_played) / NULLIF((");
-        self.push(source.red_cards_sum());
-        self.push("), 0) AS mins_per_red");
-
+        // Keep rates unrounded; presentation is handled by the frontend.
+        for (index, (denominator, alias)) in [
+            (goals_calculation.to_string(), "mins_per_goal"),
+            ("SUM(a.assists)".to_string(), "mins_per_assist"),
+            (
+                format!("{goals_calculation} + SUM(a.assists)"),
+                "mins_per_goal_or_assist",
+            ),
+            ("SUM(a.yellow_cards)".to_string(), "mins_per_yellow"),
+            (source.red_cards_sum().to_string(), "mins_per_red"),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            if index > 0 {
+                self.push(", ");
+            }
+            self.push(format!(
+                "(SUM(a.minutes_played)::numeric / NULLIF(({denominator}), 0))::double precision AS {alias}"
+            ));
+        }
         self
     }
 

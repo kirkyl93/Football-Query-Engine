@@ -50,7 +50,7 @@ async fn full_extra_time_appearances_and_ratios_match_in_direct_and_filtered_que
                 ],
             )
             .await;
-            assert_eq!(result, vec![json!([2, 240, 5, 48, 3, 1])], "{query}{scope}");
+            assert_eq!(result, vec![json!([2, 240, 5, 48.0, 3, 1])], "{query}{scope}");
         }
     }
 }
@@ -270,9 +270,9 @@ async fn extra_time_goals_count_as_two_games_and_one_season_in_both_game_scopes(
 async fn extra_time_penalty_and_same_minute_ratios_use_15_minutes_not_a_regulation_cap() {
     let pool = fixture_pool().await;
     for (penalty, goals, ratio) in [
-        (PenaltyOption::IncludePenalties, 2, 7),
-        (PenaltyOption::ExcludePenalties, 1, 15),
-        (PenaltyOption::OnlyPenalties, 1, 15),
+        (PenaltyOption::IncludePenalties, 2, 7.5),
+        (PenaltyOption::ExcludePenalties, 1, 15.0),
+        (PenaltyOption::OnlyPenalties, 1, 15.0),
     ] {
         let query = SearchParamsBuilder::new()
             .competitions(vec![Competition::ChampionsLeague])
@@ -310,7 +310,7 @@ async fn extra_time_penalty_and_same_minute_ratios_use_15_minutes_not_a_regulati
             &["total_minutes_played", field, ratio_field],
         )
         .await;
-        assert_eq!(result, vec![json!([1, 1, 1])]);
+        assert_eq!(result, vec![json!([1, 1, 1.0])]);
     }
 }
 
