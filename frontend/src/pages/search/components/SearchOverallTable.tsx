@@ -13,7 +13,7 @@ import {PlayerSearchResult} from "../../../types/Player";
 import {PlayerCell} from "./PlayerCell";
 import {ClubBadgesCell} from "./ClubBadgesCell";
 import {SortableTh} from "./SortableTh";
-import {getDisplayStatForSmallScreen, getDisplayTitleForSmallScreen} from "../lib/smallScreenStat";
+import {formatMinutesPerEvent, getDisplayStatForSmallScreen, getDisplayTitleForSmallScreen} from "../lib/smallScreenStat";
 
 interface SearchOverallTableProps {
     filterState: SearchFilterState;
@@ -91,15 +91,15 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
                                 <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.total_yellow_cards}</td>
                                 <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.total_red_cards}</td>
                                 {filterState.sortBy === SortOptions.MINUTES_PER_GOAL &&
-                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_goal}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{formatMinutesPerEvent(player.mins_per_goal)}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_ASSIST &&
-                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_assist}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{formatMinutesPerEvent(player.mins_per_assist)}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_GOAL_OR_ASSIST &&
-                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_goal_or_assist}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{formatMinutesPerEvent(player.mins_per_goal_or_assist)}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_YELLOW &&
-                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_yellow}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{formatMinutesPerEvent(player.mins_per_yellow)}</td>}
                                 {filterState.sortBy === SortOptions.MINUTES_PER_RED &&
-                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{player.mins_per_red}</td>}
+                                    <td className={`${baseStyles.numeric} ${styles['third-columns-to-hide']}`}>{formatMinutesPerEvent(player.mins_per_red)}</td>}
                                 <td className={`${baseStyles.numeric} ${styles['small-screen-display']}`}>
                                     {getDisplayStatForSmallScreen(filterState.sortBy, player)}
                                 </td>

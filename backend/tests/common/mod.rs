@@ -40,7 +40,7 @@ pub async fn fixture_pool() -> PgPool {
     .await
     .expect("Load tests/fixtures/bootstrap.sql before running integration tests");
     assert_eq!(
-        version, 2,
+        version, 3,
         "Bootstrap a fresh database with the current fixture"
     );
     pool

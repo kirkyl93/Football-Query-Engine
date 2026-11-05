@@ -67,11 +67,11 @@ export interface PlayerSearchResult {
     total_red_cards: number,
     total_minutes_played: number,
     clubs_played_for: string,
-    mins_per_goal: number,
-    mins_per_assist: number,
-    mins_per_goal_or_assist: number,
-    mins_per_yellow: number,
-    mins_per_red: number,
+    mins_per_goal: number | null,
+    mins_per_assist: number | null,
+    mins_per_goal_or_assist: number | null,
+    mins_per_yellow: number | null,
+    mins_per_red: number | null,
     season: number
 }
 

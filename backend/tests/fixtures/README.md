@@ -37,7 +37,7 @@ cd backend
 cargo test --locked --all-targets
 ```
 
-The bootstrap uses the real root `dbschema.sql`, inserts `football.sql`, `extra_time.sql`, `half_time.sql` and `repeated_minutes.sql`, then refreshes `appearances_enhanced` followed by `appearances_with_event_times` once, at the end of bootstrap. After all seed files have loaded, bootstrap records version 2 for the complete fixture, which tests require. The separate seed files do not have individual versions. Recreate an older fixture in a new empty test database. Tests **never fall back to `DATABASE_URL`**; local `.env` loading reads the explicitly configured `TEST_DATABASE_URL`. A fresh CI database is seeded once per job; when rerunning tests locally, an unchanged seeded database can be reused without rerunning bootstrap. For unit tests without Postgres, run `cargo test --locked --lib`.
+The bootstrap uses the real root `dbschema.sql`, inserts `football.sql`, `extra_time.sql`, `half_time.sql`, `repeated_minutes.sql` and `fractional_rates.sql`, then refreshes `appearances_enhanced` followed by `appearances_with_event_times` once, at the end of bootstrap. After all seed files have loaded, bootstrap records version 3 for the complete fixture, which tests require. The separate seed files do not have individual versions. Recreate an older fixture in a new empty test database. Tests **never fall back to `DATABASE_URL`**; local `.env` loading reads the explicitly configured `TEST_DATABASE_URL`. A fresh CI database is seeded once per job; when rerunning tests locally, an unchanged seeded database can be reused without rerunning bootstrap. For unit tests without Postgres, run `cargo test --locked --lib`.
 
 ## GitHub Actions
 
@@ -138,7 +138,7 @@ All appearances are 90 minutes except Sam G1 = 80 and G2 = 60; Vale G3 = 30, G4 
 | Vale | 2 | 2 | 0 | 0 | 76 | 2 | 1 |
 | Pat | 1 | 0 | 0 | 0 | 60 | 0 | 0 |
 
-Raw appearance reds contain straight reds only; the search adds double-yellow dismissals. Raw appearance totals and every goal/assist/card are checked against the seed events by a separate fixture-integrity test. The base pack has 28 appearances and 36 events. With the extra-time, half-time and repeated-minute packs, both real materialized views must contain 39 rows and the event table must contain 67 rows.
+Raw appearance reds contain straight reds only; the search adds double-yellow dismissals. Raw appearance totals and every goal/assist/card are checked against the seed events by a separate fixture-integrity test. The base pack has 28 appearances and 36 events. With the extra-time, half-time, repeated-minute and fractional-rate packs, both real materialized views must contain 48 rows and the event table must contain 85 rows.
 
 The 13 boundary tests check 45/46 event inclusion, same-minute goals and assists after substitution, capped match/half/window durations, full-match duration consistency, nonzero same-minute goal/assist ratios, late zero-contribution appearances, game and season counts, cross-window second yellows, straight reds, and disappearance after dismissal. They assert complete returned row identities and relevant numeric fields, not just successful execution.
 
@@ -173,3 +173,9 @@ These are explicit integer timestamps in the database. They test extra time thro
 `repeated_minutes.sql` adds Robin Repeat (13), Casey Creator (14), Lee Late (15), and G11: Leeds Grove vs Lee Harbour, 8–2, IT1/2024 on 2024-12-08. Robin scores open-play goals at 10/90/90 and penalties at 90/90, records own goals at 90/90, assists Casey at 30/90/90, and has two yellow and two red records at 90. The repeated red records are deliberate synthetic stress data. All six event categories coexist to detect both timestamp deduplication and multiplication across joins. Own goals are excluded from recorded goals in the fixture integrity check.
 
 Casey is replaced by Lee at 90. Lee has one recorded minute, no events, empty event arrays and the existing [89, 90] player-chart interval. The read-only player-page tests check both players through the normal HTTP harness; no test creates schemas, seeds data or refreshes views.
+
+## Fractional-rate ledger
+
+`fractional_rates.sql` adds Avery Ratio (16), Zane Ratio (17), Zero Ratio (18), and G12–G14: Bundesliga/2024 fixtures on December 15, 22 and 29. Each game has two goals: Avery scores at 10 assisted by Zane; Zane scores at 20 assisted by Avery. Both receive one yellow at 25 and a straight red at the end of their recorded appearance. Avery plays 34/34/33 minutes; Zane plays 34/33/33. Zero plays 90 minutes in each match with no events.
+
+Avery totals 101 minutes and Zane 100, with three goals, three assists, three yellows and three reds each. Goal-involvement denominators are six. Integer division falsely ties their rates and puts Avery first by name; precise division puts Zane first with a distinct rank. Zero's rates are null and sort last. The regression uses the shared read-only HTTP harness for all five rates, both overall/season scopes and both stored-total/minute-filtered sources. No test creates or updates tables. Fixture version 3 requires a new empty test database; bootstrap never resets an existing one.

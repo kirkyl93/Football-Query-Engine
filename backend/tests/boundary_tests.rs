@@ -141,7 +141,7 @@ async fn incoming_player_can_assist_during_the_substitution_minute() {
         ],
     )
     .await;
-    assert_eq!(result, vec![json!([1, 1, 1, 1])]);
+    assert_eq!(result, vec![json!([1, 1, 1, 1.0])]);
 }
 
 #[actix_web::test]
@@ -304,7 +304,7 @@ async fn same_minute_goal_has_one_credited_minute_and_a_nonzero_ratio() {
         ],
     )
     .await;
-    assert_eq!(result, vec![json!([5, 1, 1, 1, 1])]);
+    assert_eq!(result, vec![json!([5, 1, 1, 1, 1.0])]);
 }
 
 #[actix_web::test]
@@ -491,7 +491,7 @@ async fn the_seed_has_consistent_appearance_totals_and_real_materialized_views()
         "SELECT (SELECT COUNT(*) FROM appearances), (SELECT COUNT(*) FROM game_events),
          (SELECT COUNT(*) FROM appearances_enhanced), (SELECT COUNT(*) FROM appearances_with_event_times)",
     ).fetch_one(&pool).await.unwrap();
-    assert_eq!(counts, (39, 67, 39, 39));
+    assert_eq!(counts, (48, 85, 48, 48));
     let mismatch: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM appearances a WHERE
          a.goals <> (SELECT COUNT(*) FROM game_events e WHERE e.game_id=a.game_id AND e.player_id=a.player_id AND e.type='Goals' AND e.description NOT ILIKE '%own-goal%')
