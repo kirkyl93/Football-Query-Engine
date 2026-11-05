@@ -4,15 +4,16 @@
 
 Ever wondered which Premier League footballer under 173cm with a minimum of 50 appearances has the best ratio of goals and assists in the second half of games?
 
-<img width="1908" height="953" alt="image" src="https://github.com/user-attachments/assets/8e393308-cc0f-4928-a61f-8b95f3663278" />
+<img width="1912" height="940" alt="image" src="https://github.com/user-attachments/assets/e086cee4-948b-4419-b2a2-2de3ea43daae" />
+
 
 Or which 35+year old has inflicted the most misery on Premier League teams in a Champions League game?
 
-<img width="1919" height="949" alt="image" src="https://github.com/user-attachments/assets/4c999fda-6309-446a-83c1-7d8b59fd631c" />
+<img width="1914" height="922" alt="image" src="https://github.com/user-attachments/assets/47acd7e9-4918-47f7-b893-2a4a16fd0c0f" />
 
 Or just how prolific a sub Ole was?
 
-<img width="1913" height="942" alt="image" src="https://github.com/user-attachments/assets/67bb1ec8-9562-4c4f-840c-114336bc096c" />
+<img width="1899" height="944" alt="image" src="https://github.com/user-attachments/assets/b2ef3b6a-44bc-4438-8e12-1dfabfb01a51" />
 
 Finding the answer is now easy! This project aims to get the most out of basic stats (goals, own goals, assists, height, age, event times, yellows, reds) as is possible. No fancy xG, xA or distance covered etc., but certainly enough to generate some fiendish pub quiz questions. 
 
@@ -30,7 +31,7 @@ Now you should be good to go! To extend the years/competitions covered, please s
 
 **How it works**
 
-This project has a simple architecture. For the main query screen, the filter bar adds params to the URL (meaning each query can be saved and shared) which are passed to the Rust backend. These params are then translated into fairly complex SQL queries (stuff you'd not want to write by hand!). The power of the tool is that there are endless queries to be run. For the individual player screen, all filters/chart operations are handled by the frontend.
+This project has a simple architecture. For the main query screen, the natural language search or filter bar adds params to the URL (meaning each query can be saved and shared) which are passed to the Rust backend. These params are then translated into fairly complex SQL queries (stuff you'd not want to write by hand!). The power of the tool is that there are endless queries to be run. For the individual player screen, all filters/chart operations are handled by the frontend.
 
 Data can be downloaded here: https://www.kaggle.com/datasets/davidcariboo/player-scores/data
 
