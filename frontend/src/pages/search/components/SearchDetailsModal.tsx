@@ -9,6 +9,7 @@ import {addDetailStats, DetailResult, DetailStats, detailSeasons, emptyDetailSta
 import {useSearchDetails} from '../hooks/useSearchDetails';
 import {SearchDetailsChart} from './SearchDetailsChart';
 import SearchTitle from './SearchTitle';
+import {ClubBadge} from './ClubBadge';
 import base from './SearchBaseTable.module.css';
 import styles from './SearchDetails.module.css';
 
@@ -79,19 +80,25 @@ export function SearchDetailsModal({result, search, filterState, onClose}: Props
                         <div className={styles.tableWrap}>
                             <table className={`${base['generic-table']} ${styles.table}`}>
                                 <caption className={styles.srOnly}>{seasonsView ? 'Season statistics under the search filters' : 'Game statistics under the search minute and penalty settings'}</caption>
-                                <thead><tr>{!qualifyingOnly && <th><span className={styles.srOnly}>Qualifying</span></th>}{seasonsView ? <th>Season</th> : <>
+                                <thead><tr>{!qualifyingOnly && <th><span className={styles.srOnly}>Qualifying</span></th>}{seasonsView ? <><th>Season</th><th>Clubs</th></> : <>
                                     <th>Date</th><th>Season</th><th>Competition</th><th>Game</th><th>Playing for</th>
                                 </>}{seasonsView && <th>Apps</th>}<th>Mins</th><th>Goals</th><th>Assists</th><th>Yellows</th><th>Reds</th></tr></thead>
                                 <tbody>{seasonsView ? visibleSeasons.slice(start, start + PAGE_SIZE).map(season =>
                                     <tr key={season.season} className={!qualifyingOnly && season.qualifies ? styles.qualifying : undefined}>
                                         {!qualifyingOnly && <td>{season.qualifies ? '✓' : '—'}<span className={styles.srOnly}>{season.qualifies ? 'Qualifying season' : 'Other season'}</span></td>}
-                                        <td>{formatSeason(season.season)}</td><StatCells stats={season.stats}/>
+                                        <td>{formatSeason(season.season)}</td>
+                                        <td><div className={base['club-badges']}>{season.clubs.map(club => <ClubBadge key={club.id} clubId={club.id} name={club.name}/>)}</div></td>
+                                        <StatCells stats={season.stats}/>
                                     </tr>) : visibleGames.slice(start, start + PAGE_SIZE).map(game =>
                                     <tr key={game.game_id} className={!qualifyingOnly && game.qualifies ? styles.qualifying : undefined}>
                                         {!qualifyingOnly && <td>{game.qualifies ? '✓' : '—'}<span className={styles.srOnly}>{game.qualifies ? 'Qualifying game' : 'Other game'}</span></td>}
                                         <td>{dateFormatter.format(convertDateStringToDate(game.date))}</td><td>{formatSeason(game.season)}</td><td>{game.competition_name}</td>
-                                        <td>{game.home_club_name} {game.home_club_goals}–{game.away_club_goals} {game.away_club_name}</td>
-                                        <td>{game.club_id === game.home_club_id ? game.home_club_name : game.away_club_name}</td>
+                                        <td><span className={base['match-result']} aria-label={`${game.home_club_name} ${game.home_club_goals}–${game.away_club_goals} ${game.away_club_name}`}>
+                                            <ClubBadge clubId={game.home_club_id} name={game.home_club_name}/>
+                                            <span>{game.home_club_goals}–{game.away_club_goals}</span>
+                                            <ClubBadge clubId={game.away_club_id} name={game.away_club_name}/>
+                                        </span></td>
+                                        <td><ClubBadge clubId={game.club_id} name={game.club_id === game.home_club_id ? game.home_club_name : game.away_club_name}/></td>
                                         <StatCells stats={game.stats} showAppearances={false}/>
                                     </tr>)}</tbody>
                             </table>

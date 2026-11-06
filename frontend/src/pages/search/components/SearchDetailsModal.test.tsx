@@ -46,25 +46,25 @@ describe('search result details', () => {
         render(<Harness/>);
         expect(fetchSearchDetails).not.toHaveBeenCalled();
         fireEvent.click(screen.getByRole('button', {name: 'View games for Alex'}));
-        expect(await screen.findByText('Home 1 1–0 Away')).toBeVisible();
-        expect(screen.getByText('Home 2 1–0 Away')).toBeVisible();
-        expect(screen.queryByText('Home 3 1–0 Away')).not.toBeInTheDocument();
+        expect(await screen.findByLabelText('Home 1 1–0 Away')).toBeVisible();
+        expect(screen.getByLabelText('Home 2 1–0 Away')).toBeVisible();
+        expect(screen.queryByLabelText('Home 3 1–0 Away')).not.toBeInTheDocument();
         expect(screen.getByLabelText('Original search result')).toHaveTextContent('180 mins');
         fireEvent.click(screen.getByRole('button', {name: 'Close Alex · Games'}));
         fireEvent.click(screen.getByRole('button', {name: 'View games for Alex'}));
-        await screen.findByText('Home 1 1–0 Away');
+        await screen.findByLabelText('Home 1 1–0 Away');
         expect(fetchSearchDetails).toHaveBeenCalledTimes(1);
     });
 
     it('switches qualifying/all and table/chart locally and retains both seasons', async () => {
         render(<SearchDetailsModal {...props}/>);
-        await screen.findByText('Home 1 1–0 Away');
+        await screen.findByLabelText('Home 1 1–0 Away');
         fireEvent.click(screen.getByRole('button', {name: 'Chart'}));
         expect(screen.getByTestId('detail-chart')).toHaveTextContent('1,2');
         fireEvent.click(screen.getByRole('checkbox', {name: 'Qualifying only'}));
         expect(screen.getByTestId('detail-chart')).toHaveTextContent('1,2,3');
         fireEvent.click(screen.getByRole('button', {name: 'Table'}));
-        const other = screen.getByText('Home 3 1–0 Away').closest('tr')!;
+        const other = screen.getByLabelText('Home 3 1–0 Away').closest('tr')!;
         expect(within(other).getByText('Other game')).toBeInTheDocument();
         expect(fetchSearchDetails).toHaveBeenCalledTimes(1);
     });
@@ -83,12 +83,32 @@ describe('search result details', () => {
         expect(within(row).getByText('Other season')).toBeInTheDocument();
     });
 
+    it('shows named club badges for matches, playing for, and each season after a transfer', async () => {
+        const transferred = {...game(3, 2025, true), club_id: 102};
+        vi.mocked(fetchSearchDetails).mockResolvedValue([game(1, 2024, true), game(2, 2025, true), transferred]);
+        const {unmount} = render(<SearchDetailsModal {...props}/>);
+        const match = await screen.findByLabelText('Home 3 1–0 Away');
+        expect(within(match).getByRole('img', {name: 'Home 3'})).toHaveAttribute('title', 'Home 3');
+        expect(within(match).getByRole('img', {name: 'Away'})).toHaveAttribute('title', 'Away');
+        const playingFor = match.closest('td')!.nextElementSibling as HTMLElement;
+        expect(within(playingFor).getByRole('img', {name: 'Away'})).toHaveAttribute('title', 'Away');
+        unmount();
+        render(<SearchDetailsModal {...props} result={{...result, number_of_seasons: 2, number_of_games: 0, qualifying_seasons: [2024, 2025]}}
+            filterState={{...filterState, sortBy: SortOptions.NUMBER_OF_SEASONS_WITH}}/>);
+        const season = (await screen.findByText('2025/26')).closest('tr')!;
+        expect(within(season).getAllByRole('img')).toHaveLength(2);
+        expect(within(season).getByRole('img', {name: 'Home 2'})).toHaveAttribute('title', 'Home 2');
+        expect(within(season).getByRole('img', {name: 'Away'})).toHaveAttribute('title', 'Away');
+        const previous = screen.getByText('2024/25').closest('tr')!;
+        expect(within(previous).getAllByRole('img')).toHaveLength(1);
+    });
+
     it('offers retry after failure and aborts the request on close', async () => {
         vi.mocked(fetchSearchDetails).mockRejectedValueOnce(new Error('Failed'));
         const {unmount} = render(<SearchDetailsModal {...props}/>);
         expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load details');
         fireEvent.click(screen.getByRole('button', {name: 'Retry details'}));
-        await screen.findByText('Home 1 1–0 Away');
+        await screen.findByLabelText('Home 1 1–0 Away');
         const signal = vi.mocked(fetchSearchDetails).mock.calls[1][2];
         unmount(); expect(signal.aborted).toBe(true);
     });
@@ -97,10 +117,10 @@ describe('search result details', () => {
         const many = Array.from({length: 55}, (_, i) => game(i + 1, 2025, true));
         vi.mocked(fetchSearchDetails).mockResolvedValue(many);
         render(<SearchDetailsModal {...props}/>);
-        await screen.findByText('Home 1 1–0 Away');
-        expect(screen.queryByText('Home 55 1–0 Away')).not.toBeInTheDocument();
+        await screen.findByLabelText('Home 1 1–0 Away');
+        expect(screen.queryByLabelText('Home 55 1–0 Away')).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', {name: 'Next'}));
-        expect(screen.getByText('Home 55 1–0 Away')).toBeVisible();
+        expect(screen.getByLabelText('Home 55 1–0 Away')).toBeVisible();
         fireEvent.click(screen.getByRole('button', {name: 'Chart'}));
         expect(screen.getByTestId('detail-chart').textContent?.split(',')).toHaveLength(55);
     });
@@ -108,15 +128,15 @@ describe('search result details', () => {
         const playerFilters = {...filterState, homeOrAway: HomeOrAwayOptions.EITHER,
             minHeight: 180, playerCountries: [{code: 'gb-eng', name: 'England'}]};
         const {rerender} = render(<SearchDetailsModal {...props} filterState={playerFilters}/>);
-        await screen.findByText('Home 1 1–0 Away');
+        await screen.findByLabelText('Home 1 1–0 Away');
         expect(screen.queryByRole('checkbox', {name: 'Qualifying only'})).not.toBeInTheDocument();
         rerender(<SearchDetailsModal {...props} filterState={{...playerFilters, maxAge: 21}}/>);
         expect(screen.getByRole('checkbox', {name: 'Qualifying only'})).toBeChecked();
         fireEvent.click(screen.getByRole('checkbox', {name: 'Qualifying only'}));
-        expect(screen.getByText('Home 3 1–0 Away')).toBeVisible();
+        expect(screen.getByLabelText('Home 3 1–0 Away')).toBeVisible();
         rerender(<SearchDetailsModal {...props} filterState={playerFilters}/>);
         expect(screen.queryByRole('checkbox', {name: 'Qualifying only'})).not.toBeInTheDocument();
-        expect(screen.queryByText('Home 3 1–0 Away')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Home 3 1–0 Away')).not.toBeInTheDocument();
         expect(screen.queryByText('3 total games')).not.toBeInTheDocument();
     });
 
