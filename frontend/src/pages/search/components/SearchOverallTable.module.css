@@ -1,7 +1,7 @@
 /* Collapse according to the space available to the table, including page padding. */
 .small-screen-display { display: none; }
 
-@container search-results (max-width: 1450px) {
+@container search-results (max-width: 1200px) {
     .first-columns-to-hide { display: none; }
 }
 
