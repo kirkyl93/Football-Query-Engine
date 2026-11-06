@@ -49,8 +49,11 @@ pub struct SearchParams {
     pub home_or_away: Option<String>,
     pub scope: Option<String>,
     pub sort: Option<String>,
+    pub direction: Option<String>,
     #[serde(rename = "ma")]
     pub minimum_appearances: Option<i32>,
+    #[serde(rename = "maxap")]
+    pub maximum_appearances: Option<i32>,
     #[serde(rename = "ming")]
     pub minimum_goals: Option<i32>,
     #[serde(rename = "maxg")]
@@ -171,6 +174,7 @@ impl SearchParams {
             },
             thresholds: StatThresholds {
                 min_appearances: self.minimum_appearances.unwrap_or(0).max(0),
+                max_appearances: self.maximum_appearances.unwrap_or(-1).max(-1),
                 min_goals: self.minimum_goals.unwrap_or(-1).max(-1),
                 max_goals: self.maximum_goals.unwrap_or(-1).max(-1),
                 min_assists: self.minimum_assists.unwrap_or(-1).max(-1),
@@ -195,6 +199,10 @@ impl SearchParams {
             ),
             scope: StatScope::from_code(self.scope.clone().unwrap_or_default().as_str()),
             sort: SortOption::from_code(self.sort.clone().unwrap_or_default().as_str()),
+            direction: SortDirection::resolve(
+                self.direction.as_deref(),
+                &SortOption::from_code(self.sort.as_deref().unwrap_or("g")),
+            ),
         }
     }
 }
@@ -217,6 +225,7 @@ pub struct ProcessedSearchParams {
     pub home_or_away: HomeAwayOption,
     pub scope: StatScope,
     pub sort: SortOption,
+    pub direction: SortDirection,
 }
 
 impl ProcessedSearchParams {
@@ -268,6 +277,7 @@ pub struct SubFilter {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StatThresholds {
     pub min_appearances: i32,
+    pub max_appearances: i32,
     pub min_goals: i32,
     pub max_goals: i32,
     pub min_assists: i32,
@@ -284,6 +294,7 @@ impl Default for StatThresholds {
     fn default() -> Self {
         Self {
             min_appearances: 0,
+            max_appearances: -1,
             // Negative thresholds mean no bound; zero is a real filter value.
             min_goals: -1,
             max_goals: -1,
@@ -474,6 +485,8 @@ mod tests {
             maximum_yellow_cards: None,
             minimum_red_cards: None,
             maximum_red_cards: None,
+            direction: None,
+            maximum_appearances: None,
         };
 
         let result = params.to_processed();
@@ -601,5 +614,52 @@ mod tests {
         assert_eq!(params.scope, StatScope::Game);
         assert!(params.has_minute_filter());
         assert!(params.minute_window.from <= params.minute_window.to);
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SortDirection {
+    Ascending,
+    Descending,
+}
+
+impl SortDirection {
+    pub fn resolve(value: Option<&str>, sort: &SortOption) -> Self {
+        match value {
+            Some("asc") => Self::Ascending,
+            Some("desc") => Self::Descending,
+            _ if matches!(
+                sort,
+                SortOption::MinutesPerGoal
+                    | SortOption::MinutesPerAssist
+                    | SortOption::MinutesPerGoalOrAssist
+                    | SortOption::MinutesPerYellow
+                    | SortOption::MinutesPerRed
+            ) =>
+            {
+                Self::Ascending
+            }
+            _ => Self::Descending,
+        }
+    }
+
+    pub fn as_sql(self) -> &'static str {
+        match self {
+            Self::Ascending => "ASC",
+            Self::Descending => "DESC",
+        }
+    }
+
+    /// Change only the primary metric; preserve deterministic secondary ordering.
+    pub fn apply(self, clause: &str) -> String {
+        if clause.contains(" ASC NULLS LAST") {
+            clause.replacen(
+                " ASC NULLS LAST",
+                &format!(" {} NULLS LAST", self.as_sql()),
+                1,
+            )
+        } else {
+            clause.replacen(" DESC", &format!(" {} NULLS LAST", self.as_sql()), 1)
+        }
     }
 }

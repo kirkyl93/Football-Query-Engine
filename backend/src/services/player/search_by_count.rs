@@ -47,7 +47,7 @@ fn build_number_of_seasons_query_from_events(
 
         player_season_goals AS (
         SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, ARRAY_AGG(DISTINCT c.club_id) AS unique_clubs_played_for,
-        g.season, ").push(goals_calculation).push(" AS total_goals, SUM(a.assists) AS total_assists,
+        COUNT(DISTINCT a.game_id) AS total_appearances, g.season, ").push(goals_calculation).push(" AS total_goals, SUM(a.assists) AS total_assists,
         SUM(a.yellow_cards) AS total_yellow_cards,
         SUM(a.red_cards) AS total_red_cards
         FROM
@@ -62,7 +62,7 @@ fn build_number_of_seasons_query_from_events(
         GROUP BY a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, g.season)
 
         SELECT
-            RANK() OVER (ORDER BY COUNT(DISTINCT ps.season) DESC) AS rank,
+            RANK() OVER (ORDER BY COUNT(DISTINCT ps.season) ").push(params.direction.as_sql()).push(") AS rank,
             ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position,
             STRING_AGG(DISTINCT club_id::TEXT, ', ') AS clubs_played_for,
             ARRAY_AGG(DISTINCT ps.season ORDER BY ps.season) AS qualifying_seasons,
@@ -74,7 +74,7 @@ fn build_number_of_seasons_query_from_events(
             1 = 1")
         .add_season_filters(&params).push("
         GROUP BY ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position
-        ORDER BY number_of_seasons DESC, ps.player_name")
+        ORDER BY number_of_seasons ").push(params.direction.as_sql()).push(", ps.player_name")
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
@@ -89,7 +89,11 @@ fn build_number_of_games_query_from_appearances(
     query
         .push(
             "SELECT
-        RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) DESC) AS rank,
+        RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) ",
+        )
+        .push(params.direction.as_sql())
+        .push(
+            ") AS rank,
         a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
         STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
         ARRAY_AGG(DISTINCT a.game_id ORDER BY a.game_id) AS qualifying_game_ids,
@@ -125,8 +129,10 @@ fn build_number_of_games_query_from_appearances(
         })
         .push(
             "
-        ORDER BY number_of_games DESC, player_name",
+        ORDER BY number_of_games ",
         )
+        .push(params.direction.as_sql())
+        .push(", player_name")
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
@@ -140,7 +146,7 @@ fn build_number_of_games_query_from_events(
     let mut query = QueryBuilder::new("");
 
     query.construct_appearances_table_using_minute_filters(&params).push("
-        SELECT RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) DESC) AS rank,
+        SELECT RANK() OVER (ORDER BY COUNT(DISTINCT a.game_id) ").push(params.direction.as_sql()).push(") AS rank,
             a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
             STRING_AGG(DISTINCT c.club_id::TEXT, ', ') AS clubs_played_for,
             ARRAY_AGG(DISTINCT a.game_id ORDER BY a.game_id) AS qualifying_game_ids,
@@ -158,7 +164,7 @@ fn build_number_of_games_query_from_events(
         .add_game_filters(goals_calculation, &params).push("
             GROUP BY a.player_id, player_name, p.image_url, p.country_of_citizenship, p.sub_position")
         .push(if params.scope == StatScope::Season {", g.season"} else {""}).push("
-        ORDER BY number_of_games DESC, player_name")
+        ORDER BY number_of_games ").push(params.direction.as_sql()).push(", player_name")
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
@@ -174,7 +180,7 @@ fn build_number_of_seasons_query_from_appearances(
     query.push("
     WITH player_season_goals AS (
         SELECT a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position, ARRAY_AGG(DISTINCT c.club_id) AS unique_clubs_played_for,
-        g.season, ");
+        COUNT(DISTINCT a.game_id) AS total_appearances, g.season, ");
     query.push(goals_calculation).push(" AS total_goals, SUM(a.assists) AS total_assists,
         SUM(a.yellow_cards) AS total_yellow_cards,
         SUM(a.red_cards) + SUM(CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END) AS total_red_cards
@@ -192,7 +198,7 @@ fn build_number_of_seasons_query_from_appearances(
     )
 
     SELECT
-        RANK() OVER (ORDER BY COUNT(DISTINCT ps.season) DESC) AS rank,
+        RANK() OVER (ORDER BY COUNT(DISTINCT ps.season) ").push(params.direction.as_sql()).push(") AS rank,
         ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position,
         STRING_AGG(DISTINCT club_id::TEXT, ', ') AS clubs_played_for,
         ARRAY_AGG(DISTINCT ps.season ORDER BY ps.season) AS qualifying_seasons,
@@ -203,7 +209,7 @@ fn build_number_of_seasons_query_from_appearances(
         WHERE 1 = 1")
         .add_season_filters(&params).push("
         GROUP BY ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position
-        ORDER BY number_of_seasons DESC, ps.player_name")
+        ORDER BY number_of_seasons ").push(params.direction.as_sql()).push(", ps.player_name")
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
@@ -218,6 +224,8 @@ trait OccurrenceFilters {
     /// Expressions are internal SQL fragments; threshold values are always bound.
     fn add_stat_bound(&mut self, expression: &str, bound: StatBound, value: i32) -> &mut Self;
     fn add_season_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self;
+    fn add_minimum_season_appearances(&mut self, minimum_appearances: i32) -> &mut Self;
+    fn add_maximum_season_appearances(&mut self, maximum_appearances: i32) -> &mut Self;
     fn add_minimum_season_goals(&mut self, minimum_season_goals: i32) -> &mut Self;
     fn add_maximum_season_goals(&mut self, maximum_season_goals: i32) -> &mut Self;
     fn add_minimum_season_assists(&mut self, minimum_season_assists: i32) -> &mut Self;
@@ -238,6 +246,18 @@ trait OccurrenceFilters {
         &mut self,
         goals_calculation: &str,
         params: &ProcessedSearchParams,
+    ) -> &mut Self;
+    fn add_minimum_game_yellow_cards(&mut self, minimum_yellow_cards: i32) -> &mut Self;
+    fn add_maximum_game_yellow_cards(&mut self, maximum_yellow_cards: i32) -> &mut Self;
+    fn add_minimum_game_red_cards(
+        &mut self,
+        reds_calculation: &str,
+        minimum_red_cards: i32,
+    ) -> &mut Self;
+    fn add_maximum_game_red_cards(
+        &mut self,
+        reds_calculation: &str,
+        maximum_red_cards: i32,
     ) -> &mut Self;
     fn add_minimum_game_goals(&mut self, goals_calculation: &str, minimum_goals: i32) -> &mut Self;
     fn add_maximum_game_goals(&mut self, goals_calculation: &str, maximum_goals: i32) -> &mut Self;
@@ -272,7 +292,9 @@ impl OccurrenceFilters for QueryBuilder<Postgres> {
     }
 
     fn add_season_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self {
-        self.add_minimum_season_goals(params.thresholds.min_goals)
+        self.add_minimum_season_appearances(params.thresholds.min_appearances)
+            .add_maximum_season_appearances(params.thresholds.max_appearances)
+            .add_minimum_season_goals(params.thresholds.min_goals)
             .add_maximum_season_goals(params.thresholds.max_goals)
             .add_minimum_season_assists(params.thresholds.min_assists)
             .add_maximum_season_assists(params.thresholds.max_assists)
@@ -282,6 +304,14 @@ impl OccurrenceFilters for QueryBuilder<Postgres> {
             .add_maximum_season_yellow_cards(params.thresholds.max_yellow_cards)
             .add_minimum_season_red_cards(params.thresholds.min_red_cards)
             .add_maximum_season_red_cards(params.thresholds.max_red_cards)
+    }
+
+    fn add_minimum_season_appearances(&mut self, minimum_appearances: i32) -> &mut Self {
+        self.add_stat_bound("total_appearances", StatBound::Minimum, minimum_appearances)
+    }
+
+    fn add_maximum_season_appearances(&mut self, maximum_appearances: i32) -> &mut Self {
+        self.add_stat_bound("total_appearances", StatBound::Maximum, maximum_appearances)
     }
 
     fn add_minimum_season_goals(&mut self, minimum_goals: i32) -> &mut Self {
@@ -343,6 +373,11 @@ impl OccurrenceFilters for QueryBuilder<Postgres> {
         goals_calculation: &str,
         params: &ProcessedSearchParams,
     ) -> &mut Self {
+        let reds = if params.has_minute_filter() {
+            "a.red_cards"
+        } else {
+            "a.red_cards + CASE WHEN a.yellow_cards >= 2 THEN 1 ELSE 0 END"
+        };
         self.add_minimum_game_goals(goals_calculation, params.thresholds.min_goals)
             .add_maximum_game_goals(goals_calculation, params.thresholds.max_goals)
             .add_minimum_game_assists(params.thresholds.min_assists)
@@ -355,6 +390,26 @@ impl OccurrenceFilters for QueryBuilder<Postgres> {
                 goals_calculation,
                 params.thresholds.max_goals_and_assists,
             )
+            .add_minimum_game_yellow_cards(params.thresholds.min_yellow_cards)
+            .add_maximum_game_yellow_cards(params.thresholds.max_yellow_cards)
+            .add_minimum_game_red_cards(reds, params.thresholds.min_red_cards)
+            .add_maximum_game_red_cards(reds, params.thresholds.max_red_cards)
+    }
+
+    fn add_minimum_game_yellow_cards(&mut self, minimum_yellow_cards: i32) -> &mut Self {
+        self.add_stat_bound("a.yellow_cards", StatBound::Minimum, minimum_yellow_cards)
+    }
+
+    fn add_maximum_game_yellow_cards(&mut self, maximum_yellow_cards: i32) -> &mut Self {
+        self.add_stat_bound("a.yellow_cards", StatBound::Maximum, maximum_yellow_cards)
+    }
+
+    fn add_minimum_game_red_cards(&mut self, reds_calculation: &str, minimum_red_cards: i32) -> &mut Self {
+        self.add_stat_bound(reds_calculation, StatBound::Minimum, minimum_red_cards)
+    }
+
+    fn add_maximum_game_red_cards(&mut self, reds_calculation: &str, maximum_red_cards: i32) -> &mut Self {
+        self.add_stat_bound(reds_calculation, StatBound::Maximum, maximum_red_cards)
     }
 
     fn add_minimum_game_goals(&mut self, goals_calculation: &str, minimum_goals: i32) -> &mut Self {
@@ -373,11 +428,7 @@ impl OccurrenceFilters for QueryBuilder<Postgres> {
         self.add_stat_bound("assists", StatBound::Maximum, maximum_assists)
     }
 
-    fn add_minimum_game_goals_and_assists(
-        &mut self,
-        goals_calculation: &str,
-        minimum_goals_and_assists: i32,
-    ) -> &mut Self {
+    fn add_minimum_game_goals_and_assists(&mut self, goals_calculation: &str, minimum_goals_and_assists: i32) -> &mut Self {
         self.add_stat_bound(
             &format!("{goals_calculation} + assists"),
             StatBound::Minimum,
@@ -385,11 +436,7 @@ impl OccurrenceFilters for QueryBuilder<Postgres> {
         )
     }
 
-    fn add_maximum_game_goals_and_assists(
-        &mut self,
-        goals_calculation: &str,
-        maximum_goals_and_assists: i32,
-    ) -> &mut Self {
+    fn add_maximum_game_goals_and_assists(&mut self, goals_calculation: &str, maximum_goals_and_assists: i32) -> &mut Self {
         self.add_stat_bound(
             &format!("{goals_calculation} + assists"),
             StatBound::Maximum,
@@ -455,36 +502,6 @@ mod tests {
                                 query.sql().as_str(),
                             );
                         }
-                    }
-                }
-            }
-        }
-    }
-    #[test]
-    fn card_bounds_only_apply_to_season_counts_and_preserve_zero() {
-        for sort in ["sw", "gw"] {
-            for minute in ["", "&minfrom=46"] {
-                for (key, column, operator) in [
-                    ("miny", "total_yellow_cards", ">="),
-                    ("maxy", "total_yellow_cards", "<="),
-                    ("minr", "total_red_cards", ">="),
-                    ("maxr", "total_red_cards", "<="),
-                ] {
-                    for bound in [-1, 0, 2] {
-                        let params: SearchParams = serde_urlencoded::from_str(&format!(
-                            "sort={sort}{minute}&{key}={bound}"
-                        ))
-                        .unwrap();
-                        let query = construct_number_of_games_or_seasons_query_from_params(
-                            params.to_processed(),
-                        );
-                        assert_eq!(
-                            query
-                                .sql()
-                                .as_str()
-                                .contains(&format!("AND {column} {operator} $")),
-                            sort == "sw" && bound >= 0
-                        );
                     }
                 }
             }

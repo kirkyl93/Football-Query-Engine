@@ -1,7 +1,7 @@
+import {SORT_DIRECTIONS} from "./columnSort";
 import {SearchFilterState} from "../../../types/SearchFilterState";
 import {
     HomeOrAwayOptions,
-    minuteBasedSortOptions,
     numberOfGamesOrSeasonsSortOptions,
     PenaltyOptions,
     SortOptions,
@@ -41,16 +41,22 @@ const SORT_HEADLINES: Record<SortOptions, string> = {
     [SortOptions.NUMBER_OF_SEASONS_WITH]: "Most seasons with",
 };
 
-export const sortByTitle = (filterState: SearchFilterState): string =>
-    SORT_HEADLINES[filterState.sortBy];
+export const sortByTitle = (filterState: SearchFilterState): string => {
+    const headline = SORT_HEADLINES[filterState.sortBy];
+    if (filterState.statScope === StatScope.GAME) {
+        return headline;
+    }
+    if (!filterState.sortDirection || filterState.sortDirection === SORT_DIRECTIONS[filterState.sortBy]) {
+        return headline;
+    }
+    if (filterState.sortBy === SortOptions.GOALS) {
+        return 'Fewest goals';
+    }
+    return headline.startsWith('Most') ? headline.replace('Most', 'Fewest') : headline.replace('Fewest', 'Most');
+};
 
 export const sortCriteriaTitle = (filterState: SearchFilterState): string => {
-    if (minuteBasedSortOptions.includes(filterState.sortBy)) {
-        const minimumAppearances = filterState.minimumAppearances ?? 0;
-        return minimumAppearances > 0 ? `at least ${minimumAppearances} appearances` : "";
-    }
-
-    if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy)) {
+    if (filterState.statScope !== StatScope.GAME) {
         const describeStatRange = (
             min: number | undefined,
             max: number | undefined,
@@ -62,6 +68,7 @@ export const sortCriteriaTitle = (filterState: SearchFilterState): string => {
             : describeRange(min, max, singular, plural);
 
         return joinClauses(
+            filterState.sortBy !== SortOptions.NUMBER_OF_GAMES_WITH ? describeRange(filterState.minimumAppearances === 0 ? undefined : filterState.minimumAppearances, filterState.maximumAppearances, "appearance", "appearances") + ((filterState.statScope === StatScope.SEASON || filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH) && ((filterState.minimumAppearances ?? 0) > 0 || filterState.maximumAppearances !== undefined) ? ' per season' : '') : '',
             describeStatRange(filterState.minimumGoals, filterState.maximumGoals, "goal"),
             describeStatRange(filterState.minimumAssists, filterState.maximumAssists, "assist"),
             describeStatRange(
@@ -71,8 +78,8 @@ export const sortCriteriaTitle = (filterState: SearchFilterState): string => {
                 "goals and assists",
                 "goals or assists",
             ),
-            filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? describeStatRange(filterState.minimumYellowCards, filterState.maximumYellowCards, "yellow card") : '',
-            filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? describeStatRange(filterState.minimumRedCards, filterState.maximumRedCards, "red card") : '',
+            describeStatRange(filterState.minimumYellowCards, filterState.maximumYellowCards, "yellow card"),
+            describeStatRange(filterState.minimumRedCards, filterState.maximumRedCards, "red card"),
         );
     }
 
@@ -201,7 +208,7 @@ export const constructSearchTitleParts = (filterState: SearchFilterState) => {
     const criteria = sortCriteriaTitle(filterState);
     const headline = isCount
         ? criteria ? `${sortByTitle(filterState)} ${criteria}`
-            : filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? "Most qualifying seasons" : "Most qualifying games"
+            : filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH ? `${filterState.sortDirection === 'asc' ? 'Fewest' : 'Most'} qualifying seasons` : `${filterState.sortDirection === 'asc' ? 'Fewest' : 'Most'} qualifying games`
         : sortByTitle(filterState);
     const filters = [
         competitionsTitle(filterState), seasonsTitle(filterState), statScopeTitle(filterState),

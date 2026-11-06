@@ -31,7 +31,7 @@ describe('SearchFilterBar', () => {
                 onFilterChange,
             });
             await user.click(screen.getByText('SORT BY'));
-            const selects = screen.getAllByRole('combobox');
+            const selects = ['Minimum Goals:', 'Maximum Goals:', 'Minimum Assists:', 'Maximum Assists:', 'Minimum Goals and Assists:', 'Maximum Goals and Assists:'].map(label => screen.getByLabelText(label));
             for (const select of [selects[0], selects[2], selects[4]]) {
                 expect(within(select).queryByRole('option', {name: '0'})).not.toBeInTheDocument();
                 expect(within(select).getByRole('option', {name: '1'})).toBeInTheDocument();
@@ -152,8 +152,8 @@ describe('SearchFilterBar', () => {
 
         await user.click(screen.getByText('SORT BY'));
 
-        expect(screen.getByRole('radio', {name: 'Assists'})).toBeChecked();
-        expect(screen.getByRole('radio', {name: 'Goals'})).not.toBeChecked();
+        expect(screen.getByRole('button', {name: 'Assists'})).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByRole('button', {name: 'Goals'})).toHaveAttribute('aria-pressed', 'false');
     });
 
     it('blocks apply with an alert for an invalid age range', async () => {
@@ -175,7 +175,7 @@ describe('SearchFilterBar', () => {
     });
 });
 
-it('offers season card bounds, preserves zero, and hides them for game counts', async () => {
+it('offers card bounds for season and game counts and preserves zero', async () => {
     const user = userEvent.setup(); const onFilterChange=vi.fn();
     const {unmount}=renderFilterBar({filterState:{...createDefaultSearchFilterState(),sortBy:SortOptions.NUMBER_OF_SEASONS_WITH},onFilterChange});
     await user.click(screen.getByText('SORT BY'));
@@ -191,6 +191,82 @@ it('offers season card bounds, preserves zero, and hides them for game counts', 
     unmount();
     renderFilterBar({filterState:{...createDefaultSearchFilterState(),sortBy:SortOptions.NUMBER_OF_GAMES_WITH}});
     await user.click(screen.getByText('SORT BY'));
-    expect(screen.queryByLabelText('Minimum Yellow Cards:')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Maximum Red Cards:')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Minimum Yellow Cards:')).toBeInTheDocument();
+    expect(screen.getByLabelText('Maximum Red Cards:')).toBeInTheDocument();
+});
+
+
+it('applies ranking direction and appearance bounds alongside a zero total goal bound', async () => {
+    const user = userEvent.setup();
+    const onFilterChange = vi.fn();
+    renderFilterBar({onFilterChange});
+    await user.click(screen.getByText('SORT BY'));
+    await user.click(screen.getByRole('button', {name: 'Goals'}));
+    await user.selectOptions(screen.getByLabelText('Minimum Appearances:'), '2');
+    await user.selectOptions(screen.getByLabelText('Maximum Appearances:'), '5');
+    await user.selectOptions(screen.getByLabelText('Maximum Goals:'), '0');
+    await user.click(screen.getByText('APPLY'));
+    const applied = onFilterChange.mock.calls[0][0];
+    expect(applied).toMatchObject({sortBy: SortOptions.GOALS, sortDirection: 'asc', minimumAppearances: 2, maximumAppearances: 5, maximumGoals: 0});
+    const params = filterStateToSearchParams(applied);
+    expect(['direction', 'ma', 'maxap', 'maxg'].map(key => params.get(key))).toEqual(['asc', '2', '5', '0']);
+});
+
+it('flips the selected ranking and resets to the next statistic default', async () => {
+    const user = userEvent.setup();
+    const onFilterChange = vi.fn();
+    renderFilterBar({onFilterChange});
+    await user.click(screen.getByText('SORT BY'));
+    const goals = screen.getByRole('button', {name: 'Goals'});
+    expect(goals).toHaveTextContent('▼');
+    await user.click(goals);
+    expect(goals).toHaveTextContent('▲');
+    await user.click(screen.getByRole('button', {name: 'Assists'}));
+    expect(screen.getByRole('button', {name: 'Assists'})).toHaveTextContent('▼');
+    await user.click(screen.getByRole('button', {name: 'Minutes per goal'}));
+    expect(screen.getByRole('button', {name: 'Minutes per goal'})).toHaveTextContent('▲');
+    expect(screen.queryByLabelText('Ranking order:')).not.toBeInTheDocument();
+    await user.click(screen.getByText('APPLY'));
+    expect(onFilterChange.mock.calls[0][0]).toMatchObject({sortBy: SortOptions.MINUTES_PER_GOAL, sortDirection: undefined});
+});
+
+it('removes appearance bounds from game counts and names season appearance bounds explicitly', async () => {
+    const user = userEvent.setup();
+    renderFilterBar();
+    await user.click(screen.getByText('SORT BY'));
+    await user.click(screen.getByRole('button', {name: 'Number of games with'}));
+    expect(screen.queryByLabelText(/Minimum Appearances/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Appearance limits apply/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Minimum Yellow Cards:')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', {name: 'Number of seasons with'}));
+    expect(screen.getByLabelText('Minimum Appearances:')).toHaveProperty('tagName', 'SELECT');
+    expect(screen.getByLabelText('Maximum Appearances:')).toHaveProperty('tagName', 'SELECT');
+    await user.click(screen.getByRole('radio', {name: 'Season'}));
+    expect(screen.getByRole('button', {name: 'Goals'})).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('Minimum Appearances:')).toBeInTheDocument();
+});
+
+it('offers only most-first goal and assist rankings for individual games', async () => {
+    const user = userEvent.setup();
+    const onFilterChange = vi.fn();
+    renderFilterBar({onFilterChange});
+    await user.click(screen.getByText('SORT BY'));
+    await user.click(screen.getByRole('button', {name: 'Goals'}));
+    await user.click(screen.getByRole('radio', {name: 'Game'}));
+    const group = screen.getByRole('group', {name: 'Ranking statistic'});
+    expect(within(group).getAllByRole('button').map(button => button.textContent?.replace('▼', ''))).toEqual(['Most goals', 'Most assists', 'Most goals and assists']);
+    const goals = within(group).getByRole('button', {name: 'Most goals'});
+    await user.click(goals);
+    expect(goals).toHaveTextContent('▼');
+    expect(screen.queryByRole('region', {name: 'Qualification filters'})).not.toBeInTheDocument();
+    await user.click(screen.getByText('APPLY'));
+    expect(onFilterChange.mock.calls[0][0]).toMatchObject({statScope: 'g', sortBy: SortOptions.GOALS, sortDirection: 'desc'});
+});
+
+it('keeps game qualification per game when counting qualifying games per season', async () => {
+    const user = userEvent.setup();
+    renderFilterBar({filterState: {...createDefaultSearchFilterState(), sortBy: SortOptions.NUMBER_OF_GAMES_WITH, statScope: 's' as import('../../../types/SearchOptions').StatScope}});
+    await user.click(screen.getByText('SORT BY'));
+    expect(screen.getByRole('heading', {name: 'Qualification filters (per game)'})).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^(Minimum|Maximum) Appearances/)).not.toBeInTheDocument();
 });

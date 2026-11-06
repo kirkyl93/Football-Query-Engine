@@ -39,8 +39,9 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                             <th className={`${styles['first-columns-to-hide']} ${baseStyles['position-column']}`}>Position</th>
                             <th>Result</th>
                             <th className={`${baseStyles.numeric} ${styles['first-columns-to-hide']}`}>Mins Played</th>
-                            <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} onSort={onSortChange} />
-                            <SortableTh label="Assists" columnSort={SortOptions.ASSISTS} activeSort={filterState.sortBy} onSort={onSortChange} />
+                            <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} direction="desc" allowReverse={false} onSort={onSortChange} />
+                            <SortableTh label="Assists" columnSort={SortOptions.ASSISTS} activeSort={filterState.sortBy} direction="desc" allowReverse={false} onSort={onSortChange} />
+                            <SortableTh label="Goals + assists" columnSort={SortOptions.GOALS_AND_ASSISTS} activeSort={filterState.sortBy} direction="desc" allowReverse={false} onSort={onSortChange} />
                         </tr>
                         </thead>
                         <tbody>
@@ -108,6 +109,7 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
                                 <td className={`${baseStyles.numeric} ${styles['first-columns-to-hide']}`}>{playerGame.minutes_played}</td>
                                 <td className={baseStyles.numeric}>{playerGame.goals}</td>
                                 <td className={baseStyles.numeric}>{playerGame.assists}</td>
+                                <td className={baseStyles.numeric}>{playerGame.goals + playerGame.assists}</td>
                             </tr>
                         ))}
                         </tbody>

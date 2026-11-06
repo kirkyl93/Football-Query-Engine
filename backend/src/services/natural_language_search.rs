@@ -59,9 +59,13 @@ pub struct FilterProposal {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sort_by: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sort_direction: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub countries: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub minimum_appearances: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub maximum_appearances: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub minimum_goals: Option<i32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -379,18 +383,6 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
         1000,
         "red cards",
     )?;
-    if [
-        filters.minimum_yellow_cards,
-        filters.maximum_yellow_cards,
-        filters.minimum_red_cards,
-        filters.maximum_red_cards,
-    ]
-    .iter()
-    .any(Option::is_some)
-        && filters.sort_by.as_deref() != Some("sw")
-    {
-        return Err("card thresholds require number of seasons (sortBy=sw)".into());
-    }
     if let Some(seasons) = &filters.seasons {
         if let Some(bad) = seasons.iter().find(|s| !(1992..=2025).contains(*s)) {
             return Err(format!("season {bad} is outside 1992..=2025"));
@@ -442,6 +434,19 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
     let scope = filters.stat_scope.as_deref().unwrap_or("o");
     let sort = filters.sort_by.as_deref().unwrap_or("g");
 
+    if scope == "g" && [filters.minimum_appearances, filters.maximum_appearances,
+        filters.minimum_goals, filters.maximum_goals, filters.minimum_assists, filters.maximum_assists,
+        filters.minimum_goals_and_assists, filters.maximum_goals_and_assists,
+        filters.minimum_yellow_cards, filters.maximum_yellow_cards, filters.minimum_red_cards, filters.maximum_red_cards]
+        .iter().any(Option::is_some) {
+        return Err("qualification bounds are not supported for individual-game rankings".into());
+    }
+    if scope == "g" && filters.sort_direction.as_deref() == Some("asc") {
+        return Err("individual-game rankings only support most/highest first".into());
+    }
+    if sort == "gw" && (filters.minimum_appearances.is_some() || filters.maximum_appearances.is_some()) {
+        return Err("appearance bounds do not apply to game counts".into());
+    }
     if (scope == "g" && !matches!(sort, "g" | "a" | "ga")) || (scope == "s" && sort == "sw") {
         return Err(format!(
             "sortBy '{sort}' is not compatible with statScope '{scope}'"
@@ -467,12 +472,9 @@ fn validate_filters(filters: &FilterProposal) -> std::result::Result<(), String>
         }
     }
 
-    if let Some(appearances) = filters.minimum_appearances {
-        if !(0..=2000).contains(&appearances) {
-            return Err(format!(
-                "minimumAppearances {appearances} is outside 0..=2000"
-            ));
-        }
+    validate_range(filters.minimum_appearances, filters.maximum_appearances, 0, 2000, "appearances")?;
+    if let Some(direction) = &filters.sort_direction {
+        if !matches!(direction.as_str(), "asc" | "desc") { return Err(format!("unsupported sortDirection '{direction}'")); }
     }
 
     Ok(())
@@ -1117,7 +1119,7 @@ mod tests {
         assert!(feedback.chars().count() < MAX_FEEDBACK_REASON_CHARS + 200);
     }
     #[test]
-    fn card_threshold_proposals_require_season_counts_and_valid_ranges() {
+    fn card_threshold_proposals_support_aggregate_scopes_and_validate_ranges() {
         let mut filters = FilterProposal {
             sort_by: Some("sw".into()),
             minimum_yellow_cards: Some(10),
@@ -1126,9 +1128,46 @@ mod tests {
         };
         assert!(validate_filters(&filters).is_ok());
         filters.sort_by = Some("gw".into());
+        assert!(validate_filters(&filters).is_ok());
+        filters.sort_by = Some("y".into());
+        filters.stat_scope = Some("s".into());
+        assert!(validate_filters(&filters).is_ok());
+        filters.stat_scope = Some("g".into());
         assert!(validate_filters(&filters).is_err());
+        filters.stat_scope = None;
         filters.sort_by = Some("sw".into());
         filters.maximum_yellow_cards = Some(9);
         assert!(validate_filters(&filters).is_err());
+    }
+
+    #[test]
+    fn appearance_bounds_and_ranking_direction_are_validated() {
+        let mut filters = FilterProposal { sort_by: Some("ap".into()), maximum_goals: Some(0), minimum_appearances: Some(50), maximum_appearances: Some(100), sort_direction: Some("asc".into()), ..Default::default() };
+        assert!(validate_filters(&filters).is_ok());
+        filters.maximum_appearances = Some(49);
+        assert!(validate_filters(&filters).is_err());
+        filters.maximum_appearances = Some(100);
+        filters.sort_direction = Some("sideways".into());
+        assert!(validate_filters(&filters).is_err());
+    }
+
+    #[test]
+    fn scope_specific_constraints_cannot_silently_change_meaning() {
+        let mut filters = FilterProposal { sort_by: Some("gw".into()), minimum_appearances: Some(20), ..Default::default() };
+        assert!(validate_filters(&filters).is_err());
+        filters.minimum_appearances = None;
+        filters.maximum_appearances = Some(40);
+        assert!(validate_filters(&filters).is_err());
+        filters.maximum_appearances = None;
+        filters.minimum_red_cards = Some(1);
+        assert!(validate_filters(&filters).is_ok());
+        filters.stat_scope = Some("g".into());
+        filters.sort_by = Some("g".into());
+        assert!(validate_filters(&filters).is_err());
+        filters.minimum_red_cards = None;
+        filters.sort_direction = Some("asc".into());
+        assert!(validate_filters(&filters).is_err());
+        filters.sort_direction = Some("desc".into());
+        assert!(validate_filters(&filters).is_ok());
     }
 }

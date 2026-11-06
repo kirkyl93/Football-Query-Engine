@@ -44,8 +44,14 @@ describe('validateSearchFilters', () => {
     });
 });
 
-it('validates season card ranges while ignoring inactive card controls',()=>{
+it('validates card ranges for all aggregate rankings',()=>{
     const state={...createDefaultSearchFilterState(),sortBy:'sw' as import('../../../types/SearchOptions').SortOptions,minimumYellowCards:12,maximumYellowCards:10};
     expect(validateSearchFilters(state)).toContain('Maximum yellow cards should be greater than or equal to minimum yellow cards');
-    expect(validateSearchFilters({...state,sortBy:'gw' as import('../../../types/SearchOptions').SortOptions})).toEqual([]);
+    expect(validateSearchFilters({...state,sortBy:'gw' as import('../../../types/SearchOptions').SortOptions})).toContain('Maximum yellow cards should be greater than or equal to minimum yellow cards');
+});
+
+it('rejects reversed appearance bounds and accepts an explicit zero maximum', () => {
+    const base = createDefaultSearchFilterState();
+    expect(validateSearchFilters({...base, minimumAppearances: 100, maximumAppearances: 50})).toContain('Maximum appearances should be greater than or equal to minimum appearances');
+    expect(validateSearchFilters({...base, maximumAppearances: 0, maximumGoals: 0})).toEqual([]);
 });

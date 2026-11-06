@@ -40,7 +40,7 @@ export interface DetailSeason {
 }
 
 const numericParams = new Set(['page', 'limit', 'minfrom', 'minto', 'minage', 'maxage',
-    'minheight', 'maxheight', 'subonly', 'earliestsub', 'latestsub', 'ma',
+    'minheight', 'maxheight', 'subonly', 'earliestsub', 'latestsub', 'ma', 'maxap',
     'ming', 'maxg', 'mina', 'maxa', 'minga', 'maxga', 'miny', 'maxy', 'minr', 'maxr']);
 
 export function detailRequest(search: string, result: DetailResult, resultSeason?: number) {

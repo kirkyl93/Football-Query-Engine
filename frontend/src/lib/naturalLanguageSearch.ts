@@ -26,7 +26,9 @@ export interface NaturalLanguageFilterProposal {
     homeOrAway?: HomeOrAwayOptions;
     statScope?: StatScope;
     sortBy?: SortOptions;
+    sortDirection?: 'asc' | 'desc';
     minimumAppearances?: number;
+    maximumAppearances?: number;
     minimumGoals?: number;
     maximumGoals?: number;
     minimumAssists?: number;
@@ -109,6 +111,8 @@ export async function naturalLanguageFiltersToSearchState(
         statScope: proposal.statScope ?? StatScope.OVERALL,
         sortBy: proposal.sortBy ?? SortOptions.GOALS,
         minimumAppearances: proposal.minimumAppearances,
+        maximumAppearances: proposal.maximumAppearances,
+        sortDirection: proposal.sortDirection,
         minimumGoals: proposal.minimumGoals,
         maximumGoals: proposal.maximumGoals,
         minimumAssists: proposal.minimumAssists,

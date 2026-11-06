@@ -50,7 +50,7 @@
 .games_or_seasons-dropdown-group {
     margin-top: 8px;
     display: grid;
-    grid-template-columns: 120px 1fr;
+    grid-template-columns: 145px 1fr;
     align-items: center;
     gap: 10px;
     font-size: 12px;
@@ -93,3 +93,30 @@
     padding: 8px;
     font-size: 14px;
 }
+
+.sortOption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background: white;
+    color: inherit;
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.sortOption[aria-pressed="true"] {
+    border-color: #131313;
+    font-weight: bold;
+    background: #f6f4f4;
+}
+
+.sortOption:hover { border-color: #131313; }
+.sortOption:focus-visible { outline: 2px solid #14532d; outline-offset: 2px; z-index: 4; }
+.rankingArrow { margin-left: 12px; color: #14532d; }
+.qualificationTitle { font-size: 12px; margin: 12px 0 8px; }
+.qualificationTitle span { color: #666; font-weight: normal; }

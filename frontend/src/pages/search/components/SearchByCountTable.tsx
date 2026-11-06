@@ -1,3 +1,4 @@
+import {SortableTh} from "./SortableTh";
 import playerStyles from '../../player/Player.module.css';
 import {useInfiniteScroll} from "../hooks/useInfiniteScroll";
 import {fetchNumberOfGamesOrSeasonsResult} from "../../../lib/SearchUrlUtils";
@@ -16,10 +17,11 @@ import {ClubBadgesCell} from "./ClubBadgesCell";
 
 interface SearchByCountTableProps {
     filterState: SearchFilterState;
+    onSortChange: (sortBy: SortOptions) => void;
     onViewDetails: (player: PlayerNumberOfGamesOrSeasonsResult) => void;
 }
 
-export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterState, onViewDetails}) => {
+export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterState, onViewDetails, onSortChange}) => {
     const {data, hasData, hasMore, loading, error, lastElementRef, retry} =
     useInfiniteScroll<PlayerNumberOfGamesOrSeasonsResult>(fetchNumberOfGamesOrSeasonsResult);
 
@@ -35,8 +37,8 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
                             <th className={styles['first-gs-columns-to-hide']}>Clubs</th>
                             <th className={`${styles['first-gs-columns-to-hide']} ${baseStyles['position-column']}`}>Position</th>
                             {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles['season-column']}>Season</th>}
-                            {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <th className={baseStyles.numeric}>Number of seasons</th>}
-                            {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles.numeric}>Number of games</th>}
+                            {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <SortableTh label="Number of seasons" columnSort={SortOptions.NUMBER_OF_SEASONS_WITH} activeSort={filterState.sortBy} direction={filterState.sortDirection} onSort={onSortChange} />}
+                            {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <SortableTh label="Number of games" columnSort={SortOptions.NUMBER_OF_GAMES_WITH} activeSort={filterState.sortBy} direction={filterState.sortDirection} onSort={onSortChange} />}
                             <th className={baseStyles['details-column']}>Details</th>
                         </tr>
                         </thead>

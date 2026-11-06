@@ -1,6 +1,8 @@
 use crate::services::base_query_builder::BaseQueryMethods;
 use crate::services::errors::db_list_result;
-use crate::services::player::models::{ProcessedSearchParams, SearchParams, SortOption};
+use crate::services::player::models::{
+    ProcessedSearchParams, SearchParams, SortDirection, SortOption,
+};
 use crate::services::player::player_query_builder::{
     PlayerFilterMethods, PlayerMinuteFilterMethods, TotalsKind, get_goals_calculation,
 };
@@ -9,12 +11,27 @@ use actix_web::{HttpResponse, get, web};
 use sqlx::{PgPool, Postgres, QueryBuilder};
 
 trait GameQueryMethods {
-    fn add_rank(&mut self, sort_by: &SortOption, goals_calculation: &str) -> &mut Self;
-    fn add_order_by(&mut self, sort_by: &SortOption, goals_calculation: &str) -> &mut Self;
+    fn add_rank(
+        &mut self,
+        sort_by: &SortOption,
+        goals_calculation: &str,
+        direction: SortDirection,
+    ) -> &mut Self;
+    fn add_order_by(
+        &mut self,
+        sort_by: &SortOption,
+        goals_calculation: &str,
+        direction: SortDirection,
+    ) -> &mut Self;
 }
 
 impl GameQueryMethods for QueryBuilder<Postgres> {
-    fn add_rank(&mut self, sort_by: &SortOption, goals_calculation: &str) -> &mut Self {
+    fn add_rank(
+        &mut self,
+        sort_by: &SortOption,
+        goals_calculation: &str,
+        direction: SortDirection,
+    ) -> &mut Self {
         self.push("RANK() OVER (ORDER BY ");
         let rank_order = match sort_by {
             SortOption::Goals => format!("{goals_calculation} DESC"),
@@ -24,12 +41,17 @@ impl GameQueryMethods for QueryBuilder<Postgres> {
             }
             _ => format!("{goals_calculation} DESC"),
         };
-        self.push(rank_order).push("), ");
+        self.push(direction.apply(&rank_order)).push("), ");
 
         self
     }
 
-    fn add_order_by(&mut self, sort_by: &SortOption, goals_calculation: &str) -> &mut Self {
+    fn add_order_by(
+        &mut self,
+        sort_by: &SortOption,
+        goals_calculation: &str,
+        direction: SortDirection,
+    ) -> &mut Self {
         self.push(
             "
         ORDER BY ",
@@ -49,7 +71,7 @@ impl GameQueryMethods for QueryBuilder<Postgres> {
                 "{goals_calculation} DESC, assists DESC, minutes_played ASC, red_cards ASC, yellow_cards ASC, player_name, season"
             ),
         };
-        self.push(sort_clause);
+        self.push(direction.apply(&sort_clause));
 
         self
     }
@@ -86,7 +108,7 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
     SELECT ",
     );
 
-    query.add_rank(&params.sort, goals_calculation)
+    query.add_rank(&params.sort, goals_calculation, SortDirection::Descending)
         .push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, player_club_id AS club_id,
         a.competition_id, c.name AS competition_name, c.country_name AS competition_country, a.date, season, home_club_id, home_club_name, home_club_goals, away_club_id, away_club_name,
         away_club_goals, minutes_played, ").push(goals_calculation).push(" AS goals, assists
@@ -100,7 +122,7 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
             competitions c ON a.competition_id = c.competition_id
         WHERE 1 = 1")
         .add_player_filters(&params)
-        .add_order_by(&params.sort, goals_calculation)
+        .add_order_by(&params.sort, goals_calculation, SortDirection::Descending)
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query
@@ -114,7 +136,7 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
     query.construct_appearances_table_using_minute_filters(&params)
         .push(
         "
-    SELECT ").add_rank(&params.sort, goals_calculation)
+    SELECT ").add_rank(&params.sort, goals_calculation, SortDirection::Descending)
         .push("a.player_id, player_name, country_of_citizenship, sub_position, image_url, club_id,
         c.competition_id, c.name AS competition_name, c.country_name AS competition_country, date, a.season AS season, home_club_id, home_club_name,
         home_club_goals, away_club_id, away_club_name, away_club_goals, minutes_played, ")
@@ -126,7 +148,7 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
         JOIN
             competitions c ON c.competition_id = games.competition_id
         WHERE a.appearances > 0")
-        .add_order_by(&params.sort, goals_calculation)
+        .add_order_by(&params.sort, goals_calculation, SortDirection::Descending)
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
     query

@@ -1,8 +1,11 @@
 use crate::services::base_query_builder::BaseQueryMethods;
 use crate::services::errors::db_list_result;
-use crate::services::player::models::{ProcessedSearchParams, SearchParams, SortOption, StatScope};
+use crate::services::player::models::{
+    ProcessedSearchParams, SearchParams, SortDirection, SortOption, StatScope,
+};
 use crate::services::player::player_query_builder::{
-    PlayerFilterMethods, PlayerMinuteFilterMethods, TotalsKind, get_goals_calculation,
+    AggregateFilterMethods, PlayerFilterMethods, PlayerMinuteFilterMethods, TotalsKind,
+    get_goals_calculation,
 };
 use crate::services::player::sql_models::PlayerSearchResult;
 use actix_web::{HttpResponse, get, web};
@@ -60,7 +63,12 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
     );
 
     query
-        .add_rank(&params.sort, goals_calculation, AppearancesSource::Direct)
+        .add_rank(
+            &params.sort,
+            goals_calculation,
+            AppearancesSource::Direct,
+            params.direction,
+        )
         .push(
             "
         a.player_id, a.player_name, p.image_url, p.country_of_citizenship, p.sub_position,
@@ -99,12 +107,17 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
         )
         .add_player_filters(&params)
         .add_group_by(season_scoped)
-        .add_minimum_appearances_to_query(params.thresholds.min_appearances)
+        .add_aggregate_bounds(
+            &params,
+            goals_calculation,
+            AppearancesSource::Direct.red_cards_sum(),
+        )
         .add_order_by(
             &params.sort,
             goals_calculation,
             AppearancesSource::Direct,
             season_scoped,
+            params.direction,
         )
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
@@ -126,6 +139,7 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
             &params.sort,
             goals_calculation,
             AppearancesSource::FromEvents,
+            params.direction,
         )
         .push(
             "player_id, player_name, image_url, country_of_citizenship, sub_position,
@@ -156,12 +170,17 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
             WHERE appearances > 0",
         )
         .add_group_by(season_scoped)
-        .add_minimum_appearances_to_query(params.thresholds.min_appearances)
+        .add_aggregate_bounds(
+            &params,
+            goals_calculation,
+            AppearancesSource::FromEvents.red_cards_sum(),
+        )
         .add_order_by(
             &params.sort,
             goals_calculation,
             AppearancesSource::FromEvents,
             season_scoped,
+            params.direction,
         )
         .add_limit_and_offset(params.pagination.limit, params.pagination.page);
 
@@ -174,6 +193,7 @@ trait SeasonOrSeasonsQueryMethods {
         sort_by: &SortOption,
         goals_calculation: &str,
         source: AppearancesSource,
+        direction: SortDirection,
     ) -> &mut Self;
     fn add_order_by(
         &mut self,
@@ -181,13 +201,13 @@ trait SeasonOrSeasonsQueryMethods {
         goals_calculation: &str,
         source: AppearancesSource,
         season_scope: bool,
+        direction: SortDirection,
     ) -> &mut Self;
     fn add_minutes_per_event_calculations(
         &mut self,
         goals_calculation: &str,
         source: AppearancesSource,
     ) -> &mut Self;
-    fn add_minimum_appearances_to_query(&mut self, minimum_appearances: i32) -> &mut Self;
     fn add_group_by(&mut self, season_scope: bool) -> &mut Self;
 }
 
@@ -197,6 +217,7 @@ impl SeasonOrSeasonsQueryMethods for QueryBuilder<Postgres> {
         sort_by: &SortOption,
         goals_calculation: &str,
         source: AppearancesSource,
+        direction: SortDirection,
     ) -> &mut Self {
         self.push("RANK() OVER (ORDER BY ");
         let red_sum = source.red_cards_sum();
@@ -234,7 +255,7 @@ impl SeasonOrSeasonsQueryMethods for QueryBuilder<Postgres> {
             _ => format!("{goals_calculation} DESC"),
         };
 
-        self.push(rank_order).push("), ");
+        self.push(direction.apply(&rank_order)).push("), ");
 
         self
     }
@@ -245,6 +266,7 @@ impl SeasonOrSeasonsQueryMethods for QueryBuilder<Postgres> {
         goals_calculation: &str,
         source: AppearancesSource,
         season_scope: bool,
+        direction: SortDirection,
     ) -> &mut Self {
         self.push(
             "
@@ -292,7 +314,7 @@ impl SeasonOrSeasonsQueryMethods for QueryBuilder<Postgres> {
             ),
         };
 
-        self.push(sort_clause);
+        self.push(direction.apply(&sort_clause));
 
         if season_scope {
             self.push(", season");
@@ -327,20 +349,6 @@ impl SeasonOrSeasonsQueryMethods for QueryBuilder<Postgres> {
                 "(SUM(a.minutes_played)::numeric / NULLIF(({denominator}), 0))::double precision AS {alias}"
             ));
         }
-        self
-    }
-
-    fn add_minimum_appearances_to_query(&mut self, minimum_appearances: i32) -> &mut Self {
-        if minimum_appearances <= 1 {
-            return self;
-        }
-
-        self.push(
-            "
-        HAVING COUNT(*) >= ",
-        )
-        .push_bind(minimum_appearances);
-
         self
     }
 

@@ -490,7 +490,7 @@ async fn season_card_thresholds_match_in_recorded_and_minute_filtered_sources() 
 }
 
 #[actix_web::test]
-async fn card_season_thresholds_respect_minute_windows_and_are_ignored_for_game_counts() {
+async fn card_thresholds_respect_minute_windows_and_apply_to_game_counts() {
     let pool = fixture_pool().await;
     let base = SearchParamsBuilder::new()
         .competitions(vec![Competition::PremierLeague])
@@ -534,14 +534,158 @@ async fn card_season_thresholds_respect_minute_windows_and_are_ignored_for_game_
             .is_empty()
     );
     let games = base.sort(SortOption::NumberOfGamesWith);
-    let expected = get_rows(&pool, "/search/occurrences", &games).await;
-    assert_eq!(
+    assert!(
         get_rows(
             &pool,
             "/search/occurrences",
             &games.minimum_yellow_cards(100).maximum_red_cards(0)
         )
-        .await,
-        expected
+        .await
+        .is_empty()
     );
+}
+
+#[actix_web::test]
+async fn season_appearance_bounds_apply_before_counting_and_do_not_apply_to_game_counts() {
+    let pool = fixture_pool().await;
+    for source in [
+        SearchParamsBuilder::new(),
+        SearchParamsBuilder::new()
+            .minute_played_from(1)
+            .minute_played_to(90),
+    ] {
+        let query = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .sort(SortOption::NumberOfSeasonsWith)
+            .minimum_appearances(2)
+            .maximum_appearances(2)
+            .maximum_goals(0)
+            .with_filters(&source);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search/occurrences",
+                &query,
+                &["player_id", "number_of_seasons", "qualifying_seasons"]
+            )
+            .await,
+            vec![json!([3, 1, [2025]])]
+        );
+        let least = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .names(vec!["Alex", "Pat Forward"])
+            .sort(SortOption::NumberOfSeasonsWith)
+            .direction("asc")
+            .with_filters(&source);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search/occurrences",
+                &least,
+                &["player_id", "number_of_seasons", "rank"]
+            )
+            .await,
+            vec![json!([6, 1, 1]), json!([1, 2, 2])]
+        );
+        let games = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .sort(SortOption::NumberOfGamesWith)
+            .names(vec!["Alex", "Jamie"])
+            .maximum_goals(0)
+            .minimum_appearances(2)
+            .maximum_appearances(3)
+            .with_filters(&source);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search/occurrences",
+                &games,
+                &["player_id", "number_of_games"]
+            )
+            .await,
+            vec![json!([2, 2]), json!([1, 1])]
+        );
+    }
+}
+
+#[actix_web::test]
+async fn card_bounds_qualify_totals_seasons_and_individual_counted_games() {
+    let pool = fixture_pool().await;
+    for source in [
+        SearchParamsBuilder::new(),
+        SearchParamsBuilder::new()
+            .minute_played_from(1)
+            .minute_played_to(90),
+    ] {
+        let base = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .with_filters(&source);
+        let totals = base
+            .clone()
+            .sort(SortOption::Goals)
+            .minimum_yellow_cards(1)
+            .maximum_red_cards(0);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search",
+                &totals,
+                &[
+                    "player_id",
+                    "total_goals",
+                    "total_yellow_cards",
+                    "total_red_cards"
+                ]
+            )
+            .await,
+            vec![json!([4, 4, 1, 0])]
+        );
+        let seasons = base
+            .clone()
+            .scope(StatScope::Season)
+            .sort(SortOption::YellowCards)
+            .minimum_yellow_cards(1)
+            .maximum_yellow_cards(2)
+            .maximum_red_cards(0);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search",
+                &seasons,
+                &["player_id", "season", "total_yellow_cards"]
+            )
+            .await,
+            vec![json!([4, 2024, 1])]
+        );
+        let reds = base
+            .clone()
+            .sort(SortOption::NumberOfGamesWith)
+            .minimum_red_cards(1)
+            .maximum_red_cards(1);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search/occurrences",
+                &reds,
+                &["player_id", "number_of_games", "qualifying_game_ids"]
+            )
+            .await,
+            vec![json!([3, 2, [1, 2]]), json!([5, 1, [4]])]
+        );
+        let yellows = base
+            .clone()
+            .sort(SortOption::NumberOfGamesWith)
+            .minimum_yellow_cards(2)
+            .maximum_yellow_cards(2);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search/occurrences",
+                &yellows,
+                &["player_id", "number_of_games", "qualifying_game_ids"]
+            )
+            .await,
+            vec![json!([5, 1, [4]]), json!([3, 1, [1]])]
+        );
+    }
 }

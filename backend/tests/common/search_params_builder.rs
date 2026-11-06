@@ -143,6 +143,15 @@ impl SearchParamsBuilder {
         self
     }
 
+    pub fn direction(mut self, direction: &str) -> Self {
+        self.params.direction = Some(direction.to_string());
+        self
+    }
+    pub fn maximum_appearances(mut self, value: i32) -> Self {
+        self.params.maximum_appearances = Some(value);
+        self
+    }
+
     pub fn minimum_appearances(mut self, minimum_appearances: i32) -> Self {
         self.params.minimum_appearances = Some(minimum_appearances);
         self
@@ -252,6 +261,8 @@ impl Clone for SearchParamsBuilder {
                 home_or_away: self.params.home_or_away.clone(),
                 scope: self.params.scope.clone(),
                 sort: self.params.sort.clone(),
+                direction: self.params.direction.clone(),
+                maximum_appearances: self.params.maximum_appearances,
                 minimum_appearances: self.params.minimum_appearances,
                 minimum_goals: self.params.minimum_goals,
                 maximum_goals: self.params.maximum_goals,
@@ -333,6 +344,12 @@ impl SearchParamsBuilder {
         }
         if filters.params.scope.is_some() {
             self.params.scope = filters.params.scope.clone();
+        }
+        if filters.params.direction.is_some() {
+            self.params.direction = filters.params.direction.clone();
+        }
+        if filters.params.maximum_appearances.is_some() {
+            self.params.maximum_appearances = filters.params.maximum_appearances;
         }
         if filters.params.sort.is_some() {
             self.params.sort = filters.params.sort.clone();

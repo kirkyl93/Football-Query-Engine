@@ -148,8 +148,8 @@ export const SHORT_SORT_NAMES: Record<SortOptions, string> = {
     [SortOptions.NUMBER_OF_SEASONS_WITH]: "Seasons with",
 };
 
-export const sortSummary = (sortBy: SortOptions, statScope: StatScope): string => {
+export const sortSummary = (sortBy: SortOptions, statScope: StatScope, direction?: 'asc' | 'desc'): string => {
     const sort = SHORT_SORT_NAMES[sortBy] ?? sortTypes.find((s) => s.id === sortBy)?.name ?? sortBy;
     const scope = statScopes.find((s) => s.id === statScope)?.name ?? statScope;
-    return `${sort} · ${scope}`;
+    return `${direction ? (direction === 'asc' ? 'Fewest ' : 'Most ') : ''}${sort} · ${scope}`;
 };
