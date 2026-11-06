@@ -35,6 +35,7 @@ export interface DetailGame extends PlayerAppearance {
 }
 export interface DetailSeason {
     season: number;
+    clubs: {id: number; name: string}[];
     qualifies: boolean;
     stats: DetailStats;
 }
@@ -83,8 +84,13 @@ export function detailSeasons(games: DetailGame[], qualifyingSeasons: number[]):
     const seasons = new Map<number, DetailSeason>();
     const qualifying = new Set(qualifyingSeasons);
     for (const game of games) {
-        const row = seasons.get(game.season) ?? {season: game.season, qualifies: qualifying.has(game.season), stats: emptyDetailStats()};
-        if (game.matches_filters) row.stats = addDetailStats(row.stats, game.stats);
+        const row = seasons.get(game.season) ?? {season: game.season, clubs: [], qualifies: qualifying.has(game.season), stats: emptyDetailStats()};
+        if (game.matches_filters) {
+            row.stats = addDetailStats(row.stats, game.stats);
+            if (!row.clubs.some(club => club.id === game.club_id)) {
+                row.clubs.push({id: game.club_id, name: game.club_id === game.home_club_id ? game.home_club_name : game.away_club_name});
+            }
+        }
         seasons.set(game.season, row);
     }
     return [...seasons.values()].sort((a, b) => b.season - a.season);
