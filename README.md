@@ -4,12 +4,11 @@
 
 Ever wondered which Premier League footballer under 173cm with a minimum of 50 appearances has the best ratio of goals and assists in the second half of games?
 
-<img width="1912" height="940" alt="image" src="https://github.com/user-attachments/assets/e086cee4-948b-4419-b2a2-2de3ea43daae" />
-
+<img width="1914" height="949" alt="image" src="https://github.com/user-attachments/assets/cf993050-7c86-4751-a710-61056d26b29d" />
 
 Or which 35+year old has inflicted the most misery on Premier League teams in a Champions League game?
 
-<img width="1914" height="922" alt="image" src="https://github.com/user-attachments/assets/47acd7e9-4918-47f7-b893-2a4a16fd0c0f" />
+<img width="1913" height="949" alt="image" src="https://github.com/user-attachments/assets/c490eba8-665e-4a61-8304-ea4cffc43128" />
 
 Or just how prolific a sub Ole was?
 
