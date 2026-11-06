@@ -1,3 +1,4 @@
+import {nextSortSelection} from "../lib/columnSort";
 import React, {useEffect, useState} from 'react';
 import styles from './SearchFilterBar.module.css';
 import shared from "../../../styles/shared.module.css";
@@ -169,22 +170,19 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
         }
     }
 
-    const handleStatScopeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const statScope = e.target.value as StatScope;
-        const localStatScope = localFilterState.statScope;
-        setLocalFilterState(prevState => ({
-            ...prevState,
-            statScope: statScope
-        }));
+    const handleStatScopeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const statScope = event.target.value as StatScope;
+        setLocalFilterState(previous => {
+            const invalid = statScope === StatScope.GAME ? !gameOnlySortOptions.includes(previous.sortBy)
+                : statScope === StatScope.SEASON && previous.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH;
+            return {...previous, statScope, sortBy: invalid ? SortOptions.GOALS : previous.sortBy,
+                sortDirection: statScope === StatScope.GAME ? 'desc' : invalid || previous.statScope === StatScope.GAME ? undefined : previous.sortDirection};
+        });
+    };
 
-        // If we move from Overall/Season scope to Game, and currently have an Overall/Season only sort by selected, default to sort by goals
-        if (statScope === StatScope.GAME && statScope !== localStatScope && !gameOnlySortOptions.includes(localFilterState.sortBy)) {
-            setLocalFilterState(prevState => ({
-                ...prevState,
-                sortBy: SortOptions.GOALS
-            }))
-        }
-    }
+    const handleSortSelection = (sortBy: SortOptions) => {
+        setLocalFilterState(previous => ({...previous, ...nextSortSelection(previous, sortBy)}));
+    };
 
     const applyFilters = () => {
         if (filtersValidated()) {
@@ -320,8 +318,9 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = (
                 <SortByFilterSection
                     filterState={localFilterState}
                     onStatScopeChange={handleStatScopeChange}
-                    onSortByChange={(e) => setField('sortBy', e.target.value as SortOptions)}
-                    onMinimumAppearanceChange={(e) => setField('minimumAppearances', parseOptionalNumber(e.target.value))}
+                    onSortSelection={handleSortSelection}
+                    onMaximumAppearanceChange={(e) => setField('maximumAppearances', e.target.value === '' ? undefined : Number(e.target.value))}
+                    onMinimumAppearanceChange={(e) => setField('minimumAppearances', e.target.value === '' ? undefined : Number(e.target.value))}
                     onMinimumGoalsChange={(e) => setField('minimumGoals', parseOptionalNumber(e.target.value))}
                     onMaximumGoalsChange={(e) => setField('maximumGoals', parseOptionalNumber(e.target.value))}
                     onMinimumAssistsChange={(e) => setField('minimumAssists', parseOptionalNumber(e.target.value))}

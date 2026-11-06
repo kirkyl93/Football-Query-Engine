@@ -2,6 +2,7 @@ import {useMemo} from "react";
 import {countries, Country} from "../../../data/Countries";
 import {
     HomeOrAwayOptions,
+    gameOnlySortOptions,
     PenaltyOptions,
     SortOptions,
     StatScope,
@@ -17,6 +18,9 @@ export const useSearchFiltersFromUrl = (search: string): SearchFilterState => {
     return useMemo(() => {
         const params = new URLSearchParams(search);
         const selectedCountryCodes = params.get(UrlFilters.PLAYER_COUNTRIES)?.split(',').map(code => code.trim()) || [];
+        const scope = params.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL;
+        const requestedSort = params.get(UrlFilters.SORT_BY) as SortOptions || SortOptions.GOALS;
+        const sort = (scope === StatScope.GAME && !gameOnlySortOptions.includes(requestedSort)) || (scope === StatScope.SEASON && requestedSort === SortOptions.NUMBER_OF_SEASONS_WITH) ? SortOptions.GOALS : requestedSort;
         return {
             seasons: params.get(UrlFilters.SEASONS)?.split(',').map(Number) || [],
             competitions: params.get(UrlFilters.COMPETITIONS)?.split(',') || [],
@@ -46,7 +50,9 @@ export const useSearchFiltersFromUrl = (search: string): SearchFilterState => {
                 parseInt(params.get(UrlFilters.LATEST_SUB_ON_TIME)!, 10) : undefined,
             penalties: params.get(UrlFilters.PENALTIES) as PenaltyOptions || PenaltyOptions.INCLUDE_PENALTIES,
             homeOrAway: params.get(UrlFilters.HOME_OR_AWAY) as HomeOrAwayOptions || HomeOrAwayOptions.EITHER,
-            sortBy: params.get(UrlFilters.SORT_BY) as SortOptions || SortOptions.GOALS,
+            sortBy: sort,
+            sortDirection: scope === StatScope.GAME ? 'desc' : ['asc', 'desc'].includes(params.get(UrlFilters.SORT_DIRECTION) ?? '') ? params.get(UrlFilters.SORT_DIRECTION) as 'asc' | 'desc' : undefined,
+            maximumAppearances: params.has(UrlFilters.MAXIMUM_APPEARANCES) ? Number(params.get(UrlFilters.MAXIMUM_APPEARANCES)) : undefined,
             statScope: params.get(UrlFilters.SCOPE) as StatScope || StatScope.OVERALL,
             minimumAppearances: params.get(UrlFilters.MINIMUM_APPEARANCES) ?
                 parseInt(params.get(UrlFilters.MINIMUM_APPEARANCES)!, 10) : undefined,

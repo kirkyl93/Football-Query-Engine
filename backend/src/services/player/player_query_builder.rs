@@ -504,3 +504,55 @@ pub fn get_goals_calculation(penalties: &PenaltyOption, kind: TotalsKind) -> &'s
         (TotalsKind::PerSeason, _) => "SUM(a.goals)",
     }
 }
+
+pub trait AggregateFilterMethods {
+    fn add_aggregate_bounds(
+        &mut self,
+        params: &ProcessedSearchParams,
+        goals: &str,
+        reds: &str,
+    ) -> &mut Self;
+}
+
+impl AggregateFilterMethods for QueryBuilder<Postgres> {
+    fn add_aggregate_bounds(
+        &mut self,
+        params: &ProcessedSearchParams,
+        goals: &str,
+        reds: &str,
+    ) -> &mut Self {
+        let t = &params.thresholds;
+        let combined = format!("({goals}) + SUM(a.assists)");
+        self.push(" HAVING 1 = 1");
+        for (expression, min, max) in [
+            ("COUNT(*)", t.min_appearances, t.max_appearances),
+            (goals, t.min_goals, t.max_goals),
+            ("SUM(a.assists)", t.min_assists, t.max_assists),
+            (
+                combined.as_str(),
+                t.min_goals_and_assists,
+                t.max_goals_and_assists,
+            ),
+            (
+                "SUM(a.yellow_cards)",
+                t.min_yellow_cards,
+                t.max_yellow_cards,
+            ),
+            (reds, t.min_red_cards, t.max_red_cards),
+        ] {
+            if min >= 0 {
+                self.push(" AND ")
+                    .push(expression)
+                    .push(" >= ")
+                    .push_bind(min);
+            }
+            if max >= 0 {
+                self.push(" AND ")
+                    .push(expression)
+                    .push(" <= ")
+                    .push_bind(max);
+            }
+        }
+        self
+    }
+}

@@ -36,7 +36,7 @@ describe('filterStateToSearchParams', () => {
         expect(params.get(UrlFilters.LATEST_SUB_ON_TIME)).toBe('75');
     });
 
-    it('includes appearances only for minute-based sorts', () => {
+    it('includes appearance and goal bounds for aggregate sorts', () => {
         const minuteSort = {
             ...createDefaultSearchFilterState(),
             sortBy: SortOptions.MINUTES_PER_GOAL,
@@ -46,16 +46,31 @@ describe('filterStateToSearchParams', () => {
         const params = filterStateToSearchParams(minuteSort);
 
         expect(params.get(UrlFilters.MINIMUM_APPEARANCES)).toBe('10');
-        expect(params.has(UrlFilters.MINIMUM_GOALS)).toBe(false);
+        expect(params.get(UrlFilters.MINIMUM_GOALS)).toBe('5');
     });
 });
 
-it('serializes card bounds only for season counts, including zero',()=>{
+it('serializes card bounds for all aggregate rankings, including zero',()=>{
     const state={...createDefaultSearchFilterState(),sortBy:SortOptions.NUMBER_OF_SEASONS_WITH,minimumYellowCards:10,maximumYellowCards:12,minimumRedCards:0,maximumRedCards:0};
     const params=filterStateToSearchParams(state);
     expect(['miny','maxy','minr','maxr'].map(key=>params.get(key))).toEqual(['10','12','0','0']);
     for(const sortBy of [SortOptions.NUMBER_OF_GAMES_WITH,SortOptions.YELLOW_CARDS]){
         const other=filterStateToSearchParams({...state,sortBy});
-        expect(['miny','maxy','minr','maxr'].some(key=>other.has(key))).toBe(false);
+        expect(['miny','maxy','minr','maxr'].map(key=>other.get(key))).toEqual(['10','12','0','0']);
     }
+});
+
+it('does not serialize stale appearance limits for game counts', () => {
+    const state = {...createDefaultSearchFilterState(), sortBy: SortOptions.NUMBER_OF_GAMES_WITH, minimumAppearances: 100, maximumAppearances: 50, minimumYellowCards: 1};
+    const params = filterStateToSearchParams(state);
+    expect(params.has('ma')).toBe(false);
+    expect(params.has('maxap')).toBe(false);
+    expect(params.get('miny')).toBe('1');
+});
+
+it('removes qualification bounds and fewest-first ordering for individual games', () => {
+    const state = {...createDefaultSearchFilterState(), statScope: 'g' as import('../../../types/SearchOptions').StatScope, sortDirection: 'asc' as const, minimumAppearances: 10, maximumGoals: 0, minimumYellowCards: 1};
+    const params = filterStateToSearchParams(state);
+    expect(params.get('direction')).toBe('desc');
+    expect(['ma', 'maxap', 'maxg', 'miny'].some(key => params.has(key))).toBe(false);
 });

@@ -1,11 +1,11 @@
-import { SortOptions } from "../../../types/SearchOptions";
+import { SortOptions, StatScope } from "../../../types/SearchOptions";
 
 export type SortDirection = 'asc' | 'desc';
 
 /**
- * True ordering applied by the backend for each sort. Everything is
+ * Default ordering applied by the backend for each sort. Everything is
  * descending except the minutes-per-event sorts (lower is better).
- * The header arrow mirrors this so it never lies.
+ * Explicit direction choices override these defaults in the query and header.
  */
 export const SORT_DIRECTIONS: Record<SortOptions, SortDirection> = {
     [SortOptions.GOALS]: 'desc',
@@ -29,22 +29,13 @@ export const SORT_ARROWS: Record<SortDirection, string> = {
     desc: '▼',
 };
 
-/**
- * The Goals header doubles as the Goals+Assists control (there is no
- * G+A column): clicking it cycles Goals -> Goals+Assists -> Goals.
- * Every other header just selects its own sort.
- */
-export const nextSortForColumn = (
-    currentSort: SortOptions,
-    columnSort: SortOptions,
-): SortOptions => {
-    if (columnSort === SortOptions.GOALS) {
-        if (currentSort === SortOptions.GOALS) {
-            return SortOptions.GOALS_AND_ASSISTS;
-        }
-        if (currentSort === SortOptions.GOALS_AND_ASSISTS) {
-            return SortOptions.GOALS;
-        }
-    }
-    return columnSort;
+/** Shared selection behavior for the drawer and table headers. */
+export const nextSortSelection = (
+    current: {sortBy: SortOptions; sortDirection?: SortDirection; statScope: StatScope},
+    sortBy: SortOptions,
+): {sortBy: SortOptions; sortDirection?: SortDirection} => {
+    if (current.statScope === StatScope.GAME) return {sortBy, sortDirection: 'desc'};
+    if (current.sortBy !== sortBy) return {sortBy, sortDirection: undefined};
+    const direction = current.sortDirection ?? SORT_DIRECTIONS[sortBy];
+    return {sortBy, sortDirection: direction === 'asc' ? 'desc' : 'asc'};
 };

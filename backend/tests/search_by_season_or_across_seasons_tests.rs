@@ -570,3 +570,120 @@ async fn fractional_rates_break_integer_ties_and_zero_events_stay_undefined() {
         }
     }
 }
+
+#[actix_web::test]
+async fn appearance_rankings_require_zero_total_goals_not_scoreless_games() {
+    let pool = fixture_pool().await;
+    for source in [
+        SearchParamsBuilder::new(),
+        SearchParamsBuilder::new()
+            .minute_played_from(1)
+            .minute_played_to(90),
+    ] {
+        let query = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .positions(vec![PlayerSubPosition::CentreForward])
+            .sort(SortOption::Appearances)
+            .direction("desc")
+            .maximum_goals(0)
+            .with_filters(&source);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search",
+                &query,
+                &["player_id", "total_appearances", "total_goals", "rank"]
+            )
+            .await,
+            vec![json!([6, 1, 0, 1])]
+        );
+        assert!(
+            get_rows(&pool, "/search", &query.clone().maximum_appearances(0))
+                .await
+                .is_empty()
+        );
+    }
+}
+
+#[actix_web::test]
+async fn least_goals_respects_appearance_bounds_and_global_ranks() {
+    let pool = fixture_pool().await;
+    for source in [
+        SearchParamsBuilder::new(),
+        SearchParamsBuilder::new()
+            .minute_played_from(1)
+            .minute_played_to(90),
+    ] {
+        let query = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .sort(SortOption::Goals)
+            .direction("asc")
+            .minimum_appearances(3)
+            .maximum_appearances(5)
+            .with_filters(&source);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search",
+                &query,
+                &["player_id", "rank", "total_goals"]
+            )
+            .await,
+            vec![
+                json!([3, 1, 1]),
+                json!([2, 2, 4]),
+                json!([4, 2, 4]),
+                json!([1, 4, 7])
+            ]
+        );
+        assert_eq!(
+            rows(
+                &pool,
+                "/search",
+                &query.clone().limit(2).page(1),
+                &["player_id", "rank"]
+            )
+            .await,
+            vec![json!([4, 2]), json!([1, 4])]
+        );
+        let seasons = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .scope(StatScope::Season)
+            .sort(SortOption::Appearances)
+            .maximum_goals(0)
+            .minimum_appearances(2)
+            .maximum_appearances(2)
+            .with_filters(&source);
+        assert_eq!(
+            rows(
+                &pool,
+                "/search",
+                &seasons,
+                &["player_id", "season", "total_appearances", "total_goals"]
+            )
+            .await,
+            vec![json!([3, 2025, 2, 0])]
+        );
+    }
+}
+
+#[actix_web::test]
+async fn highest_minutes_per_event_still_puts_undefined_rates_last() {
+    let pool = fixture_pool().await;
+    for source in [
+        SearchParamsBuilder::new(),
+        SearchParamsBuilder::new()
+            .minute_played_from(1)
+            .minute_played_to(90),
+    ] {
+        let query = SearchParamsBuilder::new()
+            .competitions(vec![Competition::Bundesliga])
+            .sort(SortOption::MinutesPerGoal)
+            .direction("desc")
+            .with_filters(&source);
+        assert_eq!(
+            rows(&pool, "/search", &query, &["player_id", "rank"]).await,
+            vec![json!([16, 1]), json!([17, 2]), json!([18, 3])]
+        );
+    }
+}

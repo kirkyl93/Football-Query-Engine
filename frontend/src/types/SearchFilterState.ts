@@ -22,7 +22,9 @@ export interface SearchFilterState {
     homeOrAway: HomeOrAwayOptions;
     statScope: StatScope;
     sortBy: SortOptions;
+    sortDirection?: 'asc' | 'desc';
     minimumAppearances?: number;
+    maximumAppearances?: number;
     minimumGoals?: number;
     maximumGoals?: number;
     minimumAssists?: number;

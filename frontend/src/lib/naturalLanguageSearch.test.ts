@@ -209,3 +209,9 @@ describe("translateNaturalLanguageSearch", () => {
         await expect(translateNaturalLanguageSearch("Premier League top scorers")).resolves.toEqual(result);
     });
 });
+
+it('preserves the zero-total-goal appearance ranking and new controls from an LLM proposal', async () => {
+    const state = await naturalLanguageFiltersToSearchState({competitions: ['GB1'], positions: ['CF'], sortBy: SortOptions.APPEARANCES, statScope: StatScope.OVERALL, sortDirection: 'desc', maximumGoals: 0, minimumAppearances: 50, maximumAppearances: 100});
+    const params = filterStateToSearchParams(state);
+    expect(['comps', 'positions', 'sort', 'scope', 'direction', 'maxg', 'ma', 'maxap'].map(key => params.get(key))).toEqual(['GB1', 'CF', 'ap', 'o', 'desc', '0', '50', '100']);
+});

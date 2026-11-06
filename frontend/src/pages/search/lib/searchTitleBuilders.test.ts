@@ -253,9 +253,19 @@ describe('constructSearchTitle', () => {
     });
 });
 
-it('describes seasonal card thresholds without leaking them into game counts',()=>{
+it('describes card qualification thresholds for seasons and game counts',()=>{
     const state={...createDefaultSearchFilterState(),sortBy:SortOptions.NUMBER_OF_SEASONS_WITH,minimumYellowCards:10,maximumRedCards:0};
     expect(sortCriteriaTitle(state)).toContain('at least 10 yellow cards');
     expect(sortCriteriaTitle(state)).toContain('no red cards');
-    expect(sortCriteriaTitle({...state,sortBy:SortOptions.NUMBER_OF_GAMES_WITH})).not.toContain('card');
+    expect(sortCriteriaTitle({...state,sortBy:SortOptions.NUMBER_OF_GAMES_WITH})).toContain('at least 10 yellow cards');
+});
+
+it('describes least rankings and zero-goal totals without changing the ranking statistic', () => {
+    const state = {...createDefaultSearchFilterState(), sortBy: SortOptions.APPEARANCES, sortDirection: 'desc' as const, maximumGoals: 0, minimumAppearances: 50, maximumAppearances: 100};
+    expect(sortByTitle(state)).toBe('Most appearances');
+    expect(sortCriteriaTitle(state)).toContain('no goals');
+    expect(sortCriteriaTitle(state)).toContain('50');
+    expect(sortCriteriaTitle(state)).toContain('100');
+    expect(sortByTitle({...state, sortBy: SortOptions.GOALS, sortDirection: 'asc'})).toBe('Fewest goals');
+    expect(sortByTitle({...state, sortBy: SortOptions.MINUTES_PER_GOAL, sortDirection: 'desc'})).toBe('Most minutes per goal');
 });

@@ -209,3 +209,26 @@ async fn unmatched_game_filters_return_an_empty_successful_response() {
         }
     }
 }
+
+#[actix_web::test]
+async fn individual_game_rankings_stay_most_first_even_with_a_stale_direction() {
+    let pool = fixture_pool().await;
+    for source in [
+        SearchParamsBuilder::new(),
+        SearchParamsBuilder::new()
+            .minute_played_from(1)
+            .minute_played_to(90),
+    ] {
+        let query = SearchParamsBuilder::new()
+            .competitions(vec![Competition::PremierLeague])
+            .names(vec!["Alex"])
+            .sort(SortOption::Goals)
+            .direction("asc")
+            .limit(2)
+            .with_filters(&source);
+        assert_eq!(
+            rows(&pool, "/search/game", &query, &["date", "goals", "rank"]).await,
+            vec![json!(["2024-08-10", 2, 1]), json!(["2024-09-07", 2, 1])]
+        );
+    }
+}

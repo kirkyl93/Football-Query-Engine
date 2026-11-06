@@ -77,3 +77,14 @@ it('restores card season bounds from a shared URL',()=>{
     const {result}=renderHook(()=>useSearchFiltersFromUrl('?sort=sw&miny=10&maxy=12&minr=0&maxr=0'));
     expect(result.current).toMatchObject({minimumYellowCards:10,maximumYellowCards:12,minimumRedCards:0,maximumRedCards:0});
 });
+
+it.each([SortOptions.GOALS, SortOptions.APPEARANCES, SortOptions.NUMBER_OF_SEASONS_WITH])('round trips direction and appearance limits for %s', sortBy => {
+    const state = {...createDefaultSearchFilterState(), sortBy, sortDirection: 'asc' as const, minimumAppearances: 50, maximumAppearances: 100, maximumGoals: 0};
+    const {result} = renderHook(() => useSearchFiltersFromUrl('?' + filterStateToSearchParams(state)));
+    expect(result.current).toMatchObject({sortDirection: 'asc', minimumAppearances: 50, maximumAppearances: 100, maximumGoals: 0});
+});
+
+it('normalizes old individual-game URLs to the supported most-first rankings', () => {
+    const {result} = renderHook(() => useSearchFiltersFromUrl('?scope=g&sort=y&direction=asc'));
+    expect(result.current).toMatchObject({statScope: StatScope.GAME, sortBy: SortOptions.GOALS, sortDirection: 'desc'});
+});

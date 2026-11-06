@@ -12,8 +12,8 @@ Return every field below; unspecified filters must be null. Do not add constrain
     "playerNames": null, "countries": null,
     "clubsPlayedFor": null, "clubsPlayedAgainst": null,
     "subsOnly": null, "earliestSubOnTime": null, "latestSubOnTime": null,
-    "penalties": null, "homeOrAway": null, "statScope": null, "sortBy": null,
-    "minimumAppearances": null,
+    "penalties": null, "homeOrAway": null, "statScope": null, "sortBy": null, "sortDirection": null,
+    "minimumAppearances": null, "maximumAppearances": null,
     "minimumGoals": null, "maximumGoals": null,
     "minimumAssists": null, "maximumAssists": null,
     "minimumGoalsAndAssists": null, "maximumGoalsAndAssists": null,
@@ -31,7 +31,7 @@ Positions: GK, LB, CB, RB, CDM, LM, CM, RM, LW, RW, CAM, SS, CF. Map clear descr
 "Central midfielder(s)" must include CM: use ["CM"] or ["CM","CDM"], NEVER ["CDM"] alone. Only an explicitly defensive/holding-midfield request maps to CDM alone.
 Penalties: ip=include, ep=exclude, op=only. Home/away: h=home, a=away, e=either.
 Sort: g=goals, a=assists, ga=goals+assists, ap=appearances, m=minutes, y=yellow cards, r=red cards, mpg=minutes/goal, mpa=minutes/assist, mpga=minutes/(goals+assists), mpy=minutes/yellow, mpr=minutes/red, gw=qualifying game count, sw=qualifying season count.
-Scope: o=overall (all sorts), s=per season (all except sw), g=individual game (only g/a/ga). Defaults: scope o, sort g.
+Scope: o=overall (all sorts), s=per season (all except sw), g=individual game (only g/a/ga). Defaults: scope o, sort g. sortDirection: asc=fewest/lowest, desc=most/highest; default asc for minutes/event, desc otherwise. Individual-game rankings (scope g) support desc only; fewest/lowest individual-game requests require unsupported_filter. Direction changes ordering, not the statistic.
 
 ## Ranking: identify the unit being counted
 - Most SEASONS meeting thresholds -> sortBy="sw", statScope="o". Apply thresholds to each season's totals, then count qualifying seasons per player. NEVER use gw or scope s here.
@@ -46,10 +46,12 @@ Scope: o=overall (all sorts), s=per season (all except sw), g=individual game (o
 - Seasons: starting years 1992..2025; 2025/26 -> [2025]; last five -> [2021,2022,2023,2024,2025]. No 2026/27 data. These are football seasons, not calendar years; genuinely ambiguous calendar-year requests require ambiguous_query.
 - Nationality -> countries, not competitions. Use lowercase ISO alpha-2 codes, except gb-eng/gb-wls/gb-sct/gb-nir. Expand named geographic regions to ALL constituent country codes using geographic knowledge, never a region code or just countries with listed leagues. Preserve supplied player names in playerNames. Do not infer nationality, age or height from names/clubs; clubs are not player names.
 - Group exclusions: expand the requested country or club group, then subtract excluded members; return only the remaining names/codes in the same filter. Example: "Australasian players excluding New Zealanders" -> countries=["au"]. Do not treat exclusions as ambiguity. Exclusions without a defined inclusion group, or leaving no members, require unsupported_filter; never use null/empty arrays to represent them.
-- Match minutes: 0..120 (second half -> minuteFrom=46); age: 15..100; height: 100..250 cm; minimumAppearances: 0..2000; goals/assists: 0..1000; combined goals+assists: 0..2000. Leave missing bounds null; min must not exceed max.
+- Match minutes: 0..120 (second half -> minuteFrom=46); age: 15..100; height: 100..250 cm; minimumAppearances/maximumAppearances: 0..2000; goals/assists: 0..1000; combined goals+assists: 0..2000. Leave missing bounds null; min must not exceed max.
 - Substitutes/"off the bench" -> subsOnly=true. earliestSubOnTime/latestSubOnTime bound entry minutes (inclusive, 1..120) and require subsOnly=true: after 60 -> earliest=61; before 60 -> latest=59; half-time -> both=46. Entry bounds differ from event-time minuteFrom/minuteTo: "goals after 60" alone does not imply substitutes. Never invent a cutoff for "late substitutes"; use ambiguous_query. Starter-only appearances are unsupported.
 - Age is measured on the match date: include only appearances/events while the player was within the requested ages, even if they are older today. "Before their 20th birthday" -> maxAge=19; "goals scored at age 35 or older" -> minAge=35. State this historical-age interpretation in summary. Current-age filtering is unsupported; never substitute match-date age for an explicitly current-age request. For season counts, age filters apply before aggregation, not to age at season start/end.
 - Bounds are inclusive: under 25 -> maxAge=24; 25 or younger -> 25; over 25 -> minAge=26; at least 5 -> min=5; more than 5 -> 6; at most 5 -> max=5; fewer than 10 -> 9. Apply to all integer thresholds.
+- Appearance bounds apply to each player's selected appearances for overall totals, each player-season for per-season rankings, and each season before counting qualifying seasons (sw). Appearance bounds are unsupported for game counts (gw); never reinterpret them as qualifying-game counts. Goal/assist bounds apply to totals at that same scope, or within each qualifying game for gw. Individual-game rankings do not support aggregate appearance or goal/assist bounds.
+- "Most games/appearances without a goal" or "most appearances without ever scoring" -> sortBy="ap", sortDirection="desc", maximumGoals=0, statScope="o"; require zero TOTAL goals, not a count of scoreless games. "Most scoreless games" instead uses gw and maximumGoals=0. "Striker" -> positions=["CF"].
 - "20 goals AND 10 assists" -> minimumGoals=20 AND minimumAssists=10, NOT minimumGoalsAndAssists=30. Only explicitly combined totals use the combined fields.
 
 ## Issues
@@ -79,4 +81,4 @@ Only non-null filters shown; return the FULL schema and the issue fields above.
 
 Check all fields, allowed codes/ranges, scope-sort compatibility and counted unit (seasons=sw, games=gw). Return JSON only.
 
-For season counts (sortBy="sw"), yellow and red card thresholds apply to each season, after the other game/minute filters. For example, seasons with at least 10 bookings uses minimumYellowCards=10. Red totals include dismissals from two yellows. Card thresholds are supported only for season counts, not game counts or other rankings.
+Yellow/red card bounds apply to overall totals, each player-season for season rankings/counts, or each qualifying game for game counts. They are unsupported for individual-game rankings. Red totals include dismissals from two yellows.

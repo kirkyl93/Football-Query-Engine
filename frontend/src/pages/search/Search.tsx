@@ -1,3 +1,4 @@
+import {nextSortSelection} from "./lib/columnSort";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import SearchFilterBar from "./components/SearchFilterBar";
 import NaturalLanguageSearchBar from "./components/NaturalLanguageSearchBar";
@@ -82,7 +83,7 @@ const Search: React.FC = () => {
     };
 
     const handleSortChange = (sortBy: SortOptions) => {
-        handleFilterChange({...filterState, sortBy});
+        handleFilterChange({...filterState, ...nextSortSelection(filterState, sortBy)});
     };
 
     const toggleDrawer = () => {
@@ -121,6 +122,7 @@ const Search: React.FC = () => {
                 {selectedScope !== StatScope.GAME &&
                     numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
                     <SearchByCountTable
+                        onSortChange={handleSortChange}
                         onViewDetails={viewDetails}
                         filterState={filterState}
                     />

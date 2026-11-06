@@ -1,5 +1,5 @@
 import {SearchFilterState} from "../../../types/SearchFilterState";
-import {minuteBasedSortOptions, numberOfGamesOrSeasonsSortOptions, SortOptions} from "../../../types/SearchOptions";
+import {SortOptions, StatScope} from "../../../types/SearchOptions";
 import {UrlFilters} from "../../../types/UrlFilters";
 
 /**
@@ -39,11 +39,13 @@ export const filterStateToSearchParams = (filterState: SearchFilterState): URLSe
     addParam(UrlFilters.PENALTIES, filterState.penalties);
     addParam(UrlFilters.HOME_OR_AWAY, filterState.homeOrAway);
     addParam(UrlFilters.SORT_BY, filterState.sortBy);
+    addParam(UrlFilters.SORT_DIRECTION, filterState.statScope === StatScope.GAME ? 'desc' : filterState.sortDirection);
     addParam(UrlFilters.SCOPE, filterState.statScope);
-    if (minuteBasedSortOptions.includes(filterState.sortBy)) {
-        addParam(UrlFilters.MINIMUM_APPEARANCES, filterState.minimumAppearances);
-    }
-    if (numberOfGamesOrSeasonsSortOptions.includes(filterState.sortBy)) {
+    if (filterState.statScope !== StatScope.GAME) {
+        if (filterState.sortBy !== SortOptions.NUMBER_OF_GAMES_WITH) {
+            addParam(UrlFilters.MINIMUM_APPEARANCES, filterState.minimumAppearances);
+            addParam(UrlFilters.MAXIMUM_APPEARANCES, filterState.maximumAppearances);
+        }
         addParam(UrlFilters.MINIMUM_GOALS, filterState.minimumGoals);
         addParam(UrlFilters.MAXIMUM_GOALS, filterState.maximumGoals);
         addParam(UrlFilters.MINIMUM_ASSISTS, filterState.minimumAssists);
@@ -52,7 +54,7 @@ export const filterStateToSearchParams = (filterState: SearchFilterState): URLSe
         addParam(UrlFilters.MAXIMUM_GOALS_AND_ASSISTS, filterState.maximumGoalsAndAssists);
     }
 
-    if (filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH) {
+    if (filterState.statScope !== StatScope.GAME) {
         addParam(UrlFilters.MINIMUM_YELLOW_CARDS, filterState.minimumYellowCards);
         addParam(UrlFilters.MAXIMUM_YELLOW_CARDS, filterState.maximumYellowCards);
         addParam(UrlFilters.MINIMUM_RED_CARDS, filterState.minimumRedCards);
