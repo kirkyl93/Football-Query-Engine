@@ -7,6 +7,7 @@ export interface ScatterEvent {
     minute: number;
     size: number;
     color: string;
+    bottomColor?: string;
     shape: string;
 }
 
@@ -55,11 +56,19 @@ export const mapAppearanceEvents = (
             });
         }
 
-        // Add yellow card events
-        if (noEventFiltersSelected || selectedEvents.Yellows) {
+        // Keep second-yellow dismissals visible under either card filter.
+        const dismissal = secondYellowMinute(item);
+        if (noEventFiltersSelected || selectedEvents.Yellows || (selectedEvents.Reds && dismissal !== null)) {
             item.yellow_minutes.forEach((minute) => {
-                events.push({game_number: item.game_number, minute, size: 5, color: 'yellow', shape: 'rectangle'});
+                events.push({
+                    game_number: item.game_number, minute, size: 5, shape: 'rectangle',
+                    color: minute === dismissal ? 'red' : 'yellow',
+                    ...(minute === dismissal ? {bottomColor: 'yellow'} : {}),
+                });
             });
+            if (dismissal !== null && !item.yellow_minutes.includes(dismissal)) {
+                events.push({game_number: item.game_number, minute: dismissal, size: 5, color: 'red', bottomColor: 'yellow', shape: 'rectangle'});
+            }
         }
 
         // Add red card events
@@ -67,26 +76,6 @@ export const mapAppearanceEvents = (
             item.red_minutes.forEach((minute) => {
                 events.push({game_number: item.game_number, minute, size: 5, color: 'red', shape: 'rectangle'});
             });
-
-            const dismissal = item.second_yellow_red_minute;
-            if (dismissal != null) {
-                events.push({game_number: item.game_number, minute: dismissal, size: 5, color: 'red', shape: 'rectangle'});
-            }
-
-            // Only add red card yellows if we haven't already added yellows
-            if (!noEventFiltersSelected && !selectedEvents.Yellows) {
-                if (secondYellowMinute(item) !== null) {
-                    item.yellow_minutes.forEach((minute) => {
-                        events.push({
-                            game_number: item.game_number,
-                            minute,
-                            size: 5,
-                            color: 'yellow',
-                            shape: 'rectangle'
-                        });
-                    });
-                }
-            }
         }
 
         // Add appearance event

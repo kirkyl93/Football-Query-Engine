@@ -110,6 +110,26 @@ describe('areNoEventsSelected', () => {
 });
 
 describe('mapAppearanceEvents', () => {
+    it.each(['all', 'Yellows', 'Reds', 'both'] as const)('marks only the second booking as a dismissal with %s selected', (filter) => {
+        const selected = {
+            ...createDefaultPlayerFilterState().selectedEvents,
+            Yellows: filter === 'Yellows' || filter === 'both',
+            Reds: filter === 'Reds' || filter === 'both',
+        };
+        const events = mapAppearanceEvents(
+            [game({yellow_minutes: [30, 70], red_minutes: [80]})], selected, filter === 'all',
+        );
+        expect(events.filter(e => e.minute === 30)).toEqual([
+            {game_number: 0, minute: 30, size: 5, color: 'yellow', shape: 'rectangle'},
+        ]);
+        expect(events.filter(e => e.minute === 70)).toEqual([
+            {game_number: 0, minute: 70, size: 5, color: 'red', bottomColor: 'yellow', shape: 'rectangle'},
+        ]);
+        expect(events.filter(e => e.minute === 80)).toEqual(filter === 'Yellows' ? [] : [
+            {game_number: 0, minute: 80, size: 5, color: 'red', shape: 'rectangle'},
+        ]);
+    });
+
     it('maps goals, cards and result dots when nothing is filtered', () => {
         const events = mapAppearanceEvents(
             [game({game_number: 1, goals: 1, goal_minutes: [23], yellow_minutes: [50]})],
@@ -226,7 +246,7 @@ describe('player minute windows', () => {
         expect(calculateAppearancesTotals([late])).toMatchObject({yellows: 1, reds: 1});
         expect(calculatePlayerStreaks([late]).longestRedStreak.count).toBe(1);
         const events = mapAppearanceEvents([late], {...createDefaultPlayerFilterState().selectedEvents, Reds: true}, false);
-        expect(events).toContainEqual({game_number: 1, minute: 70, size: 5, color: 'red', shape: 'rectangle'});
+        expect(events).toContainEqual({game_number: 1, minute: 70, size: 5, color: 'red', bottomColor: 'yellow', shape: 'rectangle'});
         expect(events.some(e => e.minute === 30)).toBe(false);
         const [all] = filterAppearances([original], window(1, 90));
         expect(calculatePlayerAndTeamStats([all]).totalReds).toBe(1);

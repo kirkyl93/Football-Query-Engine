@@ -36,6 +36,25 @@ const game = (overrides: Partial<PlayerAppearance> = {}): PlayerAppearance => ({
 });
 
 describe('AppearancesTooltip', () => {
+    it.each([
+        {label: 'second yellow in a full appearance', appearance: game({yellow_cards: 2, yellow_minutes: [30, 70]}), reds: 1},
+        {label: 'straight red', appearance: game({red_cards: 1, red_minutes: [70]}), reds: 1},
+        {label: 'single yellow', appearance: game({yellow_cards: 1, yellow_minutes: [30]}), reds: 0},
+        {label: 'second yellow with the first outside the minute window', appearance: game({yellow_cards: 1, yellow_minutes: [70], second_yellow_red_minute: 70, full_match_minutes_played: [0, 70]}), reds: 1},
+        {label: 'second yellow outside the minute window', appearance: game({yellow_cards: 1, yellow_minutes: [30], second_yellow_red_minute: null, full_match_minutes_played: [0, 70]}), reds: 0},
+    ])('counts reds for $label', ({appearance, reds}) => {
+        render(<AppearancesTooltip active payload={[{payload: appearance}]} filteredData={[appearance]}/>);
+        expect(screen.getByText(`Reds: ${reds}`)).toBeInTheDocument();
+        expect(screen.getByText(`Yellows: ${appearance.yellow_cards}`)).toBeInTheDocument();
+    });
+
+    it('uses supplied search stats without counting a second-yellow dismissal twice', () => {
+        const appearance = game({yellow_cards: 2, yellow_minutes: [30, 70]});
+        render(<AppearancesTooltip active payload={[{payload: appearance}]} filteredData={[appearance]}
+            statsByGame={new Map([[1, {minutes: 70, goals: 0, assists: 0, yellows: 2, reds: 1}]])}/>);
+        expect(screen.getByText('Reds: 1')).toBeInTheDocument();
+    });
+
     it('renders nothing when inactive', () => {
         const {container} = render(
             <AppearancesTooltip active={false} payload={[{payload: game()}]} filteredData={[game()]}/>,

@@ -116,6 +116,10 @@ export const drawAppearancesChart = (
             const side = squareMarkerSize(sizing.rectangleWidth, barWidth);
             ctx.fillStyle = event.color;
             ctx.fillRect(cx - side / 2, cy - side / 2, side, side);
+            if (event.bottomColor) {
+                ctx.fillStyle = event.bottomColor;
+                ctx.fillRect(cx - side / 2, cy, side, side / 2);
+            }
             if (sizing.strokeWidth >= BAR_STROKE_CUTOFF) {
                 ctx.lineWidth = sizing.strokeWidth + CANVAS_STROKE_BOOST;
                 ctx.strokeStyle = "black";

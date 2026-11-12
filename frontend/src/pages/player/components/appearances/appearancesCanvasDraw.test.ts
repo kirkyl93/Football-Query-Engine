@@ -29,6 +29,28 @@ const model = (): AppearancesDrawModel => ({
 });
 
 describe('drawAppearancesChart chrome', () => {
+    it('paints a second-yellow marker with a red top and yellow bottom', () => {
+        const fills: {color: string; rect: number[]}[] = [];
+        const ctx = {
+            ...stubCtx(),
+            fillStyle: '',
+            fillRect(...rect: number[]) { fills.push({color: this.fillStyle, rect}); },
+            strokeRect: vi.fn(),
+        };
+        const data = model();
+        // A zero-height appearance isolates marker drawing from the range bar.
+        data.zoomedData = [{game_number: 1, minutes_played: [0, 0]}] as AppearancesDrawModel['zoomedData'];
+        data.scatterData = [{game_number: 1, minute: 70, size: 5, color: 'red', bottomColor: 'yellow', shape: 'rectangle'}];
+        drawAppearancesChart(ctx as unknown as CanvasRenderingContext2D, 800, 180, data);
+        expect(fills).toHaveLength(2);
+        const [base, bottom] = fills;
+        expect(base.color).toBe('red');
+        expect(bottom.color).toBe('yellow');
+        const [x, y, width, height] = base.rect;
+        expect(bottom.rect).toEqual([x, y + height / 2, width, height / 2]);
+        expect(ctx.strokeRect).toHaveBeenCalledTimes(1);
+    });
+
     it('draws axis labels and titles at full height', () => {
         const ctx = stubCtx();
         drawAppearancesChart(ctx as unknown as CanvasRenderingContext2D, 800, 360, model());
