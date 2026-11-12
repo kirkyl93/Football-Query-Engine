@@ -106,7 +106,7 @@ const AppearancesTooltip: React.FC<AppearancesTooltipProps> = ({active, payload,
             <p>Own goals: {appearance.own_goal_minutes.length}</p>
             <p>Assists: {stats?.assists ?? appearance.assists}</p>
             <p>Yellows: {stats?.yellows ?? appearance.yellow_cards}</p>
-            <p>Reds: {stats?.reds ?? (appearance.red_cards + (appearance.full_match_minutes_played && secondYellowMinute(appearance) !== null ? 1 : 0))}</p>
+            <p>Reds: {stats?.reds ?? (appearance.red_cards + (secondYellowMinute(appearance) !== null ? 1 : 0))}</p>
         </div>
     );
 };
