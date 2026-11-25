@@ -1,7 +1,25 @@
 import {describe, expect, it} from 'vitest';
-import {formatMinutesPerEvent, getDisplayStatForSmallScreen} from './smallScreenStat';
+import {formatMinutesPerEvent, getCompactSearchStats, getDisplayStatForSmallScreen} from './smallScreenStat';
 import {SortOptions} from '../../../types/SearchOptions';
 import {PlayerSearchResult} from '../../../types/Player';
+
+import {createDefaultSearchFilterState} from './defaultSearchFilter';
+
+describe('compact search columns', () => {
+    it('keeps all filtered metrics, including a maximum of zero', () => {
+        const filters = createDefaultSearchFilterState();
+        expect(getCompactSearchStats({...filters, minimumAppearances: 20, maximumYellowCards: 0}))
+            .toEqual(['total_appearances', 'total_yellow_cards']);
+        expect(getCompactSearchStats({...filters, minimumGoalsAndAssists: 10}))
+            .toEqual(['total_goals', 'total_assists']);
+    });
+
+    it('uses the sort metric when there are no active stat bounds', () => {
+        const filters = createDefaultSearchFilterState();
+        expect(getCompactSearchStats({...filters, sortBy: SortOptions.MINUTES_PER_ASSIST, minimumAppearances: 0, maximumGoals: -1}))
+            .toEqual(['mins_per_assist']);
+    });
+});
 
 describe('minutes per event display', () => {
     it.each([

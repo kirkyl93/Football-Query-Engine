@@ -188,6 +188,7 @@ fn view(quiz: &Quiz, attempt: &Attempt, reveal_answers: bool) -> QuizResult<Http
         serde_urlencoded::to_string(settings).expect("quiz detail display settings are strings");
     Ok(ok(json!({
         "detail_context":detail_context,
+        "question_stats":super::search::question_stats(&search, is_game),
         "id":quiz.quiz_id,"date":quiz.quiz_date,"question":quiz.question,"rows":rows,
         "answers_revealed":reveal_answers,
         "wrong_guess_penalty": WRONG_GUESS_COST,
@@ -770,7 +771,7 @@ mod tests {
             quiz_id: 14,
             quiz_date: NaiveDate::from_ymd_opt(2026, 11, 23).unwrap(),
             question: "Which players qualify?".into(),
-            search_params: "scope=s&sort=g&names=Hidden".into(),
+            search_params: "scope=s&sort=g&names=Hidden&ming=5&mina=5".into(),
             answers: Json(vec![
                 RatedPlayer {
                     id: 1,
@@ -813,6 +814,10 @@ mod tests {
         assert_eq!(value["rows"][1]["player"], serde_json::Value::Null);
         assert_eq!(value["rows"][1]["stats"], json!({"season":2025}));
         assert_eq!(value["detail_context"], "scope=s&sort=g");
+        assert_eq!(
+            value["question_stats"],
+            json!(["total_goals", "total_assists"])
+        );
         assert!(!String::from_utf8_lossy(&bytes).contains("Hidden"));
         assert_eq!(value["answers_revealed"], false);
         assert_eq!(

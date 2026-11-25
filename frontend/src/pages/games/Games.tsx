@@ -261,6 +261,7 @@ function Quiz({quizKey}: {quizKey?: string}) {
                         <WrongGuesses key={quizId} quizId={quizId} count={quiz.wrong_guess_count}/>}
                     <QuizTable rows={quiz.rows} onViewDetails={setDetail} filterState={detailFilters} review={quiz.answers_revealed}
                         wrongGuessPenalty={quiz.wrong_guess_penalty} hintCost={quiz.hint_cost}
+                        compactStats={quiz.question_stats}
                         hintsBusy={busy} onBuyHint={canGuess ? (row, kind) => void update("hint", {row, kind}) : undefined}/>
                     {detail && detailSource && <SearchDetailsModal
                         result={detail.result} search={detailContext} filterState={detailFilters}

@@ -135,7 +135,7 @@ function PointsHelp({penalty, hintCost}: {penalty: number; hintCost?: number}) {
 }
 
 export function QuizTable({
-    rows, filterState, preview = false, review = false, wrongGuessPenalty = 10, hintCost, hintsBusy, onBuyHint, onViewDetails,
+    rows, filterState, preview = false, review = false, wrongGuessPenalty = 10, hintCost, hintsBusy, compactStats, onBuyHint, onViewDetails,
 }: {
     rows: Clue[];
     filterState: SearchFilterState;
@@ -144,6 +144,7 @@ export function QuizTable({
     wrongGuessPenalty?: number;
     hintCost?: number;
     hintsBusy?: boolean;
+    compactStats?: string[];
     onBuyHint?: (index: number, kind: QuizHint) => void;
     onViewDetails?: (detail: QuizDetailSelection) => void;
 }) {
@@ -222,7 +223,7 @@ export function QuizTable({
             tabIndex={0} role="region" aria-label={preview ? "Answer preview" : review ? "Quiz answers" : "Quiz clues"}>
             {filterState.statScope === StatScope.GAME ? <SearchGameResults {...tableProps}/> :
                 seasonsView || filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH
-                    ? <SearchCountResults {...tableProps}/> : <SearchOverallResults {...tableProps}/>}
+                    ? <SearchCountResults {...tableProps}/> : <SearchOverallResults {...tableProps} compactStats={compactStats}/>}
         </div>
     );
 }

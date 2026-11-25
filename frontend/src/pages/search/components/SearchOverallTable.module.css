@@ -1,6 +1,4 @@
 /* Collapse according to the space available to the table, including page padding. */
-.small-screen-display { display: none; }
-
 @container search-results (max-width: 1200px) {
     .first-columns-to-hide { display: none; }
 }
@@ -11,5 +9,11 @@
 
 @container search-results (max-width: 920px) {
     .third-columns-to-hide { display: none; }
-    .small-screen-display { display: table-cell; }
+}
+
+@container search-results (max-width: 350px) {
+    table.multiStatTable thead th,
+    table.multiStatTable tbody tr td {
+        padding-inline: 5px;
+    }
 }
