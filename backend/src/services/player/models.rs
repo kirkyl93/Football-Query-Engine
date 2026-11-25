@@ -148,13 +148,13 @@ impl SearchParams {
         };
 
         ProcessedSearchParams {
-            pagination: Pagination {
+            pagination: Some(Pagination {
                 page: self.page.unwrap_or(0).max(0),
                 limit: self
                     .limit
                     .unwrap_or(DEFAULT_SEARCH_LIMIT)
                     .clamp(1, MAX_SEARCH_LIMIT),
-            },
+            }),
             minute_window: MinuteWindow {
                 from: minute_from,
                 to: minute_to,
@@ -208,7 +208,7 @@ impl SearchParams {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProcessedSearchParams {
-    pub pagination: Pagination,
+    pub pagination: Option<Pagination>,
     pub minute_window: MinuteWindow,
     pub age: AgeRange,
     pub height: HeightRange,
@@ -491,8 +491,8 @@ mod tests {
 
         let result = params.to_processed();
 
-        assert_eq!(result.pagination.page, 2);
-        assert_eq!(result.pagination.limit, 30);
+        assert_eq!(result.pagination.unwrap().page, 2);
+        assert_eq!(result.pagination.unwrap().limit, 30);
         assert_eq!(result.seasons, vec![2020, 2021]);
         assert_eq!(
             result.competitions,
@@ -557,8 +557,8 @@ mod tests {
         assert!(result.countries.is_empty());
         assert!(result.clubs_played_for.is_empty());
         assert!(result.clubs_played_against.is_empty());
-        assert_eq!(result.pagination.page, 0);
-        assert_eq!(result.pagination.limit, 50);
+        assert_eq!(result.pagination.unwrap().page, 0);
+        assert_eq!(result.pagination.unwrap().limit, 50);
         assert_eq!(result.minute_window.from, 0);
         assert_eq!(result.minute_window.to, 120);
         assert!(!result.has_minute_filter());

@@ -16,6 +16,7 @@ use football_game::services::player::search_by_season_or_across_seasons::search_
 use football_game::services::player::search_players::{
     fetch_player, get_player_games, get_players,
 };
+use football_game::services::quiz;
 use football_game::services::query_cache::{DEFAULT_TTL_SECS, QueryCache};
 use football_game::services::natural_language_search::translate_search;
 use football_game::services::llm::LlmService;
@@ -71,12 +72,15 @@ async fn main() -> std::io::Result<()> {
         .build()
         .expect("Failed to build HTTP client");
 
+    let quiz_owner = quiz::Owner::from_env()
+        .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidInput, message))?
+        .map(web::Data::new);
     let shared_http_client = web::Data::new(http_client);
 
     HttpServer::new(move || {
         let mut cors = Cors::default()
             .allowed_methods([Method::GET, Method::HEAD, Method::POST])
-            .allowed_headers([header::CONTENT_TYPE])
+            .allowed_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
             .max_age(3600);
 
         for origin in &allowed_origins {
@@ -89,6 +93,12 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(pool.clone()))
             .app_data(shared_http_client.clone())
             .app_data(llm_service.clone())
+            .configure(|config| {
+                if let Some(owner) = &quiz_owner {
+                    config.app_data(owner.clone());
+                }
+                quiz::configure(config);
+            })
             .service(get_players)
             .service(fetch_player)
             .service(search_by_season_or_across_seasons)

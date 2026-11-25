@@ -5,8 +5,8 @@ import {PlayerGameSearchResult, PlayerNumberOfGamesOrSeasonsResult, PlayerSearch
 import {API_BASE_URL} from "../config";
 import {fetchJson} from "./apiError";
 
-export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams }: FetchParams): string => {
-    const params = new URLSearchParams({page: String(page), limit: String(limit)});
+export const searchFiltersForApi = (searchParams: URLSearchParams): URLSearchParams => {
+    const params = new URLSearchParams();
     const handledSeparately = new Set<UrlFilters>([
         UrlFilters.SCOPE, UrlFilters.SUBS_ONLY,
         UrlFilters.EARLIEST_SUB_ON_TIME, UrlFilters.LATEST_SUB_ON_TIME,
@@ -54,6 +54,12 @@ export const constructSearchUrl = (baseUrl: string, { page, limit, searchParams 
             }
         }
     }
+    return params;
+};
+
+export const constructSearchUrl = (baseUrl: string, {page, limit, searchParams}: FetchParams): string => {
+    const params = new URLSearchParams({page: String(page), limit: String(limit)});
+    searchFiltersForApi(searchParams).forEach((value, key) => params.set(key, value));
     return baseUrl + '?' + params.toString();
 };
 

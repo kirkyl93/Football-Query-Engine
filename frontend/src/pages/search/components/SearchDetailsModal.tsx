@@ -1,12 +1,12 @@
 import playerStyles from '../../player/Player.module.css';
-import {useMemo, useState} from 'react';
+import {useMemo, useState, type ReactNode} from 'react';
 import ChartSectionModal from '../../player/components/charts/ChartSectionModal';
 import {SearchFilterState} from '../../../types/SearchFilterState';
 import {SortOptions, StatScope} from '../../../types/SearchOptions';
 import {convertDateStringToDate, dateFormatter, formatSeason} from '../../../lib/DateUtils';
 import {getDisplayStatForSmallScreen, getDisplayTitleForSmallScreen} from '../lib/smallScreenStat';
 import {addDetailStats, DetailResult, DetailStats, detailSeasons, emptyDetailStats, hasGameQualificationFilters} from '../lib/searchDetails';
-import {useSearchDetails} from '../hooks/useSearchDetails';
+import {useSearchDetails, type SearchDetailsSource} from '../hooks/useSearchDetails';
 import {SearchDetailsChart} from './SearchDetailsChart';
 import SearchTitle from './SearchTitle';
 import {ClubBadge} from './ClubBadge';
@@ -18,6 +18,8 @@ interface Props {
     search: string;
     filterState: SearchFilterState;
     onClose: () => void;
+    source?: SearchDetailsSource;
+    subtitle?: ReactNode;
 }
 const PAGE_SIZE = 50;
 function StatCells({stats, showAppearances = true}: {stats: DetailStats; showAppearances?: boolean}) {
@@ -25,12 +27,13 @@ function StatCells({stats, showAppearances = true}: {stats: DetailStats; showApp
         <td>{stats.assists}</td><td>{stats.yellows}</td><td>{stats.reds}</td></>;
 }
 
-export function SearchDetailsModal({result, search, filterState, onClose}: Props) {
+export function SearchDetailsModal({result, search, filterState, onClose, source, subtitle}: Props) {
     const seasonsView = filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH;
     const resultSeason = filterState.statScope === StatScope.SEASON && !seasonsView ? result.season : undefined;
-    const {games, loading, error, retry} = useSearchDetails(search, result, resultSeason);
+    const {games, loading, error, retry} = useSearchDetails(search, result, resultSeason, source);
     const [onlyQualifying, setQualifyingOnly] = useState(true);
-    const canToggleQualification = hasGameQualificationFilters(filterState);
+    const canToggleQualification = hasGameQualificationFilters(filterState)
+        || (source !== undefined && games?.some(game => !game.qualifies));
     const qualifyingOnly = !canToggleQualification || onlyQualifying;
     const [view, setView] = useState<'table' | 'chart'>('table');
     const [page, setPage] = useState(0);
@@ -49,7 +52,7 @@ export function SearchDetailsModal({result, search, filterState, onClose}: Props
     const title = `${result.player_name}${resultSeason === undefined ? '' : ` · ${formatSeason(resultSeason)}`} · ${seasonsView ? 'Seasons' : 'Games'}`;
     const start = page * PAGE_SIZE;
     const unit = (n: number) => seasonsView ? (n === 1 ? "season" : "seasons") : (n === 1 ? "game" : "games");
-    return <ChartSectionModal title={title} subtitle={<SearchTitle filterState={filterState} compact/>} onClose={onClose}>
+    return <ChartSectionModal title={title} subtitle={subtitle ?? <SearchTitle filterState={filterState} compact/>} onClose={onClose}>
         <div className={styles.content}>
             <div className={styles.heading}>
                 <div className={styles.summary} aria-label="Original search result">

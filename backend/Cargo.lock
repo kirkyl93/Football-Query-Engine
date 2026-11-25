@@ -887,12 +887,15 @@ dependencies = [
  "chrono",
  "dotenv",
  "env_logger",
+ "getrandom 0.4.3",
+ "hex",
  "log",
  "reqwest",
  "serde",
  "serde_json",
  "serde_urlencoded",
  "sqlx",
+ "subtle",
  "tokio",
 ]
 

@@ -1,4 +1,3 @@
-use crate::services::base_query_builder::BaseQueryMethods;
 use crate::services::errors::db_list_result;
 use crate::services::player::models::{
     ProcessedSearchParams, SearchParams, SortDirection, SortOption, StatScope,
@@ -45,7 +44,7 @@ pub async fn search_by_season_or_across_seasons(
     )
 }
 
-fn construct_query_from_params(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
+pub(crate) fn construct_query_from_params(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     if params.has_minute_filter() {
         build_query_from_events(params)
     } else {
@@ -119,7 +118,7 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
             season_scoped,
             params.direction,
         )
-        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
+        .add_player_pagination(params.pagination);
 
     query
 }
@@ -182,7 +181,7 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
             season_scoped,
             params.direction,
         )
-        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
+        .add_player_pagination(params.pagination);
 
     query
 }

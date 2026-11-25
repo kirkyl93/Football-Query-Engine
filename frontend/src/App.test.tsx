@@ -22,6 +22,7 @@ describe('App', () => {
         render(<App />);
 
         expect(screen.getByText('Mocked Home Page')).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Games'})).toHaveAttribute('href', '/games');
         expect(screen.queryByPlaceholderText('Search for a player...')).not.toBeInTheDocument();
 
         await userEvent.setup().click(screen.getByRole('button', {name: 'Search for a player'}));

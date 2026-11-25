@@ -62,13 +62,18 @@ pub async fn search_details(
     player: web::Path<i32>,
     request: web::Json<DetailRequest>,
 ) -> HttpResponse {
-    let mut query = build_detail_query(player.into_inner(), &request);
-    db_list_result(
-        query
-            .build_query_as::<DetailGame>()
-            .fetch_all(pool.get_ref())
-            .await,
-    )
+    db_list_result(load_search_details(&pool, player.into_inner(), &request).await)
+}
+
+pub(crate) async fn load_search_details(
+    pool: &PgPool,
+    player_id: i32,
+    request: &DetailRequest,
+) -> Result<Vec<DetailGame>, sqlx::Error> {
+    build_detail_query(player_id, request)
+        .build_query_as::<DetailGame>()
+        .fetch_all(pool)
+        .await
 }
 
 fn build_detail_query(player_id: i32, request: &DetailRequest) -> QueryBuilder<Postgres> {

@@ -12,9 +12,10 @@ interface PlayerSearchBarProps {
     disabled?: boolean;
     inputId?: string;
     onDismiss?: () => void;
+    variant?: "inline";
 }
 
-const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onSelectPlayerId, disabled, inputId, onDismiss }) => {
+const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onSelectPlayerId, disabled, inputId, onDismiss, variant }) => {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [suggestions, setSuggestions] = useState<Player[]>([]);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -140,7 +141,7 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
     return (
         <form
             ref={dropdownRef}
-            className={styles['search-form']}
+            className={variant === 'inline' ? styles.inline : styles['search-form']}
             // Enter in the input must not natively submit (it appends "?" to
             // the URL and reloads the page): selection happens by clicking
             // or arrowing to a suggestion and pressing Enter.
@@ -155,17 +156,24 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
                 onKeyDown={handleInputKeyDown}
                 className={styles['search-input']}
                 disabled={disabled}
+                autoComplete="off"
                 role="combobox"
+                aria-autocomplete="list"
                 aria-expanded={isDropdownVisible && suggestions.length > 0}
                 aria-controls={listId}
                 aria-activedescendant={highlightedSuggestion ? `${listId}-option-${highlightedSuggestion.player_id}` : undefined}
             />
+            {variant === 'inline' && <svg className={styles.searchIcon} viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5"/>
+                <path d="m16 16 4 4"/>
+            </svg>}
 
             {isDropdownVisible && suggestions.length > 0 && (
                 <ul id={listId} role="listbox" className={styles['header-suggestions-dropdown']}>
                     {suggestions.map((suggestion, index) => (
                         <li
-                            key={index}
+                            key={suggestion.player_id}
                             id={`${listId}-option-${suggestion.player_id}`}
                             role="option"
                             aria-selected={highlightedSuggestion?.player_id === suggestion.player_id}

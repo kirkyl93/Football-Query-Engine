@@ -6,9 +6,14 @@ import {DetailResult, DetailGame, detailRequest, fetchSearchDetails} from '../li
 const cache = new Map<string, {games: DetailGame[]; expires: number}>();
 export const clearSearchDetailsCache = () => cache.clear();
 
-export function useSearchDetails(search: string, result: DetailResult, resultSeason?: number) {
+export interface SearchDetailsSource {
+    key: string;
+    load: (signal: AbortSignal) => Promise<DetailGame[]>;
+}
+
+export function useSearchDetails(search: string, result: DetailResult, resultSeason?: number, source?: SearchDetailsSource) {
     const request = useMemo(() => detailRequest(search, result, resultSeason), [search, result, resultSeason]);
-    const key = `${result.player_id}:${JSON.stringify(request)}`;
+    const key = source?.key ?? `${result.player_id}:${JSON.stringify(request)}`;
     const [state, setState] = useState<{key: string; games?: DetailGame[]; error?: string}>({key});
     const [attempt, setAttempt] = useState(0);
     useEffect(() => {
@@ -19,7 +24,8 @@ export function useSearchDetails(search: string, result: DetailResult, resultSea
             return () => controller.abort();
         }
         setState({key});
-        fetchSearchDetails(result.player_id, request, controller.signal).then(games => {
+        const load = source ? source.load(controller.signal) : fetchSearchDetails(result.player_id, request, controller.signal);
+        load.then(games => {
             if (controller.signal.aborted) return;
             if (cache.size >= 20) cache.delete(cache.keys().next().value!);
             cache.set(key, {games, expires: Date.now() + 5 * 60_000});
@@ -29,7 +35,7 @@ export function useSearchDetails(search: string, result: DetailResult, resultSea
                 setState({key, error: 'Unable to load details. Please try again.'});
         });
         return () => controller.abort();
-    }, [key, request, result.player_id, attempt]);
+    }, [key, request, result.player_id, attempt, source]);
     const current = state.key === key ? state : {key};
     return {...current, loading: !current.games && !current.error, retry: () => setAttempt(n => n + 1)};
 }

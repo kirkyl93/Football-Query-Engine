@@ -1,4 +1,3 @@
-use crate::services::base_query_builder::BaseQueryMethods;
 use crate::services::errors::db_list_result;
 use crate::services::player::models::{
     ProcessedSearchParams, SearchParams, SortDirection, SortOption,
@@ -92,7 +91,7 @@ pub async fn search_by_game(
     )
 }
 
-fn construct_query_from_params(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
+pub(crate) fn construct_query_from_params(params: ProcessedSearchParams) -> QueryBuilder<Postgres> {
     if params.has_minute_filter() {
         build_query_from_events(params)
     } else {
@@ -123,7 +122,7 @@ fn build_query_from_appearances(params: ProcessedSearchParams) -> QueryBuilder<P
         WHERE 1 = 1")
         .add_player_filters(&params)
         .add_order_by(&params.sort, goals_calculation, SortDirection::Descending)
-        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
+        .add_player_pagination(params.pagination);
 
     query
 }
@@ -149,7 +148,7 @@ fn build_query_from_events(params: ProcessedSearchParams) -> QueryBuilder<Postgr
             competitions c ON c.competition_id = games.competition_id
         WHERE a.appearances > 0")
         .add_order_by(&params.sort, goals_calculation, SortDirection::Descending)
-        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
+        .add_player_pagination(params.pagination);
 
     query
 }

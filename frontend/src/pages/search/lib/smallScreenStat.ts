@@ -32,22 +32,22 @@ export const getDisplayTitleForSmallScreen = (sortBy: SortOptions): string | nul
     }
 };
 
-export const getDisplayStatForSmallScreen = (sortBy: SortOptions, player: PlayerSearchResult): number | string | null => {
+export const getDisplayStatForSmallScreen = (sortBy: SortOptions, player: Partial<PlayerSearchResult>): number | string | null => {
     switch (sortBy) {
         case SortOptions.GOALS:
-            return player.total_goals;
+            return player.total_goals ?? '—';
         case SortOptions.ASSISTS:
-            return player.total_assists;
+            return player.total_assists ?? '—';
         case SortOptions.GOALS_AND_ASSISTS:
-            return player.total_goals + player.total_assists;
+            return player.total_goals == null || player.total_assists == null ? '—' : player.total_goals + player.total_assists;
         case SortOptions.YELLOW_CARDS:
-            return player.total_yellow_cards;
+            return player.total_yellow_cards ?? '—';
         case SortOptions.RED_CARDS:
-            return player.total_red_cards;
+            return player.total_red_cards ?? '—';
         case SortOptions.MINUTES_PLAYED:
-            return player.total_minutes_played;
+            return player.total_minutes_played ?? '—';
         case SortOptions.APPEARANCES:
-            return player.total_appearances;
+            return player.total_appearances ?? '—';
         case SortOptions.MINUTES_PER_GOAL:
             return formatMinutesPerEvent(player.mins_per_goal);
         case SortOptions.MINUTES_PER_ASSIST:
@@ -69,5 +69,5 @@ const rateFormatter = new Intl.NumberFormat('en-GB', {
     useGrouping: false,
 });
 
-export const formatMinutesPerEvent = (value: number | null): string =>
-    value === null ? '—' : rateFormatter.format(value);
+export const formatMinutesPerEvent = (value: number | null | undefined): string =>
+    value == null ? '—' : rateFormatter.format(value);

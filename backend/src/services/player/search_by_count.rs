@@ -1,4 +1,3 @@
-use crate::services::base_query_builder::BaseQueryMethods;
 use crate::services::errors::db_list_result;
 use crate::services::player::models::SortOption::NumberOfSeasonsWith;
 use crate::services::player::models::{ProcessedSearchParams, SearchParams, StatScope};
@@ -25,7 +24,7 @@ pub async fn search_by_count(
     )
 }
 
-fn construct_number_of_games_or_seasons_query_from_params(
+pub(crate) fn construct_number_of_games_or_seasons_query_from_params(
     params: ProcessedSearchParams,
 ) -> QueryBuilder<Postgres> {
     match (params.has_minute_filter(), &params.sort) {
@@ -75,7 +74,7 @@ fn build_number_of_seasons_query_from_events(
         .add_season_filters(&params).push("
         GROUP BY ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position
         ORDER BY number_of_seasons ").push(params.direction.as_sql()).push(", ps.player_name")
-        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
+        .add_player_pagination(params.pagination);
 
     query
 }
@@ -133,7 +132,7 @@ fn build_number_of_games_query_from_appearances(
         )
         .push(params.direction.as_sql())
         .push(", player_name")
-        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
+        .add_player_pagination(params.pagination);
 
     query
 }
@@ -165,7 +164,7 @@ fn build_number_of_games_query_from_events(
             GROUP BY a.player_id, player_name, p.image_url, p.country_of_citizenship, p.sub_position")
         .push(if params.scope == StatScope::Season {", g.season"} else {""}).push("
         ORDER BY number_of_games ").push(params.direction.as_sql()).push(", player_name")
-        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
+        .add_player_pagination(params.pagination);
 
     query
 }
@@ -210,7 +209,7 @@ fn build_number_of_seasons_query_from_appearances(
         .add_season_filters(&params).push("
         GROUP BY ps.player_id, ps.player_name, ps.image_url, ps.country_of_citizenship, ps.sub_position
         ORDER BY number_of_seasons ").push(params.direction.as_sql()).push(", ps.player_name")
-        .add_limit_and_offset(params.pagination.limit, params.pagination.page);
+        .add_player_pagination(params.pagination);
 
     query
 }

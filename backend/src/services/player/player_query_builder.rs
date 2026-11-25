@@ -1,8 +1,8 @@
 use crate::competitions::Competition;
 use crate::countries::Country;
-use crate::services::base_query_builder::escape_like_pattern;
+use crate::services::base_query_builder::{BaseQueryMethods, escape_like_pattern};
 use crate::services::player::models::{
-    AgeRange, HeightRange, HomeAwayOption, MinuteWindow, PenaltyOption, ProcessedSearchParams, SubFilter
+    AgeRange, HeightRange, HomeAwayOption, MinuteWindow, Pagination, PenaltyOption, ProcessedSearchParams, SubFilter
 };
 use crate::services::player::player_enums::PlayerSubPosition;
 use sqlx::{Postgres, QueryBuilder};
@@ -16,6 +16,7 @@ pub enum TotalsKind {
 
 pub trait PlayerFilterMethods {
     fn add_player_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self;
+    fn add_player_pagination(&mut self, pagination: Option<Pagination>) -> &mut Self;
 }
 
 impl PlayerFilterMethods for QueryBuilder<Postgres> {
@@ -31,6 +32,13 @@ impl PlayerFilterMethods for QueryBuilder<Postgres> {
             .add_clubs_played_for(&params.clubs_played_for)
             .add_clubs_played_against(&params.clubs_played_against)
             .add_sub_info(params.subs)
+    }
+
+    fn add_player_pagination(&mut self, pagination: Option<Pagination>) -> &mut Self {
+        if let Some(pagination) = pagination {
+            self.add_limit_and_offset(pagination.limit, pagination.page);
+        }
+        self
     }
 }
 
