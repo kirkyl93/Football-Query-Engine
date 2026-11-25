@@ -49,7 +49,7 @@ it("verifies the owner session and scores only on the explicit step", async () =
                 {...initial[1], points: 2},
             ]));
         }
-        expect(body).toEqual({id:"draft"});
+        expect(body).toEqual(String(url).endsWith("/schedule") ? {id:"draft", wrong_guess_penalty: 7} : {id:"draft"});
         return Promise.resolve(Response.json(String(url).endsWith("/score") ? initial : {date:"2099-10-05"}));
     });
     search();
@@ -79,6 +79,7 @@ it("verifies the owner session and scores only on the explicit step", async () =
     await user.clear(rating);
     await user.click(screen.getByRole("button", {name:"Recalculate points"}));
     expect(points("Alex Example")).toHaveTextContent("2");
+    await user.type(screen.getByRole("spinbutton", {name:"Wrong guess penalty (points)"}), "7");
     await user.click(screen.getByRole("button", {name:"Schedule quiz"}));
     expect(await screen.findByText("Quiz scheduled for 2099-10-05 (UK).")).toBeInTheDocument();
     expect(request.mock.calls.map(([url]) => String(url).split("/").pop())).toEqual(["session", "preview", "score", "overrides", "overrides", "schedule"]);

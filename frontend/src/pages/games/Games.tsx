@@ -138,7 +138,7 @@ function Quiz({quizKey}: {quizKey?: string}) {
     const [standings, setStandings] = useState<Standing[]>();
     const [standingsError, setStandingsError] = useState("");
     const [error, setError] = useState("");
-    const [feedback, setFeedback] = useState<{points: number; sequence: number}>();
+    const [feedback, setFeedback] = useState<{points: number; wrong: boolean; sequence: number}>();
     const [busy, setBusy] = useState(false);
     const [detail, setDetail] = useState<QuizDetailSelection>();
     const quizId = quiz?.id ?? quiz?.date;
@@ -185,7 +185,8 @@ function Quiz({quizKey}: {quizKey?: string}) {
             const updated = await quizRequest<QuizView>("/" + quizId + "/" + action, guestToken(), body);
             if (action === "guess") {
                 const points = updated.score - quiz.score;
-                setFeedback(previous => ({points, sequence: (previous?.sequence ?? 0) + 1}));
+                const wrong = points < 0 || (updated.wrong_guess_count ?? 0) > (quiz.wrong_guess_count ?? 0);
+                setFeedback(previous => ({points, wrong, sequence: (previous?.sequence ?? 0) + 1}));
             }
             setQuiz(previous => previous?.answers_revealed && !updated.answers_revealed
                 ? {...updated, answers_revealed: true, rows: previous.rows}
@@ -241,7 +242,7 @@ function Quiz({quizKey}: {quizKey?: string}) {
                     )}
                     <div role="status">
                         {feedback && <span key={feedback.sequence} className={styles.guessFeedback}
-                            data-outcome={outcome(feedback.points)}>{guessMessage(feedback.points)}</span>}
+                            data-outcome={feedback.wrong ? "incorrect" : outcome(feedback.points)}>{guessMessage(feedback.points, feedback.wrong)}</span>}
                         {quiz.answers_revealed && <span className={styles.srOnly}>Answers revealed</span>}
                     </div>
                     {quiz.finished && (
@@ -369,7 +370,7 @@ function WrongGuessRows({guess, fields, showContext}: {guess: WrongGuess; fields
                     return <td key={field} className={styles.wrongGuessNumber}>{shown}</td>;
                 })}
                 {index === 0 && <td rowSpan={rows.length} className={styles.wrongGuessNumber + " " + styles.wrongGuessPoints}>
-                    −{Math.abs(guess.points)}
+                    {guess.points === 0 ? "0" : "−" + Math.abs(guess.points)}
                 </td>}
             </tr>
         ))}
@@ -386,8 +387,8 @@ function outcome(points: number) {
     return points > 0 ? "correct" : points < 0 ? "incorrect" : "repeat";
 }
 
-function guessMessage(points: number) {
-    if (points === 0) return "You already guessed that player.";
+function guessMessage(points: number, wrong: boolean) {
+    if (points === 0) return wrong ? "Incorrect." : "You already guessed that player.";
     const amount = Math.abs(points);
     const unit = amount === 1 ? "point" : "points";
     return points > 0 ? `Correct. +${amount} ${unit}.` : `Incorrect. −${amount} ${unit}.`;

@@ -445,6 +445,7 @@ CREATE TABLE public.game_quizzes (
     day_slot integer NOT NULL DEFAULT 1 CHECK (day_slot > 0),
     question text NOT NULL CHECK (length(question) BETWEEN 1 AND 500),
     search_params text NOT NULL,
+    wrong_guess_penalty integer NOT NULL DEFAULT 10 CHECK (wrong_guess_penalty >= 0),
     answers jsonb NOT NULL CONSTRAINT game_quizzes_answers_check CHECK (
         CASE WHEN jsonb_typeof(answers) = 'array' THEN jsonb_array_length(answers) >= 1 ELSE false END
     ),

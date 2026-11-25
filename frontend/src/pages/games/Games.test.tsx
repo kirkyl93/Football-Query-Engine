@@ -119,19 +119,19 @@ it("shows quiz progress and highlights the current player in the leaderboard", a
     expect(screen.getByText("Your rank", {exact: false})).toHaveTextContent("Your rank #2 of 2");
 });
 
-it("shows the maximum and updates the running score after correct and incorrect guesses", async () => {
+it.each([10, 0])("tracks correct and incorrect guesses with a %i-point penalty", async penalty => {
     const quiz = {
         id: 14, date: "2026-11-23", question: "Which players qualify?",
         rows: [], total: 2, found: 0, score: 0, max_score: 33, answers_revealed: false,
-        finished: false, display_name: null,
+        finished: false, display_name: null, wrong_guess_penalty: penalty,
     };
     const request = vi.spyOn(globalThis, "fetch")
         .mockResolvedValueOnce(Response.json({...quiz, wrong_guess_count: 0}))
         .mockResolvedValueOnce(Response.json([{player_id: 50, first_name: "Alex", last_name: "Example"}]))
         .mockResolvedValueOnce(Response.json({...quiz, found: 1, score: 17}))
         .mockResolvedValueOnce(Response.json([{player_id: 51, first_name: "Jordan", last_name: "Example"}]))
-        .mockResolvedValueOnce(Response.json({...quiz, found: 1, score: 7, wrong_guess_count: 1}))
-        .mockResolvedValueOnce(Response.json([{player_id: 51, name: "Jordan Example", points: -10, stats: [
+        .mockResolvedValueOnce(Response.json({...quiz, found: 1, score: 17 - penalty, wrong_guess_count: 1}))
+        .mockResolvedValueOnce(Response.json([{player_id: 51, name: "Jordan Example", points: -penalty, stats: [
             {season: 2024, total_goals: 4},
             {season: 2023, total_goals: 2},
         ]}]));
@@ -155,11 +155,11 @@ it("shows the maximum and updates the running score after correct and incorrect 
 
     await user.type(picker, "Jordan");
     await user.click(await screen.findByRole("option", {name: /Jordan Example/}));
-    expect(await screen.findByText("Incorrect. −10 points.")).toHaveAttribute("data-outcome", "incorrect");
-    await waitFor(() => expect(meter).toHaveAttribute("value", "7"));
-    expect(meter.closest("dd")).toHaveAttribute("data-band", "low");
+    expect(await screen.findByText(penalty ? `Incorrect. −${penalty} points.` : "Incorrect.")).toHaveAttribute("data-outcome", "incorrect");
+    await waitFor(() => expect(meter).toHaveAttribute("value", String(17 - penalty)));
+    expect(meter.closest("dd")).toHaveAttribute("data-band", penalty ? "low" : "medium");
     expect(score.getByRole("progressbar", {name: "Players found"})).toHaveAttribute("value", "1");
-    expect(score.getByText("7 out of 33 possible points")).toBeInTheDocument();
+    expect(score.getByText(`${17 - penalty} out of 33 possible points`)).toBeInTheDocument();
     expect(screen.queryByRole("table", {name: "Wrong guesses"})).not.toBeInTheDocument();
     expect(request).not.toHaveBeenCalledWith(expect.stringMatching(/\/wrong-guesses$/), expect.any(Object));
 
@@ -167,7 +167,7 @@ it("shows the maximum and updates the running score after correct and incorrect 
     const guesses = within(await screen.findByRole("table", {name: "Wrong guesses"}));
     expect(guesses.getAllByRole("columnheader").map(header => header.textContent)).toEqual(["Player", "Season", "Goals", "Penalty"]);
     const wrong = guesses.getByRole("row", {name: /Jordan Example/});
-    expect(within(wrong).getByRole("cell", {name: "−10"})).toBeVisible();
+    expect(within(wrong).getByRole("cell", {name: penalty ? `−${penalty}` : "0"})).toBeVisible();
     expect(within(wrong).getByRole("cell", {name: "2024/25"})).toBeVisible();
     expect(within(wrong).getByRole("cell", {name: "4"})).toBeVisible();
     expect(guesses.queryByRole("cell", {name: "2023/24"})).not.toBeInTheDocument();

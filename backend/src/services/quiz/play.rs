@@ -32,11 +32,11 @@ pub(super) fn configure(config: &mut web::ServiceConfig) {
         .route("/{quiz}/finish", web::post().to(finish));
 }
 
-const WRONG_GUESS_COST: i32 = 10;
+pub(super) const DEFAULT_WRONG_GUESS_PENALTY: i32 = 10;
 const HINT_COST: i32 = 5;
 
 const PUBLISHED_QUIZ: &str = concat!(
-    "SELECT quiz_id, quiz_date, question, search_params, answers FROM game_quizzes
+    "SELECT quiz_id, quiz_date, question, search_params, answers, wrong_guess_penalty FROM game_quizzes
      WHERE (quiz_id = $1 OR (quiz_date = $2 AND day_slot = 1))
        AND quiz_date <= ",
     current_quiz_date_sql!(),
@@ -49,6 +49,7 @@ struct Quiz {
     question: String,
     search_params: String,
     answers: Json<Vec<RatedPlayer>>,
+    wrong_guess_penalty: i32,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
@@ -191,8 +192,8 @@ fn view(quiz: &Quiz, attempt: &Attempt, reveal_answers: bool) -> QuizResult<Http
         "question_stats":super::search::question_stats(&search, is_game),
         "id":quiz.quiz_id,"date":quiz.quiz_date,"question":quiz.question,"rows":rows,
         "answers_revealed":reveal_answers,
-        "wrong_guess_penalty": WRONG_GUESS_COST,
-        "wrong_guess_count": attempt.guesses.values().filter(|&&points| points < 0).count(),
+        "wrong_guess_penalty": quiz.wrong_guess_penalty,
+        "wrong_guess_count": attempt.guesses.values().filter(|&&points| points <= 0).count(),
         "hint_cost": HINT_COST,
         "total":quiz.answers.len(),"found":attempt.guesses.values().filter(|&&v| v > 0).count(),
         "score":attempt_score(attempt),
@@ -215,7 +216,7 @@ pub(super) fn guest(request: &HttpRequest) -> QuizResult<&str> {
 async fn today(pool: web::Data<PgPool>, request: HttpRequest) -> QuizResult<HttpResponse> {
     let guest = guest(&request)?;
     let quiz = sqlx::query_as::<_, Quiz>(concat!(
-        "SELECT quiz_id, quiz_date, question, search_params, answers FROM game_quizzes
+        "SELECT quiz_id, quiz_date, question, search_params, answers, wrong_guess_penalty FROM game_quizzes
          WHERE quiz_date = ",
         current_quiz_date_sql!(),
         " AND day_slot = 1",
@@ -268,7 +269,7 @@ async fn past(
     let guest = guest(&request)?;
     let (id, date) = quiz_key(&key)?;
     let quiz = sqlx::query_as::<_, Quiz>(concat!(
-        "SELECT quiz_id, quiz_date, question, search_params, answers FROM game_quizzes
+        "SELECT quiz_id, quiz_date, question, search_params, answers, wrong_guess_penalty FROM game_quizzes
          WHERE (quiz_id = $1 OR (quiz_date = $2 AND day_slot = 1)) AND quiz_date < ",
         current_quiz_date_sql!(),
     ))
@@ -313,7 +314,7 @@ async fn wrong_guesses(
          LEFT JOIN players p ON p.player_id = guess.player_id::integer
          WHERE (q.quiz_id = $1 OR (q.quiz_date = $2 AND q.day_slot = 1))
            AND a.guest_id = $3::text::uuid
-           AND guess.points::integer < 0
+           AND guess.points::integer <= 0
            AND q.quiz_date <= ",
         current_quiz_date_sql!(),
         " ORDER BY name, player_id",
@@ -590,7 +591,7 @@ async fn change(
                 }
                 attempt.guesses.insert(
                     player,
-                    answer.map_or(-WRONG_GUESS_COST, |answer| answer.points),
+                    answer.map_or(-quiz.wrong_guess_penalty, |answer| answer.points),
                 );
                 attempt.finished = attempt
                     .guesses
@@ -701,6 +702,7 @@ mod tests {
             quiz_date: NaiveDate::from_ymd_opt(2026, 11, 23).unwrap(),
             question: "Who qualifies?".into(),
             search_params: "scope=o".into(),
+            wrong_guess_penalty: DEFAULT_WRONG_GUESS_PENALTY,
             answers: Json(vec![player(1, 16), player(2, 7)]),
         };
         let mut attempt = Attempt::default();
@@ -772,6 +774,7 @@ mod tests {
             quiz_date: NaiveDate::from_ymd_opt(2026, 11, 23).unwrap(),
             question: "Which players qualify?".into(),
             search_params: "scope=s&sort=g&names=Hidden&ming=5&mina=5".into(),
+            wrong_guess_penalty: 7,
             answers: Json(vec![
                 RatedPlayer {
                     id: 1,
@@ -794,7 +797,7 @@ mod tests {
             ]),
         };
         let attempt = Attempt {
-            guesses: BTreeMap::from([(1, 1), (3, -3)]),
+            guesses: BTreeMap::from([(1, 1), (3, -3), (4, 0)]),
             ..Attempt::default()
         };
         let bytes = to_bytes(view(&quiz, &attempt, false).unwrap().into_body())
@@ -808,7 +811,9 @@ mod tests {
         assert_eq!(value["rows"][0]["row_index"], 0);
         assert_eq!(value["score"], -2);
         assert_eq!(value["max_score"], 3);
-        assert_eq!(value["wrong_guess_penalty"], 10);
+        assert_eq!(value["wrong_guess_penalty"], 7);
+        assert_eq!(value["wrong_guess_count"], 2);
+        assert_eq!(value["found"], 1);
         assert!(value["rows"][1].get("result").is_none());
         assert!(value["rows"][1].get("row_index").is_none());
         assert_eq!(value["rows"][1]["player"], serde_json::Value::Null);
