@@ -9,13 +9,14 @@ interface PlayerSearchBarProps {
     linkToPlayer: boolean;
     onSelectPlayer?: (name: string, playerGameData: PlayerAppearance[]) => void;
     onSelectPlayerId?: (playerId: number, playerName: string) => void;
+    selectionName?: "last" | "full";
     disabled?: boolean;
     inputId?: string;
     onDismiss?: () => void;
     variant?: "inline";
 }
 
-const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onSelectPlayerId, disabled, inputId, onDismiss, variant }) => {
+const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onSelectPlayerId, selectionName = "last", disabled, inputId, onDismiss, variant }) => {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [suggestions, setSuggestions] = useState<Player[]>([]);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -104,7 +105,8 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
             return;
         }
         if (onSelectPlayerId) {
-            onSelectPlayerId(playerId, [first_name, last_name].filter(Boolean).join(" "));
+            const name = selectionName === "full" ? [first_name, last_name].filter(Boolean).join(" ") : last_name;
+            onSelectPlayerId(playerId, name);
             return;
         }
         const playerGameData = await fetch(`${API_BASE_URL}/players/${playerId}/games`);

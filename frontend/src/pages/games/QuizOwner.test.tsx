@@ -102,6 +102,7 @@ it("lets a signed-in owner select a player and schedule the career quiz", async 
     await user.click(await screen.findByRole("button", {name: "Set player"}));
     await user.type(screen.getByRole("combobox", {name: "Player"}), "Alex");
     await user.click(await screen.findByRole("option", {name: /Alex Example/}));
+    expect(screen.getByText("Alex Example", {selector: "strong"})).toBeVisible();
     fireEvent.change(screen.getByLabelText("Publication date (6 am UK time)"), {target: {value: "2099-10-05"}});
     await user.click(screen.getByRole("button", {name: "Schedule player"}));
     expect(await screen.findByRole("status")).toHaveTextContent("Alex Example scheduled for 2099-10-05.");

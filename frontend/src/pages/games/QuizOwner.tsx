@@ -122,7 +122,7 @@ function CareerAuthor({owner}: {owner: string}) {
         {open && <div className={styles.adminForm}>
             <label className={styles.controlLabel} htmlFor="career-owner-player">Player</label>
             <PlayerSearchBar inputId="career-owner-player" placeHolderText="Find a player…" linkToPlayer={false} variant="inline"
-                disabled={busy} onSelectPlayerId={(id, name) => {
+                disabled={busy} selectionName="full" onSelectPlayerId={(id, name) => {
                     setPlayer({id, name}); setScheduled(undefined); setError("");
                 }}/>
             {player && <form className={styles.adminForm} onSubmit={event => void submit(event)}>
