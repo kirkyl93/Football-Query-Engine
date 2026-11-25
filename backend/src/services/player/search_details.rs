@@ -19,23 +19,23 @@ pub struct DetailRequest {
     pub result_season: Option<i32>,
 }
 
-#[derive(Serialize)]
+#[derive(Default, Serialize)]
 pub struct DetailStats {
-    appearances: i64,
-    minutes: i64,
-    goals: i64,
-    assists: i64,
-    yellows: i64,
-    reds: i64,
+    pub(crate) appearances: i64,
+    pub(crate) minutes: i64,
+    pub(crate) goals: i64,
+    pub(crate) assists: i64,
+    pub(crate) yellows: i64,
+    pub(crate) reds: i64,
 }
 
 #[derive(Serialize)]
 pub struct DetailGame {
     #[serde(flatten)]
-    appearance: PlayerAppearances,
+    pub(crate) appearance: PlayerAppearances,
     qualifies: bool,
-    matches_filters: bool,
-    stats: DetailStats,
+    pub(crate) matches_filters: bool,
+    pub(crate) stats: DetailStats,
 }
 
 impl<'r> FromRow<'r, PgRow> for DetailGame {
@@ -62,16 +62,42 @@ pub async fn search_details(
     player: web::Path<i32>,
     request: web::Json<DetailRequest>,
 ) -> HttpResponse {
-    let mut query = build_detail_query(player.into_inner(), &request);
-    db_list_result(
-        query
-            .build_query_as::<DetailGame>()
-            .fetch_all(pool.get_ref())
-            .await,
-    )
+    db_list_result(load_search_details(&pool, player.into_inner(), &request).await)
 }
 
-fn build_detail_query(player_id: i32, request: &DetailRequest) -> QueryBuilder<Postgres> {
+pub(crate) async fn load_search_details(
+    pool: &PgPool,
+    player_id: i32,
+    request: &DetailRequest,
+) -> Result<Vec<DetailGame>, sqlx::Error> {
+    build_detail_query(player_id, request, false)
+        .build_query_as::<DetailGame>()
+        .fetch_all(pool)
+        .await
+}
+
+pub(crate) async fn load_saved_game_details(
+    pool: &PgPool,
+    player_id: i32,
+    game_ids: Vec<i32>,
+) -> Result<Vec<DetailGame>, sqlx::Error> {
+    let request = DetailRequest {
+        search: SearchParams::default(),
+        qualifying_game_ids: game_ids,
+        qualifying_seasons: Vec::new(),
+        result_season: None,
+    };
+    build_detail_query(player_id, &request, true)
+        .build_query_as::<DetailGame>()
+        .fetch_all(pool)
+        .await
+}
+
+fn build_detail_query(
+    player_id: i32,
+    request: &DetailRequest,
+    only_qualifying_games: bool,
+) -> QueryBuilder<Postgres> {
     let mut search = request.search.to_processed();
     if search.scope == StatScope::Season && search.sort != SortOption::NumberOfSeasonsWith {
         if let Some(season) = request.result_season {
@@ -104,22 +130,27 @@ fn build_detail_query(player_id: i32, request: &DetailRequest) -> QueryBuilder<P
             .add_player_filters(&context)
             .push(")");
     }
-    query.push(", eligible AS (SELECT DISTINCT a.game_id FROM appearances_enhanced a JOIN games g ON g.game_id = a.game_id JOIN players p ON p.player_id = a.player_id WHERE a.player_id = ")
-        .push_bind(player_id).add_player_filters(&search).push(") SELECT ");
-
-    if search.sort == SortOption::NumberOfSeasonsWith {
-        query
-            .push("(a.season = ANY(")
-            .push_bind(request.qualifying_seasons.clone())
-            .push(") AND eligible.game_id IS NOT NULL AND a.appearances > 0)");
+    if only_qualifying_games {
+        query.push(" SELECT TRUE AS qualifies, TRUE AS matches_filters,");
     } else {
-        query
-            .push("a.game_id = ANY(")
-            .push_bind(request.qualifying_game_ids.clone())
-            .push(")");
+        query.push(", eligible AS (SELECT DISTINCT a.game_id FROM appearances_enhanced a JOIN games g ON g.game_id = a.game_id JOIN players p ON p.player_id = a.player_id WHERE a.player_id = ")
+            .push_bind(player_id).add_player_filters(&search).push(") SELECT ");
+
+        if search.sort == SortOption::NumberOfSeasonsWith {
+            query
+                .push("(a.season = ANY(")
+                .push_bind(request.qualifying_seasons.clone())
+                .push(") AND eligible.game_id IS NOT NULL AND a.appearances > 0)");
+        } else {
+            query
+                .push("a.game_id = ANY(")
+                .push_bind(request.qualifying_game_ids.clone())
+                .push(")");
+        }
+        query.push(" AS qualifies, (eligible.game_id IS NOT NULL AND a.appearances > 0) AS matches_filters,");
     }
     query.push(
-        " AS qualifies, (eligible.game_id IS NOT NULL AND a.appearances > 0) AS matches_filters,
+        "
         a.game_id, ROW_NUMBER() OVER (ORDER BY g.date, a.game_id) AS game_number,
         a.club_id, g.home_club_id, g.home_club_name, g.away_club_id, g.away_club_name,
         g.home_club_goals, g.away_club_goals, g.date, a.season,
@@ -191,8 +222,49 @@ fn build_detail_query(player_id: i32, request: &DetailRequest) -> QueryBuilder<P
         "FROM games_minute_appearance_filter a
         JOIN games g ON g.game_id = a.game_id
         JOIN competitions c ON c.competition_id = g.competition_id
-        JOIN appearances_with_event_times e ON e.game_id = a.game_id AND e.player_id = a.player_id
-        LEFT JOIN eligible ON eligible.game_id = a.game_id ORDER BY g.date, a.game_id",
+        JOIN appearances_with_event_times e ON e.game_id = a.game_id AND e.player_id = a.player_id",
     );
+    if only_qualifying_games {
+        query
+            .push(" WHERE a.game_id = ANY(")
+            .push_bind(request.qualifying_game_ids.clone())
+            .push(")");
+    } else {
+        query.push(" LEFT JOIN eligible ON eligible.game_id = a.game_id");
+    }
+    query.push(" ORDER BY g.date, a.game_id");
     query
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn saved_match_details_use_game_ids_as_a_row_filter() {
+        let request = DetailRequest {
+            search: SearchParams::default(),
+            qualifying_game_ids: vec![12, 35],
+            qualifying_seasons: Vec::new(),
+            result_season: None,
+        };
+
+        let saved = build_detail_query(7, &request, true);
+        assert!(saved.sql().as_str().contains("TRUE AS qualifies"));
+        assert!(
+            saved
+                .sql()
+                .as_str()
+                .contains("WHERE a.game_id = ANY($2) ORDER BY g.date, a.game_id")
+        );
+
+        let search = build_detail_query(7, &request, false);
+        assert!(
+            search
+                .sql()
+                .as_str()
+                .contains("a.game_id = ANY($3) AS qualifies")
+        );
+        assert!(!search.sql().as_str().contains("WHERE a.game_id = ANY("));
+    }
 }

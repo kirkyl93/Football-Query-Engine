@@ -9,7 +9,7 @@ interface SortableThProps {
     activeSort: SortOptions;
     direction?: 'asc' | 'desc';
     allowReverse?: boolean;
-    onSort: (sort: SortOptions) => void;
+    onSort?: (sort: SortOptions) => void;
     className?: string;
 }
 
@@ -17,6 +17,8 @@ interface SortableThProps {
 export const SortableTh: React.FC<SortableThProps> = ({
     label, columnSort, activeSort, direction, allowReverse = true, onSort, className,
 }) => {
+    if (!onSort) return <th className={`${baseStyles.numeric} ${className ?? ''}`}>{label}</th>;
+
     const isActive = activeSort === columnSort;
     const order = allowReverse ? direction ?? SORT_DIRECTIONS[columnSort] : 'desc';
     const currentOrder = order === 'asc' ? 'fewest first' : 'most first';

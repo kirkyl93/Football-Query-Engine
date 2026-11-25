@@ -6,6 +6,9 @@ edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+getrandom = "0.4"
+hex = "0.4"
+subtle = "2"
 actix-web = "4.18"
 actix-cors = "0.7"
 dotenv = "0.15"

@@ -9,12 +9,14 @@ interface PlayerSearchBarProps {
     linkToPlayer: boolean;
     onSelectPlayer?: (name: string, playerGameData: PlayerAppearance[]) => void;
     onSelectPlayerId?: (playerId: number, playerName: string) => void;
+    selectionName?: "last" | "full";
     disabled?: boolean;
     inputId?: string;
     onDismiss?: () => void;
+    variant?: "inline";
 }
 
-const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onSelectPlayerId, disabled, inputId, onDismiss }) => {
+const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, linkToPlayer, onSelectPlayer, onSelectPlayerId, selectionName = "last", disabled, inputId, onDismiss, variant }) => {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [suggestions, setSuggestions] = useState<Player[]>([]);
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -93,7 +95,7 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
         setHighlightIndex(-1);
     };
 
-    const handleSuggestionClick = async (suggestion: string, playerId: number) => {
+    const handleSuggestionClick = async ({player_id: playerId, first_name, last_name}: Player) => {
         setSearchTerm('');
         setIsDropdownVisible(false);
         setHighlightIndex(-1);
@@ -103,13 +105,14 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
             return;
         }
         if (onSelectPlayerId) {
-            onSelectPlayerId(playerId, suggestion);
+            const name = selectionName === "full" ? [first_name, last_name].filter(Boolean).join(" ") : last_name;
+            onSelectPlayerId(playerId, name);
             return;
         }
         const playerGameData = await fetch(`${API_BASE_URL}/players/${playerId}/games`);
         const data: PlayerAppearance[] = await playerGameData.json();
         if (onSelectPlayer) {
-            onSelectPlayer(suggestion, data);
+            onSelectPlayer(last_name, data);
         }
     };
 
@@ -133,14 +136,14 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
         } else if (highlightedSuggestion) {
             // Enter confirms the highlighted option; with nothing
             // highlighted the swallowed form submit keeps it a no-op.
-            void handleSuggestionClick(highlightedSuggestion.last_name, highlightedSuggestion.player_id);
+            void handleSuggestionClick(highlightedSuggestion);
         }
     };
 
     return (
         <form
             ref={dropdownRef}
-            className={styles['search-form']}
+            className={variant === 'inline' ? styles.inline : styles['search-form']}
             // Enter in the input must not natively submit (it appends "?" to
             // the URL and reloads the page): selection happens by clicking
             // or arrowing to a suggestion and pressing Enter.
@@ -155,22 +158,29 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
                 onKeyDown={handleInputKeyDown}
                 className={styles['search-input']}
                 disabled={disabled}
+                autoComplete="off"
                 role="combobox"
+                aria-autocomplete="list"
                 aria-expanded={isDropdownVisible && suggestions.length > 0}
                 aria-controls={listId}
                 aria-activedescendant={highlightedSuggestion ? `${listId}-option-${highlightedSuggestion.player_id}` : undefined}
             />
+            {variant === 'inline' && <svg className={styles.searchIcon} viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5"/>
+                <path d="m16 16 4 4"/>
+            </svg>}
 
             {isDropdownVisible && suggestions.length > 0 && (
                 <ul id={listId} role="listbox" className={styles['header-suggestions-dropdown']}>
                     {suggestions.map((suggestion, index) => (
                         <li
-                            key={index}
+                            key={suggestion.player_id}
                             id={`${listId}-option-${suggestion.player_id}`}
                             role="option"
                             aria-selected={highlightedSuggestion?.player_id === suggestion.player_id}
                             className={`${styles['header-suggestion-item']} ${highlightedSuggestion?.player_id === suggestion.player_id ? styles['highlighted'] : ''}`}
-                            onClick={() => handleSuggestionClick(suggestion.last_name, suggestion.player_id)}
+                            onClick={() => handleSuggestionClick(suggestion)}
                             onMouseEnter={() => setHighlightIndex(index)}
                             ref={(element) => {
                                 itemRefs.current[index] = element;

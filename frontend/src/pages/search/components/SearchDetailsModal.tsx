@@ -1,59 +1,68 @@
 import playerStyles from '../../player/Player.module.css';
-import {useMemo, useState} from 'react';
+import {useMemo, useState, type ReactNode} from 'react';
 import ChartSectionModal from '../../player/components/charts/ChartSectionModal';
 import {SearchFilterState} from '../../../types/SearchFilterState';
 import {SortOptions, StatScope} from '../../../types/SearchOptions';
 import {convertDateStringToDate, dateFormatter, formatSeason} from '../../../lib/DateUtils';
 import {getDisplayStatForSmallScreen, getDisplayTitleForSmallScreen} from '../lib/smallScreenStat';
 import {addDetailStats, DetailResult, DetailStats, detailSeasons, emptyDetailStats, hasGameQualificationFilters} from '../lib/searchDetails';
-import {useSearchDetails} from '../hooks/useSearchDetails';
+import {useSearchDetails, type SearchDetailsSource} from '../hooks/useSearchDetails';
 import {SearchDetailsChart} from './SearchDetailsChart';
 import SearchTitle from './SearchTitle';
 import {ClubBadge} from './ClubBadge';
 import base from './SearchBaseTable.module.css';
 import styles from './SearchDetails.module.css';
 
-interface Props {
-    result: DetailResult;
-    search: string;
+interface DetailModalOptions {
     filterState: SearchFilterState;
     onClose: () => void;
+    subtitle?: ReactNode;
 }
+
+type Props = DetailModalOptions & (
+    {result: DetailResult; search: string; source?: SearchDetailsSource; careerSeason?: never} |
+    {result?: never; search?: never; source: SearchDetailsSource; careerSeason: {season: number; stats: DetailStats}}
+);
 const PAGE_SIZE = 50;
 function StatCells({stats, showAppearances = true}: {stats: DetailStats; showAppearances?: boolean}) {
     return <>{showAppearances && <td>{stats.appearances}</td>}<td>{stats.minutes}</td><td>{stats.goals}</td>
         <td>{stats.assists}</td><td>{stats.yellows}</td><td>{stats.reds}</td></>;
 }
 
-export function SearchDetailsModal({result, search, filterState, onClose}: Props) {
-    const seasonsView = filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH;
-    const resultSeason = filterState.statScope === StatScope.SEASON && !seasonsView ? result.season : undefined;
-    const {games, loading, error, retry} = useSearchDetails(search, result, resultSeason);
+export function SearchDetailsModal({result, search = "", filterState, onClose, source, subtitle, careerSeason}: Props) {
+    const seasonsView = !careerSeason && filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH;
+    const resultSeason = careerSeason?.season ?? (filterState.statScope === StatScope.SEASON && !seasonsView ? result?.season : undefined);
+    const {games, loading, error, retry} = useSearchDetails(search, result, resultSeason, source);
     const [onlyQualifying, setQualifyingOnly] = useState(true);
-    const canToggleQualification = hasGameQualificationFilters(filterState);
+    const canToggleQualification = hasGameQualificationFilters(filterState)
+        || (source !== undefined && games?.some(game => !game.qualifies));
     const qualifyingOnly = !canToggleQualification || onlyQualifying;
     const [view, setView] = useState<'table' | 'chart'>('table');
     const [page, setPage] = useState(0);
     const qualifyingGames = useMemo(() => (games ?? []).filter(game => game.qualifies), [games]);
     const visibleGames = qualifyingOnly ? qualifyingGames : (games ?? []);
-    const seasons = useMemo(() => detailSeasons(games ?? [], 'qualifying_seasons' in result ? result.qualifying_seasons : []), [games, result]);
+    const seasons = useMemo(() => detailSeasons(games ?? [], result && 'qualifying_seasons' in result ? result.qualifying_seasons : []), [games, result]);
     const visibleSeasons = qualifyingOnly ? seasons.filter(season => season.qualifies) : seasons;
     const count = seasonsView ? visibleSeasons.length : visibleGames.length;
     const pageCount = Math.max(1, Math.ceil(count / PAGE_SIZE));
     const totals = useMemo(() => qualifyingGames.reduce((sum, game) => addDetailStats(sum, game.stats), emptyDetailStats()), [qualifyingGames]);
-    const expectedCount = 'total_appearances' in result ? result.total_appearances : seasonsView ? result.number_of_seasons : result.number_of_games;
+    const expectedCount = careerSeason?.stats.appearances ?? (result ? ('total_appearances' in result ? result.total_appearances : seasonsView ? result.number_of_seasons : result.number_of_games) : 0);
     const loadedCount = seasonsView ? seasons.filter(season => season.qualifies).length : qualifyingGames.length;
-    const changed = games && (expectedCount !== loadedCount || ('total_goals' in result &&
+    const changed = result && games && (expectedCount !== loadedCount || ('total_goals' in result &&
         (result.total_goals !== totals.goals || result.total_assists !== totals.assists || result.total_minutes_played !== totals.minutes ||
          result.total_yellow_cards !== totals.yellows || result.total_red_cards !== totals.reds)));
-    const title = `${result.player_name}${resultSeason === undefined ? '' : ` · ${formatSeason(resultSeason)}`} · ${seasonsView ? 'Seasons' : 'Games'}`;
+    const title = careerSeason ? `${formatSeason(careerSeason.season)} · Games` :
+        `${result?.player_name}${resultSeason === undefined ? '' : ` · ${formatSeason(resultSeason)}`} · ${seasonsView ? 'Seasons' : 'Games'}`;
     const start = page * PAGE_SIZE;
     const unit = (n: number) => seasonsView ? (n === 1 ? "season" : "seasons") : (n === 1 ? "game" : "games");
-    return <ChartSectionModal title={title} subtitle={<SearchTitle filterState={filterState} compact/>} onClose={onClose}>
+    return <ChartSectionModal title={title} subtitle={subtitle ?? (!careerSeason && <SearchTitle filterState={filterState} compact/>)} onClose={onClose}>
         <div className={styles.content}>
             <div className={styles.heading}>
-                <div className={styles.summary} aria-label="Original search result">
-                    {'total_appearances' in result ? <>
+                <div className={styles.summary} aria-label={careerSeason ? "Season statistics" : "Original search result"}>
+                    {careerSeason ? <>
+                        <strong>{careerSeason.stats.goals} goals · {careerSeason.stats.assists} assists</strong>
+                        <span>{careerSeason.stats.appearances} apps · {careerSeason.stats.minutes} mins</span>
+                    </> : result && 'total_appearances' in result ? <>
                         <strong>{getDisplayTitleForSmallScreen(filterState.sortBy)}: {getDisplayStatForSmallScreen(filterState.sortBy, result)}</strong>
                         <span>{result.total_appearances} apps · {result.total_minutes_played} mins</span>
                     </> : <strong>{expectedCount} qualifying {unit(expectedCount)}</strong>}

@@ -22,14 +22,22 @@
     box-sizing: border-box;
 }
 
-.search-wrapper {
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
     margin-left: auto;
+}
+
+.search-wrapper {
     flex-shrink: 0;
     display: flex;
     align-items: center;
 }
 
-.search-toggle {
+.icon-action {
+    box-sizing: border-box;
+    text-decoration: none;
     background: none;
     border: none;
     cursor: pointer;
@@ -45,12 +53,17 @@
     justify-content: center;
 }
 
-.search-toggle:hover {
+.icon-action:hover {
     background-color: #e8eef3;
     color: #14532d;
 }
 
-.search-toggle svg {
+.icon-action:focus-visible {
+    outline: 2px solid #14532d;
+    outline-offset: 2px;
+}
+
+.icon-action svg {
     width: 22px;
     height: 22px;
     display: block;
@@ -113,7 +126,6 @@
     font-weight: 700;
     letter-spacing: 0.01em;
     white-space: nowrap;
-    margin-right: auto;
 }
 
 .header-subtitle {

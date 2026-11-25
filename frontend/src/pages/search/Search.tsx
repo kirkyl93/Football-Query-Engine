@@ -8,6 +8,7 @@ import {SearchOverallTable} from "./components/SearchOverallTable";
 import {SearchByGameTable} from "./components/SearchByGameTable";
 import {SearchByCountTable} from "./components/SearchByCountTable";
 import SearchHeader from "./components/SearchHeader";
+import {QuizAuthor} from "../games/QuizOwner";
 import {
     numberOfGamesOrSeasonsSortOptions,
     SortOptions,
@@ -109,6 +110,11 @@ const Search: React.FC = () => {
                     }}>
                     <NaturalLanguageSearchBar isOpen={isQuestionOpen} onApplyFilters={handleNaturalLanguageSearch} />
                 </div>
+
+                <QuizAuthor key={location.search} query={location.search} searchType={
+                    selectedScope === StatScope.GAME ? "game" :
+                    numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) ? "occurrences" : "totals"
+                }/>
 
                 {selectedScope !== StatScope.GAME &&
                     !numberOfGamesOrSeasonsSortOptions.includes(selectedSortBy) &&
