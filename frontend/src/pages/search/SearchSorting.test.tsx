@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {MemoryRouter, useLocation} from 'react-router-dom';
 import {describe, expect, it, vi} from 'vitest';
 import Search from './Search';
+import styles from './components/SearchOverallTable.module.css';
 
 vi.mock('./components/SearchFilterBar', () => ({default: () => null}));
 vi.mock('./hooks/useInfiniteScroll', () => ({useInfiniteScroll: () => ({data: [row], hasData: true, hasMore: false, loading: false, error: null, lastElementRef: vi.fn(), retry: vi.fn()})}));
@@ -52,6 +53,16 @@ describe('table sorting through the results-page URL', () => {
         expect(params().get('sort')).toBe('mpg');
         expect(params().get('direction')).toBe('desc');
         expect(screen.getByRole('button', {name: /^Sorted by mins per goal,/})).toHaveTextContent('▼');
+    });
+
+    it('keeps both the appearance filter and the active rate visible on narrow tables', () => {
+        renderSearch('scope=o&sort=mpg&ma=50');
+        const hidden = styles['third-columns-to-hide'];
+        expect(screen.getByRole('button', {name: 'Sort by apps'}).closest('th')).not.toHaveClass(hidden);
+        expect(screen.getByRole('button', {name: /^Sorted by mins per goal,/}).closest('th')).not.toHaveClass(hidden);
+        expect(screen.getByRole('cell', {name: '60 (0)'})).not.toHaveClass(hidden);
+        expect(screen.getByRole('cell', {name: '450.0'})).not.toHaveClass(hidden);
+        expect(screen.getByRole('button', {name: 'Sort by goals'}).closest('th')).toHaveClass(hidden);
     });
 
     it('offers combined goals and assists directly and keeps repeated clicks on that metric', async () => {

@@ -54,7 +54,7 @@ export function SearchOverallResults<Row extends Partial<PlayerSearchResult>>({
     lastElementRef?: React.RefCallback<HTMLTableRowElement>;
     onViewDetails?: (row: Row) => void;
 }) {
-    const keptStats = new Set(compactStats?.length ? compactStats : getCompactSearchStats(filterState));
+    const keptStats = new Set(getCompactSearchStats(filterState, compactStats));
     const tableClassName = [baseStyles["generic-table"], baseStyles["results-table"], keptStats.size > 1 && styles.multiStatTable]
         .filter(Boolean).join(" ");
     function statClass(field: string, baseClass?: string) {
