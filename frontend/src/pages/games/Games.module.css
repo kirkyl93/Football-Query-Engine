@@ -578,7 +578,7 @@
 
 .wrongGuesses {
     margin: 0 0 12px;
-    max-width: 360px;
+    max-width: 640px;
 }
 
 .wrongGuessesToggle {
@@ -597,30 +597,64 @@
     color: var(--color-ink);
 }
 
-.wrongGuessList {
-    padding: 0 12px;
-    margin: 6px 0 0;
-    list-style: none;
+.wrongGuessTableWrap {
+    margin-top: 6px;
+    overflow-x: auto;
     border: 1px solid var(--color-border-subtle);
     border-radius: 8px;
+}
+
+.wrongGuessTable {
+    width: 100%;
+    border-collapse: collapse;
     font-size: 13px;
 }
 
-.wrongGuessList li {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 7px 0;
+.wrongGuessTable th, .wrongGuessTable td {
+    padding: 8px 10px;
+    text-align: start;
+    vertical-align: top;
+    border-bottom: 1px solid var(--color-border-subtle);
 }
 
-.wrongGuessList li + li {
-    border-top: 1px solid var(--color-border-subtle);
+.wrongGuessTable thead {
+    background: #f9fafb;
+    color: var(--color-muted);
+}
+
+.wrongGuessTable th {
+    font-weight: 600;
+}
+
+.wrongGuessTable tbody:last-child tr:last-child > *,
+.wrongGuessTable tbody:last-child [rowspan] {
+    border-bottom: 0;
+}
+
+.wrongGuessTable .wrongGuessNumber {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+}
+
+.wrongGuessMore, .wrongGuessNoStats {
+    display: block;
+    margin-top: 3px;
+    color: var(--color-muted);
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.wrongGuessMore {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .wrongGuessPoints {
     color: #991b1b;
     white-space: nowrap;
-    font-variant-numeric: tabular-nums;
 }
 
 .guessFeedback {

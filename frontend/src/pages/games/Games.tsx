@@ -1,15 +1,16 @@
 import {useEffect, useId, useMemo, useRef, useState, type ReactNode} from "react";
 import {Link, useParams} from "react-router-dom";
 import PlayerSearchBar from "../../components/PlayerSearchBar";
-import {convertDateStringToDate} from "../../lib/DateUtils";
+import {convertDateStringToDate, formatSeason} from "../../lib/DateUtils";
 import {useMediaQuery} from "../player/hooks/useMediaQuery";
 import searchStyles from "../search/Search.module.css";
 import {guestToken, quizRequest} from "./api";
-import type {QuizView} from "./api";
+import type {Clue, QuizView} from "./api";
 import {QuizTable, type QuizDetailSelection} from "./QuizTable";
 import {SearchDetailsModal} from "../search/components/SearchDetailsModal";
 import {useSearchFiltersFromUrl} from "../search/hooks/useSearchFiltersFromUrl";
 import type {DetailGame} from "../search/lib/searchDetails";
+import {formatMinutesPerEvent} from "../search/lib/smallScreenStat";
 import shared from "../../styles/shared.module.css";
 import styles from "./Games.module.css";
 
@@ -275,25 +276,26 @@ interface WrongGuess {
     player_id: number;
     name: string;
     points: number;
+    stats?: Clue["stats"][];
 }
 
 function WrongGuesses({quizId, count}: {quizId: number | string; count: number}) {
     const [open, setOpen] = useState(false);
-    const listId = useId();
+    const panelId = useId();
     return (
         <div className={styles.wrongGuesses}>
             <button type="button" className={styles.wrongGuessesToggle} aria-expanded={open}
-                aria-controls={listId} onClick={() => setOpen(previous => !previous)}>
+                aria-controls={panelId} onClick={() => setOpen(previous => !previous)}>
                 {open ? "Hide" : "Show"} wrong guesses ({count})
             </button>
-            <div id={listId} hidden={!open}>
-                {open && <WrongGuessList quizId={quizId} count={count}/>}
+            <div id={panelId} hidden={!open}>
+                {open && <WrongGuessTable quizId={quizId} count={count}/>}
             </div>
         </div>
     );
 }
 
-function WrongGuessList({quizId, count}: {quizId: number | string; count: number}) {
+function WrongGuessTable({quizId, count}: {quizId: number | string; count: number}) {
     const [result, setResult] = useState<{count: number; guesses: WrongGuess[]; error?: string}>();
 
     useEffect(() => {
@@ -311,16 +313,72 @@ function WrongGuessList({quizId, count}: {quizId: number | string; count: number
     if (result.error) return <p className={styles.quizError} role="alert">{result.error}</p>;
     if (!result.guesses.length) return <p className={styles.quizStatus}>No wrong guesses yet.</p>;
 
+    const stats = result.guesses.flatMap(guess => guess.stats ?? []);
+    const fields = new Set(stats.flatMap(row => Object.keys(row)));
+    const columns = Object.entries(wrongGuessStatLabels).filter(([field]) => fields.has(field));
+    const statFields = columns.map(([field]) => field);
+    const context = fields.has("date") ? "Match" : fields.has("season") ? "Season" : fields.has("competition_name") ? "Competition" : undefined;
     return (
-        <ul className={styles.wrongGuessList} aria-label="Wrong guesses">
-            {result.guesses.map(guess => (
-                <li key={guess.player_id}>
-                    <span>{guess.name}</span>
-                    <span className={styles.wrongGuessPoints}>−{Math.abs(guess.points)} {guess.points === -1 ? "point" : "points"}</span>
-                </li>
-            ))}
-        </ul>
+        <div className={styles.wrongGuessTableWrap} tabIndex={0} role="region" aria-label="Wrong guess results">
+            <table className={styles.wrongGuessTable} aria-label="Wrong guesses">
+                <thead><tr>
+                    <th scope="col">Player</th>
+                    {context && <th scope="col">{context}</th>}
+                    {columns.map(([field, label]) => <th key={field} scope="col" className={styles.wrongGuessNumber}>{label}</th>)}
+                    <th scope="col" className={styles.wrongGuessNumber}>Penalty</th>
+                </tr></thead>
+                {result.guesses.map(guess => (
+                    <WrongGuessRows key={guess.player_id} guess={guess} fields={statFields}
+                        showContext={context !== undefined}/>
+                ))}
+            </table>
+        </div>
     );
+}
+
+const wrongGuessStatLabels = {
+    total_appearances: "Apps", total_goals: "Goals", total_assists: "Assists", goals_and_assists: "Goals + assists",
+    total_minutes_played: "Mins",
+    total_yellow_cards: "Yellows", total_red_cards: "Reds", goals: "Goals", assists: "Assists", minutes_played: "Mins",
+    number_of_games: "Matching games", number_of_seasons: "Matching seasons",
+    mins_per_goal: "Mins per goal", mins_per_assist: "Mins per assist", mins_per_goal_or_assist: "Mins per goal or assist",
+    mins_per_yellow: "Mins per yellow", mins_per_red: "Mins per red",
+};
+
+function WrongGuessRows({guess, fields, showContext}: {guess: WrongGuess; fields: string[]; showContext: boolean}) {
+    const [expanded, setExpanded] = useState(false);
+    const otherCount = (guess.stats?.length ?? 0) - 1;
+    const rows = guess.stats?.length ? (expanded ? guess.stats : guess.stats.slice(0, 1)) : [undefined];
+    return <tbody>
+        {rows.map((row, index) => (
+            <tr key={index}>
+                {index === 0 && <th scope="rowgroup" rowSpan={rows.length}>
+                    {guess.name}
+                    {otherCount > 0 && <button type="button" className={styles.wrongGuessMore} aria-expanded={expanded}
+                        onClick={() => setExpanded(value => !value)}>
+                        {expanded ? "Hide" : "Show"} other results ({otherCount})
+                    </button>}
+                    {guess.stats?.length === 0 && <small className={styles.wrongGuessNoStats}>No matches under the quiz filters.</small>}
+                </th>}
+                {showContext && <td>{wrongGuessPeriod(row)}</td>}
+                {fields.map(field => {
+                    const value = row?.[field];
+                    const shown = field.startsWith("mins_per_") && typeof value === "number"
+                        ? formatMinutesPerEvent(value) : value ?? "—";
+                    return <td key={field} className={styles.wrongGuessNumber}>{shown}</td>;
+                })}
+                {index === 0 && <td rowSpan={rows.length} className={styles.wrongGuessNumber + " " + styles.wrongGuessPoints}>
+                    −{Math.abs(guess.points)}
+                </td>}
+            </tr>
+        ))}
+    </tbody>;
+}
+
+function wrongGuessPeriod(row: Clue["stats"] | undefined) {
+    const period = typeof row?.date === "string" ? formatQuizDate(row.date) :
+        typeof row?.season === "number" ? formatSeason(row.season) : undefined;
+    return [period, row?.competition_name].filter(Boolean).join(" · ") || "—";
 }
 
 function outcome(points: number) {
