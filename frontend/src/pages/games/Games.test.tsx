@@ -4,6 +4,9 @@ import {MemoryRouter, Route, Routes} from "react-router-dom";
 import {afterEach, expect, it, vi} from "vitest";
 import {DailyQuizPage, GamesPage, QuizArchive} from "./Games";
 import styles from "./Games.module.css";
+import overallTable from "../search/components/SearchOverallTable.module.css";
+import gameTable from "../search/components/SearchByGameTable.module.css";
+import countTable from "../search/components/SearchByCountTable.module.css";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -292,6 +295,25 @@ it("explains how quiz points work on hover, tap or keyboard focus", async () => 
     expect(screen.getByRole("tooltip")).toBeVisible();
 });
 
+it.each([
+    ["scope=o&sort=g", "Clubs", overallTable["first-columns-to-hide"], overallTable["second-columns-to-hide"]],
+    ["scope=g&sort=g", "Club", gameTable["first-columns-to-hide"], gameTable["first-columns-to-hide"]],
+    ["scope=o&sort=gw", "Clubs", countTable["first-gs-columns-to-hide"], countTable["first-gs-columns-to-hide"]],
+])("keeps club and position clues available at narrow widths for %s", async (detail_context, clubLabel, hideClub, hidePosition) => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(Response.json({
+        id: 14, date: "2026-11-23", question: "Which players qualify?", detail_context,
+        rows: [{player: null, points: null, stats: {}, available_hints: ["clubs", "position"]}],
+        total: 1, found: 0, score: 0, hint_cost: 5, finished: false, display_name: null,
+    }));
+    render(<MemoryRouter><DailyQuizPage/></MemoryRouter>);
+
+    const table = within(await screen.findByRole("region", {name: "Quiz clues"}));
+    expect(table.getByRole("columnheader", {name: clubLabel})).not.toHaveClass(hideClub);
+    expect(table.getByRole("columnheader", {name: "Position"})).not.toHaveClass(hidePosition);
+    expect(table.getByRole("button", {name: /Reveal clubs/}).closest("td")).not.toHaveClass(hideClub);
+    expect(table.getByRole("button", {name: /Reveal position/}).closest("td")).not.toHaveClass(hidePosition);
+});
+
 it("reveals paid hints in the matching table cells while leaving the player masked", async () => {
     const row = {player: null, points: null, stats: {total_goals: 5}, available_hints: ["nationality", "clubs", "position"]};
     const quiz = {
@@ -325,6 +347,9 @@ it("reveals paid hints in the matching table cells while leaving the player mask
     const position = cell("Position");
 
     const nationalityButton = player.getByRole("button", {name: "Reveal nationality for row 1, 5 points"});
+    const hiddenPlayerGroup = player.getByLabelText("Hidden player").parentElement;
+    expect(hiddenPlayerGroup).toContainElement(nationalityButton);
+    expect(hiddenPlayerGroup).toHaveStyle({display: "inline-flex"});
     expect(nationalityButton).toHaveTextContent(/^−5$/);
     expect(nationalityButton).toHaveAttribute("title", "Reveal nationality for 5 points");
     await user.click(nationalityButton);

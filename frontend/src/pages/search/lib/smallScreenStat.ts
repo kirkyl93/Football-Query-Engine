@@ -17,7 +17,7 @@ const statForSort: Partial<Record<SortOptions, string>> = {
     [SortOptions.MINUTES_PER_RED]: "mins_per_red",
 };
 
-export function getCompactSearchStats(filters: SearchFilterState): string[] {
+export function getCompactSearchStats(filters: SearchFilterState, questionStats?: readonly string[]): string[] {
     const bounds = [
         ["total_appearances", filters.minimumAppearances, filters.maximumAppearances, 1],
         ["total_goals", filters.minimumGoals, filters.maximumGoals, 0],
@@ -26,14 +26,16 @@ export function getCompactSearchStats(filters: SearchFilterState): string[] {
         ["total_yellow_cards", filters.minimumYellowCards, filters.maximumYellowCards, 0],
         ["total_red_cards", filters.minimumRedCards, filters.maximumRedCards, 0],
     ] as const;
-    const stats = new Set<string>(bounds
+    const stats = new Set<string>(questionStats?.length ? questionStats : bounds
         .filter(([, min, max, minBound]) => (min ?? -1) >= minBound || (max ?? -1) >= 0)
         .map(([field]) => field));
-    if (!stats.size) stats.add(statForSort[filters.sortBy] ?? "total_goals");
     if (stats.delete("goals_and_assists")) {
         stats.add("total_goals");
         stats.add("total_assists");
     }
+    const sortStat = statForSort[filters.sortBy];
+    if (sortStat) stats.add(sortStat);
+    if (!stats.size) stats.add("total_goals");
     return [...stats];
 }
 

@@ -39,10 +39,11 @@ export const SearchByGameTable: React.FC<SearchByGameTableProps> = ({filterState
 }
 
 export function SearchGameResults<Row extends Partial<PlayerGameSearchResult>>({
-    data, filterState, onSortChange, lastElementRef, extraHeaders, renderExtraCells, getRowClassName, getCellContent,
+    data, filterState, onSortChange, lastElementRef, extraHeaders, renderExtraCells, getRowClassName, getCellContent, keepClueColumns,
 }: {
     data: Row[];
     extraHeaders?: React.ReactNode;
+    keepClueColumns?: boolean;
     renderExtraCells?: (index: number) => React.ReactNode;
     getRowClassName?: (index: number) => string | undefined;
     getCellContent?: (index: number) => ResultCellContent | undefined;
@@ -50,17 +51,19 @@ export function SearchGameResults<Row extends Partial<PlayerGameSearchResult>>({
     onSortChange?: (sortBy: SortOptions) => void;
     lastElementRef?: React.RefCallback<HTMLTableRowElement>;
 }) {
+    const clubColumnClass = keepClueColumns ? undefined : styles['first-columns-to-hide'];
+    const positionColumnClass = keepClueColumns ? baseStyles['position-column'] : `${styles['first-columns-to-hide']} ${baseStyles['position-column']}`;
     return (
         <table className={baseStyles['generic-table']}>
             <thead>
             <tr>
                 <th className={baseStyles.numeric}>Rank</th>
                 <th className={baseStyles['player-name']}>Player</th>
-                <th className={styles['first-columns-to-hide']}>Club</th>
+                <th className={clubColumnClass}>Club</th>
                 <th className={styles['second-columns-to-hide']}>Competition</th>
                 <th className={styles['second-columns-to-hide']}>Season</th>
                 <th className={styles['third-columns-to-hide']}>Date</th>
-                <th className={`${styles['first-columns-to-hide']} ${baseStyles['position-column']}`}>Position</th>
+                <th className={positionColumnClass}>Position</th>
                 <th>Result</th>
                 <th className={`${baseStyles.numeric} ${styles['first-columns-to-hide']}`}>Mins Played</th>
                 <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} direction="desc" allowReverse={false} onSort={onSortChange} />
@@ -91,8 +94,8 @@ export function SearchGameResults<Row extends Partial<PlayerGameSearchResult>>({
                                 avatarClassName={styles['third-columns-to-hide']}
                             />
                         </td>
-                        {cells?.clubs ? <td className={styles['first-columns-to-hide']}>{cells.clubs}</td> : <ClubBadgesCell
-                            cellClassName={styles['first-columns-to-hide']}
+                        {cells?.clubs ? <td className={clubColumnClass}>{cells.clubs}</td> : <ClubBadgesCell
+                            cellClassName={clubColumnClass}
                             clubIds={playerGame.club_id == null ? undefined : [playerGame.club_id]}
                         />}
                         <td className={styles['second-columns-to-hide']}>
@@ -109,7 +112,7 @@ export function SearchGameResults<Row extends Partial<PlayerGameSearchResult>>({
                         </td>
                         <td className={styles['second-columns-to-hide']}>{playerGame.season == null ? '—' : formatSeason(playerGame.season)}</td>
                         <td className={styles['third-columns-to-hide']}>{playerGame.date ? dateFormatter.format(convertDateStringToDate(playerGame.date)) : '—'}</td>
-                        <td className={`${styles['first-columns-to-hide']} ${baseStyles['position-column']}`}>{cells?.position ?? playerGame.sub_position ?? '—'}</td>
+                        <td className={positionColumnClass}>{cells?.position ?? playerGame.sub_position ?? '—'}</td>
                         <td>
                             <span className={baseStyles['match-result']}>
                             {playerGame.home_club_id != null && <img

@@ -214,6 +214,7 @@ export function QuizTable({
     };
     const tableProps = {
         data, filterState, extraHeaders, renderExtraCells, getCellContent,
+        keepClueColumns: !preview,
         getRowClassName: review ? (index: number) => {
             const found = rows[index].found;
             return found === undefined ? undefined : found ? styles.foundAnswer : styles.missedAnswer;
