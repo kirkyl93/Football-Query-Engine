@@ -41,10 +41,11 @@ export const SearchOverallTable: React.FC<SearchOverallTableProps> = ({filterSta
 }
 
 export function SearchOverallResults<Row extends Partial<PlayerSearchResult>>({
-    data, filterState, onSortChange, lastElementRef, onViewDetails, extraHeaders, renderExtraCells, getRowClassName, getCellContent, compactStats,
+    data, filterState, onSortChange, lastElementRef, onViewDetails, extraHeaders, renderExtraCells, getRowClassName, getCellContent, compactStats, keepClueColumns,
 }: {
     data: Row[];
     extraHeaders?: React.ReactNode;
+    keepClueColumns?: boolean;
     renderExtraCells?: (index: number) => React.ReactNode;
     getRowClassName?: (index: number) => string | undefined;
     getCellContent?: (index: number) => ResultCellContent | undefined;
@@ -54,6 +55,8 @@ export function SearchOverallResults<Row extends Partial<PlayerSearchResult>>({
     lastElementRef?: React.RefCallback<HTMLTableRowElement>;
     onViewDetails?: (row: Row) => void;
 }) {
+    const clubColumnClass = keepClueColumns ? undefined : styles['first-columns-to-hide'];
+    const positionColumnClass = keepClueColumns ? baseStyles['position-column'] : `${styles['second-columns-to-hide']} ${baseStyles['position-column']}`;
     const keptStats = new Set(getCompactSearchStats(filterState, compactStats));
     const tableClassName = [baseStyles["generic-table"], baseStyles["results-table"], keptStats.size > 1 && styles.multiStatTable]
         .filter(Boolean).join(" ");
@@ -66,9 +69,9 @@ export function SearchOverallResults<Row extends Partial<PlayerSearchResult>>({
             <tr>
                 <th className={baseStyles.numeric}>Rank</th>
                 <th className={baseStyles['player-name']}>Player</th>
-                <th className={styles['first-columns-to-hide']}>Clubs</th>
+                <th className={clubColumnClass}>Clubs</th>
                 {filterState.statScope === StatScope.SEASON && <th className={baseStyles['season-column']}>Season</th>}
-                <th className={`${styles['second-columns-to-hide']} ${baseStyles['position-column']}`}>Position</th>
+                <th className={positionColumnClass}>Position</th>
                 <SortableTh label="Apps" columnSort={SortOptions.APPEARANCES} activeSort={filterState.sortBy} direction={filterState.sortDirection} onSort={onSortChange} className={statClass("total_appearances", baseStyles['table-header'])} />
                 <SortableTh label="Mins" columnSort={SortOptions.MINUTES_PLAYED} activeSort={filterState.sortBy} direction={filterState.sortDirection} onSort={onSortChange} className={statClass("total_minutes_played", baseStyles['table-header'])} />
                 <SortableTh label="Goals" columnSort={SortOptions.GOALS} activeSort={filterState.sortBy} direction={filterState.sortDirection} onSort={onSortChange} className={statClass("total_goals")} />
@@ -112,12 +115,12 @@ export function SearchOverallResults<Row extends Partial<PlayerSearchResult>>({
                             />
                             {filterState.statScope === StatScope.SEASON && <span className={baseStyles['mobile-season']}>{player.season == null ? '—' : formatSeason(player.season)}</span>}
                         </td>
-                        {cells?.clubs ? <td className={styles['first-columns-to-hide']}>{cells.clubs}</td> : <ClubBadgesCell
-                            cellClassName={styles['first-columns-to-hide']}
+                        {cells?.clubs ? <td className={clubColumnClass}>{cells.clubs}</td> : <ClubBadgesCell
+                            cellClassName={clubColumnClass}
                             clubIds={player.clubs_played_for?.split(',')}
                         />}
                         {filterState.statScope === StatScope.SEASON && <td className={baseStyles['season-column']}>{player.season == null ? '—' : formatSeason(player.season)}</td>}
-                        <td className={`${styles['second-columns-to-hide']} ${baseStyles['position-column']}`}>{cells?.position ?? player.sub_position ?? '—'}</td>
+                        <td className={positionColumnClass}>{cells?.position ?? player.sub_position ?? '—'}</td>
                         <td className={statClass("total_appearances", baseStyles.numeric)}><strong>{player.total_appearances ?? '—'}</strong>
                             {!filterState.subsOnly && player.substitute_appearances != null && (<> ({player.substitute_appearances})</>)}</td>
                         <td className={statClass("total_minutes_played", baseStyles.numeric)}>{player.total_minutes_played ?? '—'}</td>

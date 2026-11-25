@@ -63,6 +63,8 @@ describe('table sorting through the results-page URL', () => {
         expect(screen.getByRole('cell', {name: '60 (0)'})).not.toHaveClass(hidden);
         expect(screen.getByRole('cell', {name: '450.0'})).not.toHaveClass(hidden);
         expect(screen.getByRole('button', {name: 'Sort by goals'}).closest('th')).toHaveClass(hidden);
+        expect(screen.getByRole('columnheader', {name: 'Clubs'})).toHaveClass(styles['first-columns-to-hide']);
+        expect(screen.getByRole('columnheader', {name: 'Position'})).toHaveClass(styles['second-columns-to-hide']);
     });
 
     it('offers combined goals and assists directly and keeps repeated clicks on that metric', async () => {

@@ -35,7 +35,9 @@ export const PlayerCell: React.FC<PlayerCellProps> = ({
     flag,
     avatarClassName,
 }) => playerId == null || !playerName ? (
-    <>{flag}<span aria-label="Hidden player">?</span></>
+    <span style={{display: 'inline-flex', alignItems: 'center'}}>
+        {flag}<span aria-label="Hidden player">?</span>
+    </span>
 ) : (
     <span style={{display: 'inline-flex', alignItems: 'center'}}>
         {flag ?? (countryCode && <CountryFlag code={countryCode} className={flagClassName}/>)}

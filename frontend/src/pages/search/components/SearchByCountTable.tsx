@@ -41,10 +41,11 @@ export const SearchByCountTable: React.FC<SearchByCountTableProps> = ({filterSta
 }
 
 export function SearchCountResults<Row extends Partial<PlayerNumberOfGamesOrSeasonsResult>>({
-    data, filterState, onSortChange, lastElementRef, onViewDetails, extraHeaders, renderExtraCells, getRowClassName, getCellContent,
+    data, filterState, onSortChange, lastElementRef, onViewDetails, extraHeaders, renderExtraCells, getRowClassName, getCellContent, keepClueColumns,
 }: {
     data: Row[];
     extraHeaders?: React.ReactNode;
+    keepClueColumns?: boolean;
     renderExtraCells?: (index: number) => React.ReactNode;
     getRowClassName?: (index: number) => string | undefined;
     getCellContent?: (index: number) => ResultCellContent | undefined;
@@ -53,14 +54,16 @@ export function SearchCountResults<Row extends Partial<PlayerNumberOfGamesOrSeas
     lastElementRef?: React.RefCallback<HTMLTableRowElement>;
     onViewDetails?: (row: Row) => void;
 }) {
+    const clubColumnClass = keepClueColumns ? undefined : styles['first-gs-columns-to-hide'];
+    const positionColumnClass = keepClueColumns ? baseStyles['position-column'] : `${styles['first-gs-columns-to-hide']} ${baseStyles['position-column']}`;
     return (
         <table className={`${baseStyles['generic-table']} ${baseStyles['results-table']}`}>
             <thead>
             <tr>
                 <th className={baseStyles.numeric}>Rank</th>
                 <th className={baseStyles['player-name']}>Player</th>
-                <th className={styles['first-gs-columns-to-hide']}>Clubs</th>
-                <th className={`${styles['first-gs-columns-to-hide']} ${baseStyles['position-column']}`}>Position</th>
+                <th className={clubColumnClass}>Clubs</th>
+                <th className={positionColumnClass}>Position</th>
                 {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <th className={baseStyles['season-column']}>Season</th>}
                 {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <SortableTh label="Number of seasons" columnSort={SortOptions.NUMBER_OF_SEASONS_WITH} activeSort={filterState.sortBy} direction={filterState.sortDirection} onSort={onSortChange} />}
                 {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <SortableTh label="Number of games" columnSort={SortOptions.NUMBER_OF_GAMES_WITH} activeSort={filterState.sortBy} direction={filterState.sortDirection} onSort={onSortChange} />}
@@ -90,11 +93,11 @@ export function SearchCountResults<Row extends Partial<PlayerNumberOfGamesOrSeas
                             />
                             {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <span className={baseStyles['mobile-season']}>{player.season == null ? '—' : formatSeason(player.season)}</span>}
                         </td>
-                        {cells?.clubs ? <td className={styles['first-gs-columns-to-hide']}>{cells.clubs}</td> : <ClubBadgesCell
-                            cellClassName={styles['first-gs-columns-to-hide']}
+                        {cells?.clubs ? <td className={clubColumnClass}>{cells.clubs}</td> : <ClubBadgesCell
+                            cellClassName={clubColumnClass}
                             clubIds={player.clubs_played_for?.split(',')}
                         />}
-                        <td className={`${styles['first-gs-columns-to-hide']} ${baseStyles['position-column']}`}>{cells?.position ?? player.sub_position ?? '—'}</td>
+                        <td className={positionColumnClass}>{cells?.position ?? player.sub_position ?? '—'}</td>
                         {filterState.statScope === StatScope.SEASON && filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td className={baseStyles['season-column']}>{player.season == null ? '—' : formatSeason(player.season)}</td>}
                         {filterState.sortBy === SortOptions.NUMBER_OF_SEASONS_WITH && <td className={baseStyles.numeric}>{player.number_of_seasons ?? '—'}</td>}
                         {filterState.sortBy === SortOptions.NUMBER_OF_GAMES_WITH && <td className={baseStyles.numeric}>{player.number_of_games ?? '—'}</td>}
