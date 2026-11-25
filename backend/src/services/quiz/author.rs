@@ -379,11 +379,32 @@ async fn schedule_career(
     super::career::schedule(&pool, input.into_inner()).await
 }
 
+#[derive(Deserialize)]
+struct ScheduleInput {
+    id: String,
+    wrong_guess_penalty: Option<i32>,
+}
+
+impl ScheduleInput {
+    fn penalty(&self) -> QuizResult<i32> {
+        let penalty = self
+            .wrong_guess_penalty
+            .unwrap_or(super::play::DEFAULT_WRONG_GUESS_PENALTY);
+        if penalty < 0 {
+            return Err(QuizError(
+                StatusCode::BAD_REQUEST,
+                "Enter a non-negative whole number for the wrong guess penalty.",
+            ));
+        }
+        Ok(penalty)
+    }
+}
+
 async fn schedule(
     owner: Option<web::Data<Owner>>,
     request: HttpRequest,
     pool: web::Data<PgPool>,
-    input: web::Json<DraftInput>,
+    input: web::Json<ScheduleInput>,
 ) -> QuizResult<HttpResponse> {
     let owner = owner.ok_or(UNAUTHORIZED)?;
     let mut session = owner.authorize(&request).await?;
@@ -397,6 +418,7 @@ async fn schedule(
         "Score the answers before scheduling.",
     ))?;
     if !draft.published {
+        let penalty = input.penalty()?;
         let answers: Vec<_> = draft
             .players
             .iter()
@@ -404,8 +426,8 @@ async fn schedule(
             .map(|(player, score)| score.saved_answer(player))
             .collect();
         let inserted = sqlx::query(concat!(
-            "INSERT INTO game_quizzes (quiz_date, day_slot, question, search_params, answers)
-             SELECT $1, 1, $2, $3, $4 WHERE $1 >= ",
+            "INSERT INTO game_quizzes (quiz_date, day_slot, question, search_params, answers, wrong_guess_penalty)
+             SELECT $1, 1, $2, $3, $4, $5 WHERE $1 >= ",
             current_quiz_date_sql!(),
             "
              ON CONFLICT (quiz_date, day_slot) DO NOTHING",
@@ -414,6 +436,7 @@ async fn schedule(
         .bind(&draft.question)
         .bind(&draft.search)
         .bind(Json(answers))
+        .bind(penalty)
         .execute(pool.as_ref())
         .await?;
         if inserted.rows_affected() == 0 {
@@ -428,6 +451,24 @@ async fn schedule(
 mod tests {
     use super::*;
     use actix_web::{App, test};
+
+    #[actix_web::test]
+    async fn accepts_a_non_negative_penalty_or_uses_the_default() {
+        let mut input = ScheduleInput {
+            id: String::new(),
+            wrong_guess_penalty: None,
+        };
+        assert_eq!(input.penalty().ok(), Some(10));
+        input.wrong_guess_penalty = Some(7);
+        assert_eq!(input.penalty().ok(), Some(7));
+        input.wrong_guess_penalty = Some(0);
+        assert_eq!(input.penalty().ok(), Some(0));
+        input.wrong_guess_penalty = Some(-1);
+        assert!(matches!(
+            input.penalty(),
+            Err(QuizError(StatusCode::BAD_REQUEST, _))
+        ));
+    }
 
     #[actix_web::test]
     async fn saved_answers_keep_raw_jev_ratings_alongside_awarded_points() {

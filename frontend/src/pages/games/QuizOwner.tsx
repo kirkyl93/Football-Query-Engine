@@ -164,6 +164,7 @@ export function QuizAuthor({searchType, query}: {searchType: string, query: stri
     const [edits, setEdits] = useState<Record<number, string>>({});
     const hasEdits = Object.keys(edits).length > 0;
     const [saved, setSaved] = useState("");
+    const [penalty, setPenalty] = useState("");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const filterState = useSearchFiltersFromUrl(query);
@@ -185,6 +186,7 @@ export function QuizAuthor({searchType, query}: {searchType: string, query: stri
         setPreview(undefined);
         setScores(undefined);
         setEdits({});
+        setPenalty("");
         setSaved("");
         setError("");
     }
@@ -261,7 +263,13 @@ export function QuizAuthor({searchType, query}: {searchType: string, query: stri
                                 <div className={styles.actions}>
                                     {hasEdits && <button type="submit" className={buttonClass} disabled={busy}>Recalculate points</button>}
                                     <button type="button" className={buttonClass} disabled={busy || !!saved || hasEdits} onClick={() => void run(async () => {
-                                        const result = await quizRequest<{date: string}>("/owner/schedule", owner, {id: preview.id});
+                                        const override = penalty === "" ? undefined : Number(penalty);
+                                        if (override !== undefined && (!Number.isInteger(override) || override < 0 || override > 2_147_483_647)) {
+                                            throw new Error("Enter a non-negative whole number for the wrong guess penalty.");
+                                        }
+                                        const result = await quizRequest<{date: string}>("/owner/schedule", owner, {
+                                            id: preview.id, wrong_guess_penalty: override,
+                                        });
                                         setSaved(result.date);
                                     })}>Schedule quiz</button>
                                 </div>
@@ -269,6 +277,11 @@ export function QuizAuthor({searchType, query}: {searchType: string, query: stri
                             <p className={styles.ratingHelp}>
                                 Ratings run from 0 (easiest) to 4 (hardest). Clear an override to restore Jev’s rating.
                             </p>
+                            <label className={`${styles.adminField} ${styles.penaltyField}`}>
+                                Wrong guess penalty (points)
+                                <input type="number" min="0" max="2147483647" step="1" placeholder="10 (default)"
+                                    value={penalty} disabled={busy || !!saved} onChange={event => setPenalty(event.target.value)}/>
+                            </label>
                             <div className={styles.authorScoreTable} tabIndex={0} role="region" aria-label="Answer ratings and points">
                                 <table className={styles.standingsTable}>
                                     <thead><tr>

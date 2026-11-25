@@ -411,6 +411,10 @@
     font-weight: 400;
 }
 
+.penaltyField input {
+    max-width: 150px;
+}
+
 .adminField :is(input, textarea):focus-visible,
 .adminButton:focus-visible,
 .authorLink:focus-visible {

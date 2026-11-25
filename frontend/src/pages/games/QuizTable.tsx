@@ -123,8 +123,10 @@ function PointsHelp({penalty, hintCost}: {penalty: number; hintCost?: number}) {
             {createPortal(
                 <div ref={tooltip} id={id} role="tooltip" hidden={!open} className={styles.pointsTooltip}
                     onMouseLeave={event => leave(event.relatedTarget)}>
-                    <p>Correct guesses earn the points shown for that player. Each new wrong guess costs {penalty} points.
-                        Repeat guesses don’t change your score.</p>
+                    <p>Correct guesses earn the points shown for that player. {penalty === 0
+                        ? "Wrong guesses cost no points."
+                        : "Each new wrong guess costs " + penalty + (penalty === 1 ? " point." : " points.")}
+                        {" "}Repeat guesses don’t change your score.</p>
                     <p>We add each player’s difficulty rank to their search rank, then award consecutive point values in that order. Larger sums earn more.</p>
                     {hintCost !== undefined && <p>Each hint deducts {hintCost} points from your score.</p>}
                 </div>,
