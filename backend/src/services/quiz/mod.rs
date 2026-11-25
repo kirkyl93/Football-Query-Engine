@@ -6,6 +6,7 @@ macro_rules! current_quiz_date_sql {
 }
 
 mod author;
+mod career;
 mod play;
 mod scoring;
 mod search;
@@ -23,7 +24,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
     config.service(
         web::scope("/quiz")
             .configure(author::configure)
-            .configure(play::configure),
+            .configure(play::configure)
+            .configure(career::configure),
     );
 }
 

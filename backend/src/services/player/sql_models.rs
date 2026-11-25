@@ -39,6 +39,24 @@ pub struct PlayerAppearances {
     result: String,
 }
 
+impl PlayerAppearances {
+    pub(crate) fn game_id(&self) -> i32 {
+        self.game_id
+    }
+
+    pub(crate) fn season(&self) -> i32 {
+        self.season
+    }
+
+    pub(crate) fn club_id(&self) -> i32 {
+        self.club_id
+    }
+
+    pub(crate) fn competition(&self) -> (CompetitionType, &str) {
+        (self.competition_type, &self.competition_id)
+    }
+}
+
 impl<'r> FromRow<'r, PgRow> for PlayerAppearances {
     fn from_row(row: &'r PgRow) -> Result<Self, Error> {
         Ok(Self {

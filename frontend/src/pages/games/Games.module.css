@@ -21,7 +21,7 @@
 
 .gameCards {
     display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
 }
 
@@ -37,14 +37,6 @@
     border: 1px solid var(--color-border);
     border-radius: 10px;
     background: #f9fafb;
-}
-
-.featuredCard {
-    color: #fff;
-    border-color: #1b382a;
-    background:
-        radial-gradient(circle at right center, transparent 78px, rgb(255 255 255 / .14) 79px, transparent 80px),
-        linear-gradient(110deg, #132a20, #1b382a);
 }
 
 .gameIntro h2 {
@@ -63,10 +55,6 @@
     line-height: 1.55;
 }
 
-.featuredCard p {
-    color: #d9e8df;
-}
-
 .gameActions {
     display: flex;
     flex-wrap: wrap;
@@ -82,20 +70,14 @@
     gap: 10px;
     margin: 0;
     padding: 8px 14px;
-    background: #fff;
-    color: #132a20;
     text-decoration: none;
-}
-
-.gameActions .playLink:hover {
-    background: #e4efe8;
 }
 
 .archiveLink {
     display: inline-flex;
     align-items: center;
     min-height: 40px;
-    color: #f3f8f5;
+    color: var(--color-ink);
     font-size: 13px;
     font-weight: 550;
     text-underline-offset: 3px;
@@ -106,20 +88,8 @@
 }
 
 .gameActions a:focus-visible {
-    outline: 2px solid #fff;
+    outline: 2px solid var(--color-ink);
     outline-offset: 3px;
-}
-
-.comingSoon {
-    display: inline-flex;
-    padding: 5px 9px;
-    border: 1px solid var(--color-border);
-    border-radius: 5px;
-    color: var(--color-muted);
-    background: var(--color-surface);
-    font-size: 12px;
-    line-height: 1.5;
-    font-weight: 550;
 }
 
 .archiveList {
@@ -171,8 +141,23 @@
     outline-offset: -2px;
 }
 
-.archiveRow a span {
+.archiveRowEnd {
+    display: inline-flex;
     flex: 0 0 auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.archiveCompleted {
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #e7f3eb;
+    color: #14532d;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.archiveArrow {
     color: #14532d;
     font-size: 17px;
 }
@@ -386,6 +371,10 @@
 .adminPanel {
     max-width: 400px;
     margin: 0 auto;
+}
+
+.adminPanel + .adminPanel {
+    margin-top: 16px;
 }
 
 .adminTitle {
@@ -964,6 +953,11 @@
     scroll-margin-block-start: 24px;
 }
 
+.leaderboard:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+}
+
 .leaderboardHeader {
     display: flex;
     flex-wrap: wrap;
@@ -1050,4 +1044,56 @@
         padding-inline: 12px;
         white-space: nowrap;
     }
+}
+
+.careerIntro {
+    flex: 1;
+    min-width: 0;
+    margin-block: 8px;
+}
+
+.careerIntro p {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--color-muted);
+}
+
+.careerTableCaption {
+    padding-bottom: 8px;
+    text-align: start;
+    color: var(--color-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.careerBio {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 26px;
+    margin: 12px 0 0;
+}
+
+.careerBio dt, .nextClue {
+    color: var(--color-muted);
+    font-size: 12px;
+}
+
+.nextClue {
+    display: block;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+@container search-results (max-width: 600px) {
+    .careerOptionalStat { display: none; }
+}
+
+.hiddenSeason {
+    color: var(--color-muted);
+}
+
+.careerBio dd {
+    margin: 2px 0 0;
+    font-size: 14px;
+    font-weight: 600;
 }

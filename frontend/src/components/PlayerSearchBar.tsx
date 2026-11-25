@@ -94,7 +94,7 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
         setHighlightIndex(-1);
     };
 
-    const handleSuggestionClick = async (suggestion: string, playerId: number) => {
+    const handleSuggestionClick = async ({player_id: playerId, first_name, last_name}: Player) => {
         setSearchTerm('');
         setIsDropdownVisible(false);
         setHighlightIndex(-1);
@@ -104,13 +104,13 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
             return;
         }
         if (onSelectPlayerId) {
-            onSelectPlayerId(playerId, suggestion);
+            onSelectPlayerId(playerId, [first_name, last_name].filter(Boolean).join(" "));
             return;
         }
         const playerGameData = await fetch(`${API_BASE_URL}/players/${playerId}/games`);
         const data: PlayerAppearance[] = await playerGameData.json();
         if (onSelectPlayer) {
-            onSelectPlayer(suggestion, data);
+            onSelectPlayer(last_name, data);
         }
     };
 
@@ -134,7 +134,7 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
         } else if (highlightedSuggestion) {
             // Enter confirms the highlighted option; with nothing
             // highlighted the swallowed form submit keeps it a no-op.
-            void handleSuggestionClick(highlightedSuggestion.last_name, highlightedSuggestion.player_id);
+            void handleSuggestionClick(highlightedSuggestion);
         }
     };
 
@@ -178,7 +178,7 @@ const PlayerSearchBar: React.FC<PlayerSearchBarProps> = ({ placeHolderText, link
                             role="option"
                             aria-selected={highlightedSuggestion?.player_id === suggestion.player_id}
                             className={`${styles['header-suggestion-item']} ${highlightedSuggestion?.player_id === suggestion.player_id ? styles['highlighted'] : ''}`}
-                            onClick={() => handleSuggestionClick(suggestion.last_name, suggestion.player_id)}
+                            onClick={() => handleSuggestionClick(suggestion)}
                             onMouseEnter={() => setHighlightIndex(index)}
                             ref={(element) => {
                                 itemRefs.current[index] = element;

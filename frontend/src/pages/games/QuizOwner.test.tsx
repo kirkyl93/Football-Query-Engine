@@ -2,7 +2,7 @@ import {fireEvent, render, screen, within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {MemoryRouter} from "react-router-dom";
 import {afterEach, expect, it, vi} from "vitest";
-import {QuizAuthor} from "./QuizOwner";
+import {QuizAuthor, QuizOwnerPage} from "./QuizOwner";
 import {OWNER_SESSION} from "./api";
 
 afterEach(() => {
@@ -82,4 +82,29 @@ it("verifies the owner session and scores only on the explicit step", async () =
     await user.click(screen.getByRole("button", {name:"Schedule quiz"}));
     expect(await screen.findByText("Quiz scheduled for 2099-10-05 (UK).")).toBeInTheDocument();
     expect(request.mock.calls.map(([url]) => String(url).split("/").pop())).toEqual(["session", "preview", "score", "overrides", "overrides", "schedule"]);
+});
+
+it("lets a signed-in owner select a player and schedule the career quiz", async () => {
+    sessionStorage.setItem(OWNER_SESSION, "owner-token");
+    const request = vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
+        const path = new URL(String(url)).pathname;
+        if (path.endsWith("/session")) return Response.json({});
+        if (path === "/players") return Response.json([{player_id: 42, first_name: "Alex", last_name: "Example"}]);
+        if (path.endsWith("/career/schedule")) {
+            expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer owner-token");
+            expect(JSON.parse(String(init?.body))).toEqual({player_id: 42, date: "2099-10-05"});
+            return Response.json({date: "2099-10-05", player: "Alex Example"});
+        }
+        throw new Error("Unexpected request " + path);
+    });
+    const user = userEvent.setup();
+    render(<MemoryRouter><QuizOwnerPage/></MemoryRouter>);
+    await user.click(await screen.findByRole("button", {name: "Set player"}));
+    await user.type(screen.getByRole("combobox", {name: "Player"}), "Alex");
+    await user.click(await screen.findByRole("option", {name: /Alex Example/}));
+    fireEvent.change(screen.getByLabelText("Publication date (6 am UK time)"), {target: {value: "2099-10-05"}});
+    await user.click(screen.getByRole("button", {name: "Schedule player"}));
+    expect(await screen.findByRole("status")).toHaveTextContent("Alex Example scheduled for 2099-10-05.");
+    expect(request).toHaveBeenCalledWith(expect.stringMatching(/\/quiz\/owner\/career\/schedule$/),
+        expect.objectContaining({method: "POST"}));
 });

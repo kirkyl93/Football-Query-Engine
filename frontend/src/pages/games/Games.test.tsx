@@ -7,27 +7,31 @@ import styles from "./Games.module.css";
 
 afterEach(() => vi.restoreAllMocks());
 
-it("offers direct access to the quiz and archive, and marks the career game as coming soon", () => {
+it("offers direct access to both games and their archives", () => {
     render(<MemoryRouter><GamesPage/></MemoryRouter>);
 
     const quiz = screen.getByRole("region", {name: "Daily Quiz"});
     expect(within(quiz).getByRole("link", {name: "Play daily quiz"})).toHaveAttribute("href", "/games/daily-quiz");
     expect(within(quiz).getByRole("link", {name: "Past quizzes"})).toHaveAttribute("href", "/games/daily-quiz/archive");
     const career = screen.getByRole("region", {name: "Guess the Player"});
-    expect(within(career).getByText("Coming soon")).toBeVisible();
-    expect(within(career).queryByRole("link")).not.toBeInTheDocument();
+    expect(within(career).getByRole("link", {name: "Play Guess the Player"})).toHaveAttribute("href", "/games/guess-the-player");
+    expect(within(career).getByRole("link", {name: "Past quizzes"})).toHaveAttribute("href", "/games/guess-the-player/archive");
 });
 
 
-it("links to each quiz separately when two quizzes share a date", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json([
-        ["2026-11-22", "First quiz", 14],
-        ["2026-11-22", "Second quiz", 15],
+it("marks completed daily quizzes and links each quiz on the same date separately", async () => {
+    const request = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json([
+        ["2026-11-22", "First quiz", 14, true],
+        ["2026-11-22", "Second quiz", 15, false],
     ]));
 
     render(<MemoryRouter><QuizArchive/></MemoryRouter>);
 
-    expect(await screen.findByRole("link", {name: "First quiz"})).toHaveAttribute("href", "/games/daily-quiz/archive/14");
+    const completed = await screen.findByRole("link", {name: "First quiz · Completed"});
+    expect(completed).toHaveAttribute("href", "/games/daily-quiz/archive/14");
+    expect(within(completed).getByText("Completed")).toBeVisible();
+    expect(request).toHaveBeenCalledWith(expect.stringMatching(/\/quiz\/archive$/),
+        expect.objectContaining({method: "GET", headers: expect.objectContaining({Authorization: expect.stringMatching(/^Bearer /)})}));
     expect(screen.getByRole("link", {name: "Second quiz"})).toHaveAttribute("href", "/games/daily-quiz/archive/15");
 });
 

@@ -15,9 +15,11 @@ import styles from "./Games.module.css";
 
 const DAILY = "/games/daily-quiz";
 const ARCHIVE = DAILY + "/archive";
-const quizPageClass = `${styles.quizPage} ${searchStyles["content-wrapper"]}`;
+export const CAREER_GAME = "/games/guess-the-player";
+export const CAREER_ARCHIVE = CAREER_GAME + "/archive";
+export const quizPageClass = `${styles.quizPage} ${searchStyles["content-wrapper"]}`;
 
-function QuizPageHeading({title, children}: {title: string; children: ReactNode}) {
+export function QuizPageHeading({title, children}: {title: string; children: ReactNode}) {
     return (
         <header className={styles.quizPageHeading}>
             <h1 className={styles.quizTitle}>{title}</h1>
@@ -31,7 +33,7 @@ export function GamesPage() {
         <main className={styles.gamesPage}>
             <h1 className={styles.gamesTitle}>Games</h1>
             <div className={styles.gameCards}>
-                <section className={`${styles.gameCard} ${styles.featuredCard}`} aria-labelledby="daily-game-title">
+                <section className={styles.gameCard} aria-labelledby="daily-game-title">
                     <div className={styles.gameIntro}>
                         <h2 id="daily-game-title">Daily Quiz</h2>
                         <p>Guess the footballers who match today’s search.</p>
@@ -46,45 +48,75 @@ export function GamesPage() {
                 <section className={styles.gameCard} aria-labelledby="career-game-title">
                     <div className={styles.gameIntro}>
                         <h2 id="career-game-title">Guess the Player</h2>
-                        <p>Identify a footballer as clues from their career are revealed.</p>
+                        <p>Guess the footballer before their career clues give them away.</p>
                     </div>
-                    <span className={styles.comingSoon}>Coming soon</span>
+                    <div className={styles.gameActions}>
+                        <Link to={CAREER_GAME} className={`${shared["apply-button"]} ${styles.playLink}`}>
+                            Play Guess the Player <span aria-hidden="true">→</span>
+                        </Link>
+                        <Link to={CAREER_ARCHIVE} className={styles.archiveLink}>Past quizzes</Link>
+                    </div>
                 </section>
             </div>
         </main>
     );
 }
 
-type ArchiveEntry = [date: string, question: string, id?: number];
+type DailyArchiveEntry = [date: string, question: string, id?: number, completed?: boolean];
+type CareerArchiveEntry = [date: string, id: number, slot: number, completed?: boolean];
+interface ArchiveEntry {date: string; id?: number; label: string; completed: boolean}
 
 const archiveDate = new Intl.DateTimeFormat("en-GB", {
     day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
 });
 
-export function QuizArchive() {
+export function formatQuizDate(date: string) {
+    return archiveDate.format(convertDateStringToDate(date));
+}
+
+export function QuizArchive({game = 'daily'}: {game?: 'daily' | 'career'}) {
+    const isCareer = game === "career";
+    const today = isCareer ? CAREER_GAME : DAILY;
+    const archive = isCareer ? CAREER_ARCHIVE : ARCHIVE;
     const [entries, setEntries] = useState<ArchiveEntry[]>();
     const [error, setError] = useState("");
     useEffect(() => {
         const request = new AbortController();
-        void quizRequest<ArchiveEntry[]>("/archive", undefined, undefined, request.signal).then(setEntries,
-            error => { if (!request.signal.aborted) setError(error.message); });
+        const token = guestToken();
+        const load = isCareer
+            ? quizRequest<CareerArchiveEntry[]>("/career/archive", token, undefined, request.signal)
+                .then(rows => rows.map(([date, id, slot, completed = false]) => {
+                    const action = completed ? "Review quiz" : "Play quiz";
+                    return {date, id, completed, label: slot === 1 ? action : action + " " + slot};
+                }))
+            : quizRequest<DailyArchiveEntry[]>("/archive", token, undefined, request.signal)
+                .then(rows => rows.map(([date, question, id, completed = false]) => ({date, id, completed, label: question})));
+        void load.then(
+            value => { if (!request.signal.aborted) setEntries(value); },
+            error => { if (!request.signal.aborted) setError(error.message); },
+        );
         return () => request.abort();
-    }, []);
+    }, [isCareer]);
     return (
         <main className={quizPageClass}>
-            <QuizPageHeading title="Past quizzes">
+            <QuizPageHeading title={isCareer ? "Past Guess the Player quizzes" : "Past quizzes"}>
                 <Link to="/games">All games</Link>
-                <Link to={DAILY}>Today’s quiz</Link>
+                <Link to={today}>Today’s quiz</Link>
             </QuizPageHeading>
             {error ? <p className={styles.quizError} role="alert">{error}</p> :
                 !entries ? <p className={styles.quizStatus} role="status">Loading quizzes…</p> :
                 entries.length === 0 ? <p className={styles.quizStatus}>No past quizzes yet.</p> :
                     <ul className={styles.archiveList}>
-                        {entries.map(([date, question, id]) => (
+                        {entries.map(({date, label, id, completed}) => (
                             <li key={id ?? date} className={styles.archiveRow}>
-                                <time dateTime={date}>{archiveDate.format(convertDateStringToDate(date))}</time>
-                                <Link to={ARCHIVE + "/" + (id ?? date)}>
-                                    {question}<span aria-hidden="true">→</span>
+                                <time dateTime={date}>{formatQuizDate(date)}</time>
+                                <Link to={archive + "/" + (id ?? date)}
+                                    aria-label={[label, isCareer && formatQuizDate(date), completed && "Completed"].filter(Boolean).join(" · ")}>
+                                    {label}
+                                    <span className={styles.archiveRowEnd}>
+                                        {completed && <span className={styles.archiveCompleted}>Completed</span>}
+                                        <span className={styles.archiveArrow} aria-hidden="true">→</span>
+                                    </span>
                                 </Link>
                             </li>
                         ))}
@@ -104,7 +136,6 @@ function Quiz({quizKey}: {quizKey?: string}) {
     const [quiz, setQuiz] = useState<QuizView | null>();
     const [standings, setStandings] = useState<Standing[]>();
     const [standingsError, setStandingsError] = useState("");
-    const [name, setName] = useState("");
     const [error, setError] = useState("");
     const [feedback, setFeedback] = useState<{points: number; sequence: number}>();
     const [busy, setBusy] = useState(false);
@@ -223,17 +254,8 @@ function Quiz({quizKey}: {quizKey?: string}) {
                                 onClick={() => void update("answers")}>Reveal answers</button>}
                         </div>
                     )}
-                    {canJoinBoard && (
-                        <form className={styles.quizControls} onSubmit={event => {
-                            event.preventDefault();
-                            void update("finish", {display_name: name.trim()});
-                        }}>
-                            <label className={styles.controlLabel} htmlFor="quiz-display-name">Public display name</label>
-                            <input id="quiz-display-name" className={styles.displayName} value={name} maxLength={32}
-                                required onChange={event => setName(event.target.value)}/>
-                            <button type="submit" className={buttonClass} disabled={busy || !name.trim()}>Join leaderboard</button>
-                        </form>
-                    )}
+                    {canJoinBoard && <LeaderboardNameForm inputId="quiz-display-name" busy={busy}
+                        onJoin={name => void update("finish", {display_name: name})}/>}
                     {quizId && !!quiz.wrong_guess_count &&
                         <WrongGuesses key={quizId} quizId={quizId} count={quiz.wrong_guess_count}/>}
                     <QuizTable rows={quiz.rows} onViewDetails={setDetail} filterState={detailFilters} review={quiz.answers_revealed}
@@ -356,6 +378,27 @@ function QuizScore({score, maximum, change}: {score: number; maximum?: number; c
             </>}
             <span className={styles.srOnly}>{score}{maximum !== undefined && ` out of ${maximum} possible points`}</span>
         </dd>
+    );
+}
+
+export function LeaderboardNameForm({inputId, busy, onJoin}: {
+    inputId: string;
+    busy: boolean;
+    onJoin: (name: string) => void;
+}) {
+    const [name, setName] = useState("");
+    const displayName = name.trim();
+    return (
+        <form className={styles.quizControls} onSubmit={event => {
+            event.preventDefault();
+            if (displayName && !busy) onJoin(displayName);
+        }}>
+            <label className={styles.controlLabel} htmlFor={inputId}>Public display name</label>
+            <input id={inputId} className={styles.displayName} value={name} maxLength={32}
+                required onChange={event => setName(event.target.value)}/>
+            <button type="submit" className={shared["apply-button"] + " " + styles.quizButton}
+                disabled={busy || !displayName}>Join leaderboard</button>
+        </form>
     );
 }
 

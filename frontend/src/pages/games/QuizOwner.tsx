@@ -1,6 +1,7 @@
 import {useEffect, useId, useState} from "react";
 import type {FormEvent} from "react";
 import {Link} from "react-router-dom";
+import PlayerSearchBar from "../../components/PlayerSearchBar";
 import {searchFiltersForApi} from "../../lib/SearchUrlUtils";
 import {OWNER_SESSION, quizRequest} from "./api";
 import type {Clue} from "./api";
@@ -83,8 +84,61 @@ export function QuizOwnerPage() {
                 )}
                 {error && <p className={styles.adminError} role="alert">{error}</p>}
             </section>
+            {owner && <CareerAuthor owner={owner}/>}
         </main>
     );
+}
+
+function CareerAuthor({owner}: {owner: string}) {
+    const [open, setOpen] = useState(false);
+    const [player, setPlayer] = useState<{id: number; name: string}>();
+    const [date, setDate] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState("");
+    const [scheduled, setScheduled] = useState<{date: string; player: string}>();
+
+    async function submit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (!player || !date || busy) return;
+        setBusy(true);
+        setError("");
+        setScheduled(undefined);
+        try {
+            setScheduled(await quizRequest<{date: string; player: string}>("/owner/career/schedule", owner, {
+                player_id: player.id, date,
+            }));
+        } catch (reason) {
+            setError((reason as Error).message);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    return <section className={`${styles.card} ${styles.adminPanel}`} aria-labelledby="career-author-title">
+        <h2 id="career-author-title" className={styles.adminTitle}>Guess the Player</h2>
+        <button type="button" className={buttonClass} aria-expanded={open} onClick={() => setOpen(value => !value)}>
+            {open ? "Close scheduling" : "Set player"}
+        </button>
+        {open && <div className={styles.adminForm}>
+            <label className={styles.controlLabel} htmlFor="career-owner-player">Player</label>
+            <PlayerSearchBar inputId="career-owner-player" placeHolderText="Find a player…" linkToPlayer={false} variant="inline"
+                disabled={busy} onSelectPlayerId={(id, name) => {
+                    setPlayer({id, name}); setScheduled(undefined); setError("");
+                }}/>
+            {player && <form className={styles.adminForm} onSubmit={event => void submit(event)}>
+                <strong>{player.name}</strong>
+                <label className={styles.adminField}>
+                    Publication date (6 am UK time)
+                    <input type="date" value={date} required disabled={busy} onChange={event => {
+                        setDate(event.target.value); setScheduled(undefined);
+                    }}/>
+                </label>
+                <button className={buttonClass} type="submit" disabled={busy || !date || !!scheduled}>Schedule player</button>
+            </form>}
+            {scheduled && <p role="status">{scheduled.player} scheduled for <time dateTime={scheduled.date}>{scheduled.date}</time>.</p>}
+            {error && <p className={styles.adminError} role="alert">{error}</p>}
+        </div>}
+    </section>;
 }
 
 interface Preview { id: string, rows: Clue[], count: number }

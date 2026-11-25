@@ -142,7 +142,8 @@ pub(super) fn configure(config: &mut web::ServiceConfig) {
             .route("/preview", web::post().to(preview))
             .route("/score", web::post().to(score))
             .route("/overrides", web::post().to(overrides))
-            .route("/schedule", web::post().to(schedule)),
+            .route("/schedule", web::post().to(schedule))
+            .route("/career/schedule", web::post().to(schedule_career)),
     );
 }
 
@@ -367,6 +368,17 @@ fn score_response(draft: &Draft) -> QuizResult<HttpResponse> {
     Ok(ok(scores))
 }
 
+async fn schedule_career(
+    owner: Option<web::Data<Owner>>,
+    request: HttpRequest,
+    pool: web::Data<PgPool>,
+    input: web::Json<super::career::ScheduleInput>,
+) -> QuizResult<HttpResponse> {
+    let owner = owner.ok_or(UNAUTHORIZED)?;
+    drop(owner.authorize(&request).await?);
+    super::career::schedule(&pool, input.into_inner()).await
+}
+
 async fn schedule(
     owner: Option<web::Data<Owner>>,
     request: HttpRequest,
@@ -567,9 +579,15 @@ mod tests {
                 .configure(super::super::configure),
         )
         .await;
-        for route in ["preview", "score", "overrides", "schedule"] {
+        for route in [
+            "preview",
+            "score",
+            "overrides",
+            "schedule",
+            "career/schedule",
+        ] {
             let req = test::TestRequest::post().uri(&format!("/quiz/owner/{route}"))
-                .set_json(json!({"id":"x","date":"2099-01-01","question":"Who?","search_type":"totals","query":"scope=o","ratings":{}})).to_request();
+                .set_json(json!({"id":"x","player_id":123,"date":"2099-01-01","question":"Who?","search_type":"totals","query":"scope=o","ratings":{}})).to_request();
             assert_eq!(
                 test::call_service(&app, req).await.status(),
                 StatusCode::UNAUTHORIZED

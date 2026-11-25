@@ -201,7 +201,7 @@ fn view(quiz: &Quiz, attempt: &Attempt, reveal_answers: bool) -> QuizResult<Http
     })))
 }
 
-fn guest(request: &HttpRequest) -> QuizResult<&str> {
+pub(super) fn guest(request: &HttpRequest) -> QuizResult<&str> {
     request
         .headers()
         .get(header::AUTHORIZATION)
@@ -234,13 +234,16 @@ async fn read_attempt(pool: &PgPool, id: i32, guest: &str) -> QuizResult<Attempt
     ).bind(id).bind(guest).fetch_optional(pool).await?.unwrap_or_default())
 }
 
-async fn archive(pool: web::Data<PgPool>) -> QuizResult<HttpResponse> {
-    let entries: Vec<(NaiveDate, String, i32)> = sqlx::query_as(concat!(
-        "SELECT quiz_date, question, quiz_id FROM game_quizzes WHERE quiz_date < ",
+async fn archive(pool: web::Data<PgPool>, request: HttpRequest) -> QuizResult<HttpResponse> {
+    let entries: Vec<(NaiveDate, String, i32, bool)> = sqlx::query_as(concat!(
+        "SELECT q.quiz_date, q.question, q.quiz_id, COALESCE(a.finished, false) AS completed
+         FROM game_quizzes q
+         LEFT JOIN game_quiz_attempts a ON a.quiz_id = q.quiz_id AND a.guest_id = $1::text::uuid
+         WHERE q.quiz_date < ",
         current_quiz_date_sql!(),
-        "
-         ORDER BY quiz_date DESC, day_slot LIMIT 365",
+        " ORDER BY q.quiz_date DESC, q.day_slot LIMIT 365",
     ))
+    .bind(guest(&request).ok())
     .fetch_all(pool.as_ref())
     .await?;
     Ok(ok(entries))

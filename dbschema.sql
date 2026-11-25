@@ -462,6 +462,44 @@ CREATE TABLE public.game_quiz_attempts (
     PRIMARY KEY (quiz_id, guest_id)
 );
 
+-- Guess the Player quiz tables.
+
+CREATE TABLE public.game_career_quizzes (
+    quiz_id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    quiz_date date NOT NULL,
+    day_slot integer NOT NULL DEFAULT 1 CHECK (day_slot > 0),
+    player_id integer NOT NULL,
+    player_name text NOT NULL,
+    date_of_birth date NOT NULL,
+    height_cm integer NOT NULL CHECK (height_cm > 0),
+    country_code text,
+    country_name text,
+    position text,
+    nationality_reveal_step integer CHECK (nationality_reveal_step > 0),
+    position_reveal_step integer CHECK (position_reveal_step > 0),
+    UNIQUE (quiz_date, day_slot)
+);
+
+CREATE TABLE public.game_career_seasons (
+    quiz_id integer NOT NULL REFERENCES public.game_career_quizzes (quiz_id),
+    season integer NOT NULL,
+    reveal_order integer NOT NULL CHECK (reveal_order > 0),
+    summary jsonb NOT NULL,
+    game_ids integer[] NOT NULL CHECK (cardinality(game_ids) > 0),
+    PRIMARY KEY (quiz_id, season),
+    UNIQUE (quiz_id, reveal_order)
+);
+
+CREATE TABLE public.game_career_attempts (
+    quiz_id integer NOT NULL REFERENCES public.game_career_quizzes (quiz_id),
+    guest_id uuid NOT NULL,
+    started_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+    completed_at timestamptz CHECK (completed_at >= started_at),
+    display_name text CHECK (length(display_name) BETWEEN 1 AND 32),
+    CHECK (display_name IS NULL OR completed_at IS NOT NULL),
+    PRIMARY KEY (quiz_id, guest_id)
+);
+
 -- Completed on 2026-08-21 11:27:03
 
 --
