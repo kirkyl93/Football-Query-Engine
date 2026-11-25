@@ -48,6 +48,7 @@ export interface QuizView {
     question: string;
     rows: Clue[];
     detail_context?: string;
+    question_stats?: string[];
     total: number;
     score: number;
     max_score?: number;

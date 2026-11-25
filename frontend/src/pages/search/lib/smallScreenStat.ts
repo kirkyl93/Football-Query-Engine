@@ -1,5 +1,41 @@
 import {SortOptions} from "../../../types/SearchOptions";
 import {PlayerSearchResult} from "../../../types/Player";
+import type {SearchFilterState} from "../../../types/SearchFilterState";
+
+const statForSort: Partial<Record<SortOptions, string>> = {
+    [SortOptions.GOALS]: "total_goals",
+    [SortOptions.ASSISTS]: "total_assists",
+    [SortOptions.GOALS_AND_ASSISTS]: "goals_and_assists",
+    [SortOptions.APPEARANCES]: "total_appearances",
+    [SortOptions.MINUTES_PLAYED]: "total_minutes_played",
+    [SortOptions.YELLOW_CARDS]: "total_yellow_cards",
+    [SortOptions.RED_CARDS]: "total_red_cards",
+    [SortOptions.MINUTES_PER_GOAL]: "mins_per_goal",
+    [SortOptions.MINUTES_PER_ASSIST]: "mins_per_assist",
+    [SortOptions.MINUTES_PER_GOAL_OR_ASSIST]: "mins_per_goal_or_assist",
+    [SortOptions.MINUTES_PER_YELLOW]: "mins_per_yellow",
+    [SortOptions.MINUTES_PER_RED]: "mins_per_red",
+};
+
+export function getCompactSearchStats(filters: SearchFilterState): string[] {
+    const bounds = [
+        ["total_appearances", filters.minimumAppearances, filters.maximumAppearances, 1],
+        ["total_goals", filters.minimumGoals, filters.maximumGoals, 0],
+        ["total_assists", filters.minimumAssists, filters.maximumAssists, 0],
+        ["goals_and_assists", filters.minimumGoalsAndAssists, filters.maximumGoalsAndAssists, 0],
+        ["total_yellow_cards", filters.minimumYellowCards, filters.maximumYellowCards, 0],
+        ["total_red_cards", filters.minimumRedCards, filters.maximumRedCards, 0],
+    ] as const;
+    const stats = new Set<string>(bounds
+        .filter(([, min, max, minBound]) => (min ?? -1) >= minBound || (max ?? -1) >= 0)
+        .map(([field]) => field));
+    if (!stats.size) stats.add(statForSort[filters.sortBy] ?? "total_goals");
+    if (stats.delete("goals_and_assists")) {
+        stats.add("total_goals");
+        stats.add("total_assists");
+    }
+    return [...stats];
+}
 
 export const getDisplayTitleForSmallScreen = (sortBy: SortOptions): string | null => {
     switch (sortBy) {

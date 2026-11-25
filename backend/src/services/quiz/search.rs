@@ -124,7 +124,12 @@ fn wrong_guess_search(
     })?;
     let mut params = parsed.to_processed();
     params.pagination = None;
-    let endpoint = if game_scope {
+    let endpoint = result_type(&params, game_scope);
+    Ok((params, endpoint))
+}
+
+fn result_type(params: &ProcessedSearchParams, game_scope: bool) -> &'static str {
+    if game_scope {
         "game"
     } else if matches!(
         params.sort,
@@ -133,8 +138,21 @@ fn wrong_guess_search(
         "occurrences"
     } else {
         "totals"
-    };
-    Ok((params, endpoint))
+    }
+}
+
+pub(super) fn question_stats(search: &SearchParams, game_scope: bool) -> Vec<&'static str> {
+    let params = search.to_processed();
+    let mut fields = relevant_stats(&params, result_type(&params, game_scope));
+    if fields.contains(&"goals_and_assists") {
+        fields.retain(|&field| field != "goals_and_assists");
+        for field in ["total_goals", "total_assists"] {
+            if !fields.contains(&field) {
+                fields.push(field);
+            }
+        }
+    }
+    fields
 }
 
 fn relevant_stats(params: &ProcessedSearchParams, endpoint: &str) -> Vec<&'static str> {
@@ -180,7 +198,12 @@ fn project_stats(row: &Value, fields: &[&str]) -> Map<String, Value> {
                 .map(|value| (field.into(), value.clone()))
         })
         .collect();
-    for &field in fields {
+    let extra_scoring_fields = fields
+        .contains(&"goals_and_assists")
+        .then_some(["total_goals", "total_assists"])
+        .into_iter()
+        .flatten();
+    for field in fields.iter().copied().chain(extra_scoring_fields) {
         if let Some(value) = stat_value(row, field) {
             stats.insert(field.into(), value);
         }
@@ -357,6 +380,22 @@ mod tests {
     use serde_json::json;
 
     #[test]
+    fn quiz_display_stats_follow_the_question_filters() {
+        let stats = |query| question_stats(&serde_urlencoded::from_str(query).unwrap(), false);
+        assert_eq!(
+            stats("sort=g&ming=5&mina=5"),
+            ["total_goals", "total_assists"]
+        );
+        assert_eq!(
+            stats("sort=g&ma=20&maxy=2"),
+            ["total_appearances", "total_yellow_cards"]
+        );
+        assert_eq!(stats("minga=10"), ["total_goals", "total_assists"]);
+        assert_eq!(stats("sort=m"), ["total_minutes_played"]);
+        assert_eq!(stats("sort=sw&ming=5"), ["number_of_seasons"]);
+    }
+
+    #[test]
     fn wrong_guess_stats_only_include_the_question_metrics() {
         let totals = json!({"season": 2024, "rank": 8, "total_goals": 8, "total_assists": 3,
             "total_appearances": 24, "mins_per_goal": null});
@@ -367,7 +406,10 @@ mod tests {
                 "ming=10&mina=5",
                 json!({"season": 2024, "total_goals": 8, "total_assists": 3}),
             ),
-            ("minga=15", json!({"season": 2024, "goals_and_assists": 11})),
+            (
+                "minga=15",
+                json!({"season": 2024, "total_goals": 8, "total_assists": 3, "goals_and_assists": 11}),
+            ),
             ("maxap=0", json!({"season": 2024, "total_appearances": 24})),
             ("sort=mpg", json!({"season": 2024, "mins_per_goal": null})),
         ] {
@@ -383,7 +425,7 @@ mod tests {
         let game = json!({"date": "2024-08-20", "goals": 1, "assists": 2, "minutes_played": 90});
         assert_eq!(
             Value::Object(project_stats(&game, &relevant_stats(&params, endpoint))),
-            json!({"date": "2024-08-20", "goals_and_assists": 3})
+            json!({"date": "2024-08-20", "total_goals": 1, "total_assists": 2, "goals_and_assists": 3})
         );
     }
 

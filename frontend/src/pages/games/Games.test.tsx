@@ -71,6 +71,7 @@ it("shows search-style badges and View games only for revealed answers", async (
                 {player: null, points: null, stats: {total_goals: 5}},
             ],
             detail_context: "scope=o&sort=g",
+            question_stats: ["total_goals", "total_assists"],
             total: 2, score: 1, found: 1, answers_revealed: false, finished: false, display_name: null,
         }))
         .mockResolvedValueOnce(Response.json([]));
@@ -82,6 +83,8 @@ it("shows search-style badges and View games only for revealed answers", async (
     expect(within(hidden).queryByRole("img")).not.toBeInTheDocument();
     expect(within(hidden).queryByRole("button")).not.toBeInTheDocument();
     expect(screen.getAllByRole("columnheader").at(-1)).toHaveTextContent("Details");
+    expect(screen.getAllByRole("columnheader", {name: "Goals"})).toHaveLength(1);
+    expect(screen.getAllByRole("columnheader", {name: "Assists"})).toHaveLength(1);
 
     const user = userEvent.setup();
     await user.click(within(revealed).getByRole("button", {name: "View games for Alex Example"}));
