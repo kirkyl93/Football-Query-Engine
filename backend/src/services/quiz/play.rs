@@ -285,6 +285,12 @@ struct WrongGuess {
     player_id: i32,
     name: String,
     points: i32,
+    #[serde(skip)]
+    search_params: String,
+    #[serde(skip)]
+    game_scope: bool,
+    #[sqlx(skip)]
+    stats: Vec<serde_json::Map<String, Value>>,
 }
 
 async fn wrong_guesses(
@@ -294,11 +300,12 @@ async fn wrong_guesses(
 ) -> QuizResult<HttpResponse> {
     let guest = guest(&request)?;
     let (id, date) = quiz_key(&key)?;
-    let guesses = sqlx::query_as::<_, WrongGuess>(concat!(
+    let mut guesses = sqlx::query_as::<_, WrongGuess>(concat!(
         "SELECT guess.player_id::integer AS player_id,
                 COALESCE(NULLIF(trim(concat_ws(' ', p.first_name, p.last_name)), ''),
                          NULLIF(p.name, ''), 'Player #' || guess.player_id) AS name,
-                guess.points::integer AS points
+                guess.points::integer AS points, q.search_params,
+                COALESCE(q.answers->0->'rows'->0 ? 'home_club_id', false) AS game_scope
          FROM game_quizzes q
          JOIN game_quiz_attempts a ON a.quiz_id = q.quiz_id
          CROSS JOIN LATERAL jsonb_each_text(a.guesses) AS guess(player_id, points)
@@ -315,6 +322,18 @@ async fn wrong_guesses(
     .bind(guest)
     .fetch_all(pool.as_ref())
     .await?;
+    if let Some(first) = guesses.first() {
+        let mut stats = super::search::wrong_guess_stats(
+            &pool,
+            &first.search_params,
+            first.game_scope,
+            guesses.iter().map(|guess| guess.player_id).collect(),
+        )
+        .await?;
+        for guess in &mut guesses {
+            guess.stats = stats.remove(&guess.player_id).unwrap_or_default();
+        }
+    }
     Ok(ok(guesses))
 }
 

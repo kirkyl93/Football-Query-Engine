@@ -128,7 +128,10 @@ it("shows the maximum and updates the running score after correct and incorrect 
         .mockResolvedValueOnce(Response.json({...quiz, found: 1, score: 17}))
         .mockResolvedValueOnce(Response.json([{player_id: 51, first_name: "Jordan", last_name: "Example"}]))
         .mockResolvedValueOnce(Response.json({...quiz, found: 1, score: 7, wrong_guess_count: 1}))
-        .mockResolvedValueOnce(Response.json([{player_id: 51, name: "Jordan Example", points: -10}]));
+        .mockResolvedValueOnce(Response.json([{player_id: 51, name: "Jordan Example", points: -10, stats: [
+            {season: 2024, total_goals: 4},
+            {season: 2023, total_goals: 2},
+        ]}]));
     const user = userEvent.setup();
     render(<MemoryRouter><DailyQuizPage/></MemoryRouter>);
 
@@ -154,17 +157,25 @@ it("shows the maximum and updates the running score after correct and incorrect 
     expect(meter.closest("dd")).toHaveAttribute("data-band", "low");
     expect(score.getByRole("progressbar", {name: "Players found"})).toHaveAttribute("value", "1");
     expect(score.getByText("7 out of 33 possible points")).toBeInTheDocument();
-    expect(screen.queryByRole("list", {name: "Wrong guesses"})).not.toBeInTheDocument();
+    expect(screen.queryByRole("table", {name: "Wrong guesses"})).not.toBeInTheDocument();
     expect(request).not.toHaveBeenCalledWith(expect.stringMatching(/\/wrong-guesses$/), expect.any(Object));
 
     await user.click(screen.getByRole("button", {name: "Show wrong guesses (1)"}));
-    const guesses = within(await screen.findByRole("list", {name: "Wrong guesses"}));
-    expect(guesses.getByRole("listitem")).toHaveTextContent("Jordan Example−10 points");
+    const guesses = within(await screen.findByRole("table", {name: "Wrong guesses"}));
+    expect(guesses.getAllByRole("columnheader").map(header => header.textContent)).toEqual(["Player", "Season", "Goals", "Penalty"]);
+    const wrong = guesses.getByRole("row", {name: /Jordan Example/});
+    expect(within(wrong).getByRole("cell", {name: "−10"})).toBeVisible();
+    expect(within(wrong).getByRole("cell", {name: "2024/25"})).toBeVisible();
+    expect(within(wrong).getByRole("cell", {name: "4"})).toBeVisible();
+    expect(guesses.queryByRole("cell", {name: "2023/24"})).not.toBeInTheDocument();
+    await user.click(within(wrong).getByRole("button", {name: "Show other results (1)"}));
+    expect(guesses.getByRole("cell", {name: "2023/24"})).toBeVisible();
+    expect(guesses.getAllByRole("columnheader", {name: "Goals"})).toHaveLength(1);
     expect(request).toHaveBeenLastCalledWith(expect.stringMatching(/\/quiz\/14\/wrong-guesses$/),
         expect.objectContaining({method: "GET", headers: expect.objectContaining({Authorization: expect.stringMatching(/^Bearer /)})}));
 
     await user.click(screen.getByRole("button", {name: "Hide wrong guesses (1)"}));
-    expect(screen.queryByRole("list", {name: "Wrong guesses"})).not.toBeInTheDocument();
+    expect(screen.queryByRole("table", {name: "Wrong guesses"})).not.toBeInTheDocument();
 });
 
 it("lets a guest play an archived quiz and reveal found and missed answers after finishing", async () => {
@@ -225,8 +236,8 @@ it("lets a guest play an archived quiz and reveal found and missed answers after
     expect(screen.queryByRole("combobox", {name: "Your guess"})).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", {name: "Show wrong guesses (1)"}));
-    expect(within(await screen.findByRole("list", {name: "Wrong guesses"})).getByRole("listitem"))
-        .toHaveTextContent("Jordan Example−1 point");
+    expect(within(await screen.findByRole("table", {name: "Wrong guesses"})).getByRole("row", {name: /Jordan Example/}))
+        .toHaveTextContent("Jordan Example−1");
 
     await user.click(reveal);
     const answers = within(await screen.findByRole("region", {name: "Quiz answers"}));

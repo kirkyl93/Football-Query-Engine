@@ -2,7 +2,8 @@ use crate::competitions::Competition;
 use crate::countries::Country;
 use crate::services::base_query_builder::{BaseQueryMethods, escape_like_pattern};
 use crate::services::player::models::{
-    AgeRange, HeightRange, HomeAwayOption, MinuteWindow, Pagination, PenaltyOption, ProcessedSearchParams, SubFilter
+    AgeRange, HeightRange, HomeAwayOption, MinuteWindow, Pagination, PenaltyOption,
+    ProcessedSearchParams, SubFilter,
 };
 use crate::services::player::player_enums::PlayerSubPosition;
 use sqlx::{Postgres, QueryBuilder};
@@ -21,6 +22,11 @@ pub trait PlayerFilterMethods {
 
 impl PlayerFilterMethods for QueryBuilder<Postgres> {
     fn add_player_filters(&mut self, params: &ProcessedSearchParams) -> &mut Self {
+        if !params.player_ids.is_empty() {
+            self.push(" AND a.player_id = ANY(")
+                .push_bind(params.player_ids.clone())
+                .push(") ");
+        }
         self.add_seasons(&params.seasons)
             .add_competitions(&params.competitions)
             .add_positions(&params.positions)
